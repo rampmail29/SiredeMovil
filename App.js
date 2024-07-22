@@ -1,20 +1,16 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+window.navigator.userAgent = "ReactNative";
+import Toast from 'react-native-toast-message';
+import MainNavigator from './components/MainNavigator';
+import FlashMessage from 'react-native-flash-message';
+import { auth, firestore, storage } from './firebaseConfig'; // Importa desde firebaseConfig
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <MainNavigator />
+      <Toast />
+      <FlashMessage position="center" />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
