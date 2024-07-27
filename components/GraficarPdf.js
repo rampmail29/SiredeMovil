@@ -5,7 +5,7 @@ import { ref, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { generatePDF } from './GeneratePDF'; // Asegúrate de que la importación sea correcta
+import { generatePDF } from './Generate'; // Asegúrate de que la importación sea correcta
 
 const GraficarPdf = ({ route, navigation }) => {
   const { tipoInforme, datos, programa } = route.params;
