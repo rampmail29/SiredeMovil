@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Dimensions, SectionList } from 'react-native';
 import { Facultades } from './Facultades';
 import { FontAwesome } from '@expo/vector-icons';
+import { API_BASE_URL } from './Config';
 
 const ProgramasAcademicos = ({ onProgramSelect }) => {
   const [programas, setProgramas] = useState([]);
@@ -20,7 +21,7 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
   useEffect(() => {
     const obtenerProgramas = async () => {
       try {
-        const response = await fetch("http://192.168.18.21:4001/api/programas");
+        const response = await fetch(`${API_BASE_URL}/api/programas`);
         const data = await response.json();   
          
         const groupedPrograms = [

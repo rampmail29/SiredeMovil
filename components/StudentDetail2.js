@@ -6,6 +6,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { FontAwesome } from '@expo/vector-icons';
 import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
+import { API_BASE_URL } from './Config';
 
 const StudentDetail2 = ({ route, navigation }) => {
   const { documento } = route.params;
@@ -17,7 +18,7 @@ const StudentDetail2 = ({ route, navigation }) => {
     const obtenerDetallesEstudiante = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://192.168.18.21:4001/api/estudiantes/${documento}`);
+        const response = await fetch(`${API_BASE_URL}/api/estudiantes/${documento}`);
         const data = await response.json();
         setStudent(data);
       } catch (error) {

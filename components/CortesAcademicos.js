@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, ActivityIndicator } from 'react-native';
 import { showMessage } from "react-native-flash-message";
 import { useNavigation } from '@react-navigation/native';
+import { API_BASE_URL } from './Config';
 
 const CortesAcademicos = ({ selectedProgram, onNext }) => {
   const navigation = useNavigation();
@@ -21,7 +22,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
   useEffect(() => {
     const obtenerCortesIniciales = async () => {
       try {
-        const response = await fetch("http://192.168.18.21:4001/api/cortes-iniciales");
+        const response = await fetch(`${API_BASE_URL}/api/cortes-iniciales`);
         const data = await response.json();
         if (Array.isArray(data)) {
           const datCortes = data.map(element => `${element.ano}-${element.periodo}`);
@@ -105,7 +106,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
         });
         return;
       }
-      const response = await fetch('http://192.168.18.21:4001/api/estadisticasPdf', {
+      const response = await fetch(`${API_BASE_URL}/api/estadisticasPdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

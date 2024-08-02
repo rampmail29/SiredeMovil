@@ -17,7 +17,6 @@ import InformeEstudiante from './InformeEstudiante';
 import StudentDetail from './StudentDetail';
 import StudentDetail2 from './StudentDetail2';
 import InformeCarrera from './InformeCarrera';
-import Generate from './Generate';
 import Animated from 'react-native-reanimated';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';

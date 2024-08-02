@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { API_BASE_URL } from './Config';
 
 const InformeEstudiante = () => {
   const [busqueda, setBusqueda] = useState('');
@@ -10,7 +11,7 @@ const InformeEstudiante = () => {
 
   const buscarEstudiantes = async (text) => {
     try {
-      const response = await fetch(`http://192.168.18.21:4001/api/estudiantes?search=${text}`);
+      const response = await fetch(`${API_BASE_URL}/api/estudiantes?search=${text}`);
       const data = await response.json();
       setResultados(data);
     } catch (error) {

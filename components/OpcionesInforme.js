@@ -33,6 +33,7 @@ const OpcionesInforme = ({ academicData }) => {
         datos: {
         retenidos: academicData.retenidos,
       },
+        programa:academicData.carrera
         });
     } else {
       // Aquí se maneja el caso de error porque todos los arrays están vacíos
@@ -50,6 +51,7 @@ const OpcionesInforme = ({ academicData }) => {
         datos: {
         desertados: academicData.desertores,
       },
+        programa:academicData.carrera
         });
     } else {
       // Aquí se maneja el caso de error porque todos los arrays están vacíos

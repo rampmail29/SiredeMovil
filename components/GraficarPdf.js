@@ -81,7 +81,7 @@ const GraficarPdf = ({ route, navigation }) => {
           <Animated.View style={animatedStyle}>
             <TouchableOpacity 
               style={styles.buttonPdf}
-              onPress={() => generatePDF(dataArray, programa)} // Llama a generatePDF directamente
+              onPress={() => generatePDF(dataArray, programa, tipoInforme)} // Llama a generatePDF directamente
             >
               <Text style={styles.textButtonPdf}>Generar Informe en PDF</Text>
               <FontAwesome name="file-pdf-o" size={22} color="#F8E9D4" style={styles.pdfIcon} />

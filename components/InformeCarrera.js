@@ -3,6 +3,7 @@ import { SafeAreaView, ScrollView, StyleSheet, View, Animated, useWindowDimensio
 import ProgramasAcademicos from './ProgramasAcademicos';
 import CortesAcademicos from './CortesAcademicos';
 import OpcionesInforme from './OpcionesInforme';
+import { API_BASE_URL } from './Config';
 
 const programasAcademicosData = [
   { id: 1, title: 'Seleccione el programa académico al cual quiere consultar:', color: '#132F20' },

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ImageBackground, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { showMessage } from "react-native-flash-message";
-import { useNavigation } from '@react-navigation/native'; // Importar useNavigation
+import { useNavigation } from '@react-navigation/native'; 
+import { API_BASE_URL } from './Config';
 
 const Estadisticas = () => {
-  const navigation = useNavigation(); // Inicializar useNavigation
+  const navigation = useNavigation();
   const [programas, setProgramas] = useState([]);
   const [cortesIniciales, setCortesIniciales] = useState([]);
   const [cortesFinales, setCortesFinales] = useState([]);
@@ -26,7 +27,7 @@ const Estadisticas = () => {
   useEffect(() => {
     const obtenerProgramas = async () => {
       try {
-          const response = await fetch("http://192.168.18.21:4001/api/programas");
+          const response = await fetch(`${API_BASE_URL}/api/programas`);
           const data = await response.json();
           const filteredData = data.map(element => ({
               cod_snies: element.cod_snies,
@@ -41,7 +42,7 @@ const Estadisticas = () => {
 
     const obtenerCortesIniciales = async () => {
       try {
-        const response = await fetch("http://192.168.18.21:4001/api/cortes-iniciales");
+        const response = await fetch(`${API_BASE_URL}/api/cortes-iniciales`);
         const data = await response.json();
         if (Array.isArray(data)) {
           const datCortes = data.map(element => `${element.ano}-${element.periodo}`);
@@ -150,7 +151,7 @@ const Estadisticas = () => {
         });
         return;
       }
-      const response = await fetch('http://192.168.18.21:4001/api/estadisticas', {
+      const response = await fetch(`${API_BASE_URL}/api/estadisticas`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
