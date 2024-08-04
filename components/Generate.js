@@ -6,7 +6,6 @@ import { Platform } from 'react-native';
 // Función para generar el PDF
 export const generatePDF = async (dataArray, programa, tipoInforme) => {
   const { cod_snies, programa: nombre_programa } = programa;
-  console.log(tipoInforme);
 
   // Contenido HTML específico para Android
   const htmlAndroid = `
