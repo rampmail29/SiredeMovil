@@ -31,8 +31,6 @@ const Stack = createNativeStackNavigator();
 import {
   ProfileScreen,
   MessageScreen,
-  ActivityScreen,
-  ListScreen,
 } from "../screens";
 
 import SideBar from "./SideBar";
@@ -197,8 +195,6 @@ const MainNavigator = () => {
     headerShown: false 
 }}
   />
-
-
 <Tab.Screen 
   name="InformeEstudiante" 
   component={InformeEstudiante}
@@ -267,12 +263,8 @@ const MainNavigator = () => {
               
                   if (route.name === 'Perfil') {
                     iconName = focused ? 'person' : 'person-outline';
-                  } else if (route.name === 'Mensaje') {
+                  } else if (route.name === 'SireBot') {
                     iconName = focused ? 'chatbox-ellipses' : 'chatbox-ellipses-outline';
-                  } else if (route.name === 'Actividad') {
-                    iconName = focused ? 'bookmarks' : 'bookmarks-outline';
-                  } else if (route.name === 'Lista') {
-                    iconName = focused ? 'list' : 'list-outline';
                   } else if (route.name === 'Reporte') {
                     const gifSource = focused
                     ? require('../assets/carta.gif') //  Activado
@@ -323,16 +315,8 @@ const MainNavigator = () => {
                 component={ProfileScreen}
             />
             <Drawer.Screen
-                name="Mensaje"
+                name="SireBot"
                 component={MessageScreen}
-            />
-            <Drawer.Screen
-                name="Actividad"
-                component={ActivityScreen}
-            />
-            <Drawer.Screen
-                name="Lista"
-                component={ListScreen}
             />
             <Drawer.Screen
                 name="Reporte"
