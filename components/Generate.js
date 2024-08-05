@@ -11,18 +11,31 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
   const htmlAndroid = `
      <html>
       <head>
+      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
         <style>
-              @page { size: A4; margin: 15mm; }
-              body { font-family: Arial, sans-serif; padding: 1em; }
+              @page { 
+              size: A4; 
+              margin: 20mm; 
+              }
+              body { 
+              font-family: 'Montserrat', sans-serif; 
+              padding: 1em; }
               .header { text-align: center; margin-bottom: 2em; }
               .header-table { border-collapse: collapse; margin: 0 auto; display: inline-table; }
-              .header-table th, .header-table td { border: 1px solid black; padding: 0.5em; text-align: center; }
-              .header-table th { background-color: #4CAF50; color: white; }
+              .header-table th, .header-table td {
+               border: 1px solid black; 
+               padding: 0.5em; 
+               text-align: center; 
+               }
+              .informe-header.graduados  { background-color: #4CAF50; color: white; }
+              .informe-header.desertados  { background-color: #CD2222; color: white; }
+              .informe-header.retenidos  { background-color: #FC8E01; color: white; }
+              .info-head { background-color: #EAEAEA; }
               .header h1 { font-size: 1.5em; margin: 0; text-transform: uppercase; }
-              .header h2 { font-size: 0.8em; margin: 0; text-transform: uppercase; }
+              .header h2 { font-size: 1.2em; margin: 0; text-transform: uppercase; }
+              .header h3 { font-size: 1em; margin: 0; text-transform: uppercase; }
               .content { 
                 margin-top: 0.8em; 
-                margin-bottom: 80px; /* Aumentar margen inferior */
               }
               .table-container { 
                 width: 100%; 
@@ -31,9 +44,11 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
                 page-break-inside: auto; /* Intento de control de salto de página */
               }
               .table-container th, .table-container td { border: 1px solid black; padding: 0.4em; text-align: left; }
-              .table-container th { background-color: #4CAF50; color: white; }
+              .table-container.graduados th { background-color: #4CAF50; color: white; }
+              .table-container.desertados th { background-color: #CD2222; color: white; }
+              .table-container.retenidos th { background-color: #FC8E01; color: white; }
               .table-container tr:nth-child(even) { background-color: #f2f2f2; }
-              .table-container tbody tr { page-break-inside: avoid; } /* Intento de control de salto de página */
+              .table-container tbody tr { page-break-inside: avoid; page-break-after: auto; } /* Intento de control de salto de página */
               .summary-table { 
                 width: auto; 
                 margin-left: auto; 
@@ -48,34 +63,27 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
                 padding: 0.5em; 
                 text-align: right; 
               }
-              .summary-table th { background-color: #4CAF50; color: white; }
-              .summary-table.graduados { background-color: #dff0d8; }
-              .summary-table.desertados { background-color: #f2dede; }
-              .summary-table.retenidos { background-color: #fcf8e3; }
-              .footer { 
-                position: fixed; 
-                bottom: 0; 
-                width: calc(100% - 40px); 
-                text-align: center; 
-                font-weight: bold; 
-                background-color: white; 
-                padding: 10px 0;
-              }
+              .summary-table.graduados { background-color: #4CAF50; color: white; }
+              .summary-table.desertados { background-color: #CD2222; color: white; }
+              .summary-table.retenidos { background-color: #FC8E01; color: white; }
         </style>
       </head>
       <body>
         <div class="header">
           <table class="header-table">
-            <tr>
-              <td><h1>Informe de estudiantes ${tipoInforme}</h1></td>
+            <tr class="informe-header ${tipoInforme}" >
+              <td ><h1>Informe de estudiantes ${tipoInforme}</h1></td>
             </tr>
-            <tr>
-              <td><h2>${cod_snies} - ${nombre_programa}</h2></td>
+             <tr class="info-head">
+              <td><h2> Unidades Tecnológicas de Santander - UTS </h2></td>
+            </tr>
+            <tr class="info-head">
+              <td><h3>${cod_snies} - ${nombre_programa}</h3></td>
             </tr>
           </table>
         </div>
         <div class="content">
-          <table class="table-container">
+          <table class="table-container ${tipoInforme}">
             <thead>
               <tr>
                 <th>Nro. Documento</th>
@@ -98,9 +106,6 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
               <td>Total de estudiantes ${tipoInforme}: ${dataArray.length}
             </tr>
           </table>
-        </div>
-        <div class="footer">
-          Unidades Tecnológicas de Santander - UTS
         </div>
       </body>
     </html>
