@@ -3,6 +3,44 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 
+
+    // Función para obtener la fecha actual en formato "dd/mm/aaaa"
+    const getFormattedDate = () => {
+      const date = new Date();
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}_${month}_${year}`;
+    };
+
+       // Función para limpiar el nombre del programa eliminando prefijos, acentos y unificando palabras
+      const cleanProgramName = (nombre_programa) => {
+        let prefijos = ["tecnología en ", "ingeniería en ", "ingeniería de ", "ingeniería "];
+
+        // Eliminar acentos de los prefijos
+        prefijos = prefijos.map(prefijo => prefijo.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+
+        // Convertir todo a minúsculas y eliminar espacios adicionales
+        let nombreLimpio = nombre_programa.toLowerCase().trim();
+
+        // Eliminar acentos usando normalize y una expresión regular
+        nombreLimpio = nombreLimpio.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        // Eliminar el prefijo encontrado
+        for (const prefijo of prefijos) {
+          if (nombreLimpio.startsWith(prefijo)) {
+            nombreLimpio = nombreLimpio.replace(prefijo, '').trim();
+            break;
+          }
+        }
+
+        // Capitalizar la primera letra de cada palabra y eliminar espacios y guiones bajos
+        nombreLimpio = nombreLimpio.split(/[\s_]+/).map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1)).join('');
+
+        return nombreLimpio;
+      };
+
+
 // Función para generar el PDF
 export const generatePDF = async (dataArray, programa, tipoInforme) => {
   const { cod_snies, programa: nombre_programa } = programa;
@@ -235,18 +273,24 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
   try {
     const { uri } = await Print.printToFileAsync({ html: htmlContent });
     console.log('PDF generado en:', uri);
+    
 
-    // Guardar el PDF en el sistema de archivos del dispositivo
-    const fileUri = `${FileSystem.documentDirectory}myDocument.pdf`;
-    await FileSystem.moveAsync({
-      from: uri,
-      to: fileUri,
-    });
-    console.log('PDF guardado en:', fileUri);
+        // Formatear el nombre del archivo con tipoInforme, nombre_programa sin prefijo y fecha actual
+        const formattedDate = getFormattedDate();
+        const cleanedProgramName = cleanProgramName(nombre_programa).replace(/[^a-zA-Z0-9]/g, '_');
+        const fileName = `Informe${tipoInforme.charAt(0).toUpperCase() + tipoInforme.slice(1)}-${cleanedProgramName}-${formattedDate}.pdf`;
 
-    // Opcionalmente, puedes compartir el PDF usando expo-sharing
-    await Sharing.shareAsync(fileUri);
-  } catch (error) {
-    console.error('Error al generar el PDF:', error);
-  }
-};
+        // Guardar el PDF en el sistema de archivos del dispositivo con el nombre formateado
+        const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+        await FileSystem.moveAsync({
+          from: uri,
+          to: fileUri,
+        });
+        console.log('PDF guardado en:', fileUri);
+
+        // Opcionalmente, puedes compartir el PDF usando expo-sharing
+        await Sharing.shareAsync(fileUri);
+      } catch (error) {
+        console.error('Error al generar el PDF:', error);
+      }
+    };
