@@ -77,9 +77,15 @@ const GraficarPdf = ({ route, navigation }) => {
     <ImageBackground source={require('../assets/fondoinformes.jpg')} style={styles.backgroundImage}>
       <View style={styles.container}>
         <View style={styles.container2}>
-        <Text style={styles.title}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.navigate('InformeCarrera')}
+          >
+            <FontAwesome name="arrow-left" size={24} color="#6D100A" />
+          </TouchableOpacity>
+          <Text style={styles.title}>
             {tipoInforme.toLowerCase() === 'general' 
-              ? `Informe ${tipoInforme.charAt(0).toUpperCase() + tipoInforme.slice(1)} de estudiantes` 
+              ? `Informe de Estudiantes` 
               : `Informe de ${tipoInforme.charAt(0).toUpperCase() + tipoInforme.slice(1)}`}
           </Text>
           <Animated.View style={animatedStyle}>
@@ -157,6 +163,15 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 30,
   },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    padding: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 50,
+    elevation: 5,
+  },
   title: {
     fontSize: 40,
     color: '#6D100A',
@@ -164,9 +179,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Bold',
   },
   scrollViewContent: {
-  paddingTop: 240,
-   //paddingTop: 205,
-   paddingBottom: 110,
+    paddingTop: 240,
+    paddingBottom: 110,
   },
   datosContainer: {
     flex: 1,
