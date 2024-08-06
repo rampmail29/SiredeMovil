@@ -5,7 +5,7 @@ import { ref, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { generatePDF } from './Generate'; // Asegúrate de que la importación sea correcta
+import { generatePDF } from './Generate'; 
 
 const GraficarPdf = ({ route, navigation }) => {
   const { tipoInforme, datos, programa, corteInicial, corteFinal } = route.params;
@@ -77,11 +77,15 @@ const GraficarPdf = ({ route, navigation }) => {
     <ImageBackground source={require('../assets/fondoinformes.jpg')} style={styles.backgroundImage}>
       <View style={styles.container}>
         <View style={styles.container2}>
-          <Text style={styles.title}>{`Informe de ${tipoInforme.charAt(0).toUpperCase() + tipoInforme.slice(1)}`}</Text>
+        <Text style={styles.title}>
+            {tipoInforme.toLowerCase() === 'general' 
+              ? `Informe ${tipoInforme.charAt(0).toUpperCase() + tipoInforme.slice(1)} de estudiantes` 
+              : `Informe de ${tipoInforme.charAt(0).toUpperCase() + tipoInforme.slice(1)}`}
+          </Text>
           <Animated.View style={animatedStyle}>
             <TouchableOpacity 
               style={styles.buttonPdf}
-              onPress={() => generatePDF(dataArray, programa, tipoInforme, corteInicial, corteFinal)} // Llama a generatePDF directamente
+              onPress={() => generatePDF(dataArray, programa, tipoInforme, corteInicial, corteFinal)} 
             >
               <Text style={styles.textButtonPdf}>Generar Informe en PDF</Text>
               <FontAwesome name="file-pdf-o" size={22} color="#F8E9D4" style={styles.pdfIcon} />
@@ -160,8 +164,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Bold',
   },
   scrollViewContent: {
-    paddingTop: 240,
-    paddingBottom: 110,
+  paddingTop: 240,
+   //paddingTop: 205,
+   paddingBottom: 110,
   },
   datosContainer: {
     flex: 1,

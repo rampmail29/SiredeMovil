@@ -124,7 +124,6 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
       data.carrera=selectedProgram;
       
       if (typeof onNext === 'function') {
-        // Incluye selectedCorteInicial y selectedCorteFinal en el objeto que se pasa a onNext
         onNext({
           data,
           selectedCorteInicial,

@@ -39,14 +39,29 @@ import { Platform } from 'react-native';
 
         return nombreLimpio;
       };
-
+  
 
 // Función para generar el PDF
 export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial, corteFinal) => {
   const { cod_snies, programa: nombre_programa } = programa;
 
-    console.log("Corte Inicial Seleccionado:", corteInicial);
-    console.log("Corte Final Seleccionado:", corteFinal);
+      // Títulos según el tipo de informe
+      const informeTitulo = {
+        graduados: 'Informe de estudiantes Graduados',
+        desertados: 'Informe de estudiantes Desertados',
+        retenidos: 'Informe de estudiantes Retenidos',
+        general: 'Informe General de Estudiantes'
+      }[tipoInforme] || 'Informe';
+
+        // Nota según el tipo de informe
+        const notaTexto = {
+          graduados: `Este Informe contiene los estudiantes graduados del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          desertados: `Este Informe contiene los estudiantes desertados del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          retenidos: `Este Informe contiene los estudiantes retenidos del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          general: `Este Informe contiene todos los estudiantes del programa académico <strong>${nombre_programa}</strong>, incluyendo los graduados, desertados y retenidos desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`
+        }[tipoInforme] || `Este Informe contiene los estudiantes del programa académico <strong>${nombre_programa}</strong>.`;
+
+
 
   // Contenido HTML específico para Android
   const htmlAndroid = `
@@ -71,6 +86,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
               .informe-header.graduados  { background-color: #4CAF50; color: white; }
               .informe-header.desertados  { background-color: #CD2222; color: white; }
               .informe-header.retenidos  { background-color: #FC8E01; color: white; }
+              .informe-header.general { background-color: #2488E7; color: white; }
               .info-head { background-color: #EAEAEA; }
               .header h1 { font-size: 1.5em; margin: 0; text-transform: uppercase; }
               .header h2 { font-size: 1.2em; margin: 0; text-transform: uppercase; }
@@ -95,6 +111,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
               .table-container.graduados th { background-color: #4CAF50; color: white; }
               .table-container.desertados th { background-color: #CD2222; color: white; }
               .table-container.retenidos th { background-color: #FC8E01; color: white; }
+              .table-container.general th { background-color: #2488E7; color: white; }
               .table-container tr:nth-child(even) { background-color: #f2f2f2; }
               .table-container tbody tr { page-break-inside: avoid; page-break-after: auto; } /* Intento de control de salto de página */
               .summary-table { 
@@ -114,13 +131,14 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
               .summary-table.graduados { background-color: #4CAF50; color: white; }
               .summary-table.desertados { background-color: #CD2222; color: white; }
               .summary-table.retenidos { background-color: #FC8E01; color: white; }
+              .summary-table.general { background-color: #2488E7; color: white; }
         </style>
       </head>
       <body>
         <div class="header">
           <table class="header-table">
             <tr class="informe-header ${tipoInforme}" >
-              <td ><h1>Informe de estudiantes ${tipoInforme}</h1></td>
+              <td><h1>${informeTitulo}</h1></td>
             </tr>
              <tr class="info-head">
               <td><h2> Unidades Tecnológicas de Santander - UTS </h2></td>
@@ -131,7 +149,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
           </table>
         </div>
         <div class="note">
-          <span class="bold">Nota:</span> Este Informe contiene los estudiantes que tienen el status de <span class="bold">${tipoInforme}</span> en el corte inicial de <span class="bold">${corteInicial}</span> hasta el corte final <span class="bold">${corteFinal}</span> del programa académico <span class="bold">${nombre_programa}</span>.
+           <span class="bold">Nota:</span> ${notaTexto}
         </div>
         <div class="content">
           <table class="table-container ${tipoInforme}">
@@ -165,17 +183,17 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
   // Contenido HTML específico para iOS
   const htmlIOS = `
  <html>
-<head>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    @media print {
-    .table-container {
-      page-break-inside: auto;
-    }
-    .page-break {
-      page-break-before: always;
-    }
-  }
+    <head>
+      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+      <style>
+        @media print {
+        .table-container {
+          page-break-inside: auto;
+        }
+        .page-break {
+          page-break-before: always;
+        }
+      }
     @page { 
       size: A4; 
     }
@@ -196,6 +214,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
     .informe-header.graduados  { background-color: #4CAF50; color: white; }
     .informe-header.desertados  { background-color: #CD2222; color: white; }
     .informe-header.retenidos  { background-color: #FC8E01; color: white; }
+    .informe-header.general { background-color: #2488E7; color: white; }
     .info-head { background-color: #EAEAEA; }
     .header h1 { font-size: 1.5em; margin: 0; text-transform: uppercase; }
     .header h2 { font-size: 1.2em; margin: 0; text-transform: uppercase; }
@@ -220,6 +239,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
     .table-container.graduados th { background-color: #4CAF50; color: white; }
     .table-container.desertados th { background-color: #CD2222; color: white; }
     .table-container.retenidos th { background-color: #FC8E01; color: white; }
+    .table-container.general th { background-color: #2488E7; color: white; }
     .table-container tr:nth-child(even) { background-color: #f2f2f2; }
     .table-container tbody tr { page-break-before: always; page-break-after: auto; } /* Intento de control de salto de página */
     .summary-table { 
@@ -239,6 +259,8 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
     .summary-table.graduados { background-color: #4CAF50; color: white; }
     .summary-table.desertados { background-color: #CD2222; color: white; }
     .summary-table.retenidos { background-color: #FC8E01; color: white; }
+    .summary-table.general { background-color: #2488E7; color: white; }
+
     
   </style>
 </head>
@@ -246,7 +268,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
   <div class="header">
     <table class="header-table">
       <tr class="informe-header ${tipoInforme}" >
-        <td ><h1>Informe de estudiantes ${tipoInforme}</h1></td>
+        <td><h1>${informeTitulo}</h1></td>
       </tr>
        <tr class="info-head">
         <td><h2> Unidades Tecnológicas de Santander - UTS </h2></td>
@@ -258,7 +280,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
   </div>
 
    <div class="note">
-    <span class="bold">Nota:</span> Este Informe contiene los estudiantes que tienen el status de <span class="bold">${tipoInforme}</span> en el corte inicial de <span class="bold">${corteInicial}</span> hasta el corte final <span class="bold">${corteFinal}</span> del programa académico <span class="bold">${nombre_programa}</span>.
+   <span class="bold">Nota:</span> ${notaTexto}
    </div>
 
   <div class="content">

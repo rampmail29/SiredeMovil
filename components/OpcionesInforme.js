@@ -5,9 +5,8 @@ import { useNavigation } from '@react-navigation/native'; // Importar useNavigat
 
 const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFinal }) => {
   const navigation = useNavigation(); // Inicializar useNavigation
-  
   const generarInformeGraduados = () => {
-    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0)) {
+    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       console.log('Generando informe de Graduados');
       navigation.navigate('GraficarPdf', {
           tipoInforme: 'graduados',
@@ -26,7 +25,7 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
   };
 
   const generarInformeRetenidos = () => {
-    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0)) {
+    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
      
       console.log('Generando informe de Retenidos');
       navigation.navigate('GraficarPdf', {
@@ -46,7 +45,7 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
   };
 
   const generarInformeDesertados = () => {
-    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0)) {
+    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       // Aquí se genera el informe porque al menos uno de los arrays tiene datos
       console.log('Generando informe de Desertados');
       navigation.navigate('GraficarPdf', {
@@ -64,10 +63,33 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
       // Mostrar un mensaje de error o manejar la situación de otra manera
     }
   };
+  const generarInformeTodos = () => {
+    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
+      // Aquí se genera el informe porque al menos uno de los arrays tiene datos
+      console.log('Generando informe de Todos los estudiantes');
+      navigation.navigate('GraficarPdf', {
+        tipoInforme: 'general',
+        datos: {
+        general: academicData.todos,
+        },
+        programa:academicData.carrera,
+        corteInicial:selectedCorteInicial,
+        corteFinal:selectedCorteFinal
+        });
+    } else {
+      // Aquí se maneja el caso de error porque todos los arrays están vacíos
+      console.log('Error: No hay datos suficientes para generar el informe.');
+      // Mostrar un mensaje de error o manejar la situación de otra manera
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <ScrollView> 
+      <ScrollView>
+      <TouchableOpacity style={styles.button} onPress={generarInformeTodos}>
+        <FontAwesome5  name="users" size={45} color="#C3D730" style={styles.icon} />
+        <Text style={styles.buttonText}>Todos los Estudiantes</Text>
+      </TouchableOpacity> 
       <TouchableOpacity style={styles.button} onPress={generarInformeGraduados}>
         <FontAwesome5  name="user-graduate" size={45} color="#C3D730" style={styles.icon} />
         <Text style={styles.buttonText}>Graduados</Text>
