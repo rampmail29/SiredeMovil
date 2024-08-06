@@ -8,7 +8,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, w
 import { generatePDF } from './Generate'; // Asegúrate de que la importación sea correcta
 
 const GraficarPdf = ({ route, navigation }) => {
-  const { tipoInforme, datos, programa } = route.params;
+  const { tipoInforme, datos, programa, corteInicial, corteFinal } = route.params;
   const dataArray = datos[tipoInforme];
   const [imageUrls, setImageUrls] = useState({});
 
@@ -81,7 +81,7 @@ const GraficarPdf = ({ route, navigation }) => {
           <Animated.View style={animatedStyle}>
             <TouchableOpacity 
               style={styles.buttonPdf}
-              onPress={() => generatePDF(dataArray, programa, tipoInforme)} // Llama a generatePDF directamente
+              onPress={() => generatePDF(dataArray, programa, tipoInforme, corteInicial, corteFinal)} // Llama a generatePDF directamente
             >
               <Text style={styles.textButtonPdf}>Generar Informe en PDF</Text>
               <FontAwesome name="file-pdf-o" size={22} color="#F8E9D4" style={styles.pdfIcon} />

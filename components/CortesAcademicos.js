@@ -122,9 +122,14 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
       //console.log('Datos recibidos del backend:', data);
       setDatosBackend(data);
       data.carrera=selectedProgram;
-     
+      
       if (typeof onNext === 'function') {
-        onNext(data);  // Llamada a la función onNext para avanzar al siguiente paso
+        // Incluye selectedCorteInicial y selectedCorteFinal en el objeto que se pasa a onNext
+        onNext({
+          data,
+          selectedCorteInicial,
+          selectedCorteFinal
+        });
       } else {
         console.warn('onNext no está definida como una función.');
       }

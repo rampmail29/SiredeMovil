@@ -42,8 +42,11 @@ import { Platform } from 'react-native';
 
 
 // Función para generar el PDF
-export const generatePDF = async (dataArray, programa, tipoInforme) => {
+export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial, corteFinal) => {
   const { cod_snies, programa: nombre_programa } = programa;
+
+    console.log("Corte Inicial Seleccionado:", corteInicial);
+    console.log("Corte Final Seleccionado:", corteFinal);
 
   // Contenido HTML específico para Android
   const htmlAndroid = `
@@ -75,6 +78,13 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
               .content { 
                 margin-top: 0.8em; 
               }
+                .note { 
+                  margin-top: 1em; 
+                  text-align: justify; 
+                }
+                .note .bold { 
+                  font-weight: bold; 
+                }
               .table-container { 
                 width: 100%; 
                 border-collapse: collapse; 
@@ -119,6 +129,9 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
               <td><h3>${cod_snies} - ${nombre_programa}</h3></td>
             </tr>
           </table>
+        </div>
+        <div class="note">
+          <span class="bold">Nota:</span> Este Informe contiene los estudiantes que tienen el status de <span class="bold">${tipoInforme}</span> en el corte inicial de <span class="bold">${corteInicial}</span> hasta el corte final <span class="bold">${corteFinal}</span> del programa académico <span class="bold">${nombre_programa}</span>.
         </div>
         <div class="content">
           <table class="table-container ${tipoInforme}">
@@ -187,6 +200,13 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
     .header h1 { font-size: 1.5em; margin: 0; text-transform: uppercase; }
     .header h2 { font-size: 1.2em; margin: 0; text-transform: uppercase; }
     .header h3 { font-size: 1em; margin: 0; text-transform: uppercase; }
+    .note { 
+      margin-top: 1em; 
+      text-align: justify; 
+    }
+    .note .bold { 
+      font-weight: bold; 
+    }
     .content { 
       margin-top: 1em; 
     }
@@ -236,6 +256,11 @@ export const generatePDF = async (dataArray, programa, tipoInforme) => {
       </tr>
     </table>
   </div>
+
+   <div class="note">
+    <span class="bold">Nota:</span> Este Informe contiene los estudiantes que tienen el status de <span class="bold">${tipoInforme}</span> en el corte inicial de <span class="bold">${corteInicial}</span> hasta el corte final <span class="bold">${corteFinal}</span> del programa académico <span class="bold">${nombre_programa}</span>.
+   </div>
+
   <div class="content">
     <table class="table-container ${tipoInforme}">
       <thead>

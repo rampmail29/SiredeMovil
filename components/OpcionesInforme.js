@@ -3,8 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet, ScrollView } from 'react-nati
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native'; // Importar useNavigation
 
-const OpcionesInforme = ({ academicData }) => {
-
+const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFinal }) => {
   const navigation = useNavigation(); // Inicializar useNavigation
   
   const generarInformeGraduados = () => {
@@ -14,8 +13,10 @@ const OpcionesInforme = ({ academicData }) => {
           tipoInforme: 'graduados',
           datos: {
           graduados: academicData.graduados,
-        },
-          programa:academicData.carrera
+          },
+          programa:academicData.carrera,
+          corteInicial:selectedCorteInicial,
+          corteFinal:selectedCorteFinal
           });
     } else {
       // Aquí se maneja el caso de error porque todos los arrays están vacíos
@@ -32,8 +33,10 @@ const OpcionesInforme = ({ academicData }) => {
         tipoInforme: 'retenidos',
         datos: {
         retenidos: academicData.retenidos,
-      },
-        programa:academicData.carrera
+        },
+        programa:academicData.carrera,
+        corteInicial:selectedCorteInicial,
+        corteFinal:selectedCorteFinal
         });
     } else {
       // Aquí se maneja el caso de error porque todos los arrays están vacíos
@@ -50,8 +53,10 @@ const OpcionesInforme = ({ academicData }) => {
         tipoInforme: 'desertados',
         datos: {
         desertados: academicData.desertores,
-      },
-        programa:academicData.carrera
+        },
+        programa:academicData.carrera,
+        corteInicial:selectedCorteInicial,
+        corteFinal:selectedCorteFinal
         });
     } else {
       // Aquí se maneja el caso de error porque todos los arrays están vacíos

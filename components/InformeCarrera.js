@@ -3,7 +3,7 @@ import { SafeAreaView, ScrollView, StyleSheet, View, Animated, useWindowDimensio
 import ProgramasAcademicos from './ProgramasAcademicos';
 import CortesAcademicos from './CortesAcademicos';
 import OpcionesInforme from './OpcionesInforme';
-import { API_BASE_URL } from './Config';
+
 
 const programasAcademicosData = [
   { id: 1, title: 'Seleccione el programa académico al cual quiere consultar:', color: '#132F20' },
@@ -15,6 +15,8 @@ const InformeCarrera = () => {
   const scrollX = useRef(new Animated.Value(0)).current;
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [academicData, setAcademicData] = useState(null);
+  const [selectedCorteInicial, setSelectedCorteInicial] = useState(null); // Nuevo estado
+  const [selectedCorteFinal, setSelectedCorteFinal] = useState(null); // Nuevo estado
   const scrollViewRef = useRef(null);
 
   let { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -26,11 +28,13 @@ const InformeCarrera = () => {
     scrollViewRef.current.scrollTo({ x: windowWidth, animated: true });
   };
 
-  const onNext = (data) => {
+  const onNext = ({ data, selectedCorteInicial, selectedCorteFinal }) => {
+    // Puedes usar data, selectedCorteInicial y selectedCorteFinal como necesites
     setAcademicData(data);
+    setSelectedCorteInicial(selectedCorteInicial); 
+    setSelectedCorteFinal(selectedCorteFinal); 
   
     scrollViewRef.current.scrollTo({ x: windowWidth * 2, animated: true });
-  
   };
 
   // Modificar dinámicamente el título del segundo objeto en programasAcademicosData
@@ -102,7 +106,11 @@ const InformeCarrera = () => {
                 ) : index === 1 ? (
                   <CortesAcademicos selectedProgram={selectedProgram} onNext={onNext} />
                 ) : (
-                  <OpcionesInforme academicData={academicData} />
+                  <OpcionesInforme 
+                  academicData={academicData} 
+                  selectedCorteInicial={selectedCorteInicial} 
+                  selectedCorteFinal={selectedCorteFinal} 
+                />
                 )}
               </Animated.View>
             ))}
