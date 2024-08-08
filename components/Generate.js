@@ -55,10 +55,10 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
 
         // Nota según el tipo de informe
         const notaTexto = {
-          graduados: `Este Informe contiene los estudiantes graduados del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
-          desertados: `Este Informe contiene los estudiantes desertados del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
-          retenidos: `Este Informe contiene los estudiantes retenidos del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
-          general: `Este Informe contiene todos los estudiantes del programa académico <strong>${nombre_programa}</strong>, incluyendo los graduados, desertados y retenidos desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`
+          graduados: `Este Informe contiene los estudiantes <strong>GRADUADOS</strong> del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          desertados: `Este Informe contiene los estudiantes <strong>DESERTADOS</strong> del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          retenidos: `Este Informe contiene los estudiantes <strong>RETENIDOS</strong> del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          general: `Este Informe contiene <strong>TODOS</strong> los estudiantes del programa académico <strong>${nombre_programa}</strong>, incluyendo los graduados, desertados y retenidos desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`
         }[tipoInforme] || `Este Informe contiene los estudiantes del programa académico <strong>${nombre_programa}</strong>.`;
 
 

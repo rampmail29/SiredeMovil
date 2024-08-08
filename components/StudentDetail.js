@@ -12,12 +12,13 @@ const StudentDetail = ({ route, navigation }) => {
   const [student, setStudent] = useState(null);
   const [imageUri, setImageUri] = useState(null);
   const [loading, setLoading] = useState(true);
+  console.log(documento)
 
   useEffect(() => {
-    const obtenerDetallesEstudiante = async () => {
+    const obtenerDetallesEstudiante2 = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/estudiantes/${documento}`);
+        const response = await fetch(`${API_BASE_URL}/api/obtener/${documento}`);
         const data = await response.json();
         setStudent(data);
       } catch (error) {
@@ -48,7 +49,7 @@ const StudentDetail = ({ route, navigation }) => {
     };
 
     const cargarDatos = async () => {
-      await Promise.all([obtenerDetallesEstudiante(), obtenerImagenEstudiante()]);
+      await Promise.all([obtenerDetallesEstudiante2(), obtenerImagenEstudiante()]);
       setTimeout(() => {
         setLoading(false);
       }, 300);
@@ -219,15 +220,7 @@ const StudentDetail = ({ route, navigation }) => {
                         </View>
   
                         <View style={styles.separator4} />
-
-                        <View style={styles.infoEstado}>
-                          <FontAwesome name="info-circle" size={30} color="#34531F" />
-                          <View>
-                            <Text style={styles.label}>Estado:</Text>
-                            <Text style={styles.text}>{student.estado_estudiante}</Text>
-                          </View>
-                        </View>
-                        <View style={styles.separator5} />
+            
                     </View>
 
 

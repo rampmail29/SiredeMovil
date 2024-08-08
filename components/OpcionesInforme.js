@@ -1,101 +1,126 @@
-import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; // Importar useNavigation
+import { showMessage } from "react-native-flash-message";
+import { useNavigation } from '@react-navigation/native';
 
 const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFinal }) => {
-  const navigation = useNavigation(); // Inicializar useNavigation
+  const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const generarInformeGraduados = () => {
-    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
-      console.log('Generando informe de Graduados');
+  const handleNavigation = (tipoInforme, datos) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
       navigation.navigate('GraficarPdf', {
-        tipoInforme: 'graduados',
-        datos: {
-          graduados: academicData.graduados,
-        },
+        tipoInforme,
+        datos,
         programa: academicData.carrera,
         corteInicial: selectedCorteInicial,
         corteFinal: selectedCorteFinal
       });
+    }, 1000);
+  };
+
+  const generarInformeGraduados = () => {
+    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
+      console.log('Generando informe de Graduados');
+      handleNavigation('graduados', { graduados: academicData.graduados });
     } else {
-      console.log('Error: No hay datos suficientes para generar el informe.');
+      showMessage({
+        message: "Error",
+        description: "No se puede generar un informe de graduados pues no hay ningún programa académico ni cortes seleccionado, Por favor seleccione todos los datos necesarios y presione el botón de Evaluar.",
+        duration: 10000,
+        titleStyle: { fontSize: 19, fontFamily: 'Montserrat-Bold' },
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular',textAlign:'justify' },
+        type: "danger",
+        icon: "danger",
+      });
     }
   };
 
   const generarInformeRetenidos = () => {
     if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       console.log('Generando informe de Retenidos');
-      navigation.navigate('GraficarPdf', {
-        tipoInforme: 'retenidos',
-        datos: {
-          retenidos: academicData.retenidos,
-        },
-        programa: academicData.carrera,
-        corteInicial: selectedCorteInicial,
-        corteFinal: selectedCorteFinal
-      });
+      handleNavigation('retenidos', { retenidos: academicData.retenidos });
     } else {
-      console.log('Error: No hay datos suficientes para generar el informe.');
+      showMessage({
+        message: "Error",
+        description: "No se puede generar un informe de retenidos pues no hay ningún programa académico ni cortes seleccionado, Por favor seleccione todos los datos necesarios y presione el botón de Evaluar.",
+        duration: 10000,
+        titleStyle: { fontSize: 19, fontFamily: 'Montserrat-Bold' },
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular',textAlign:'justify' },
+        type: "danger",
+        icon: "danger",
+      });
     }
   };
 
   const generarInformeDesertados = () => {
     if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       console.log('Generando informe de Desertados');
-      navigation.navigate('GraficarPdf', {
-        tipoInforme: 'desertados',
-        datos: {
-          desertados: academicData.desertores,
-        },
-        programa: academicData.carrera,
-        corteInicial: selectedCorteInicial,
-        corteFinal: selectedCorteFinal
-      });
+      handleNavigation('desertados', { desertados: academicData.desertores });
     } else {
-      console.log('Error: No hay datos suficientes para generar el informe.');
+      showMessage({
+        message: "Error",
+        description: "No se puede generar un informe de desertados pues no hay ningún programa académico ni cortes seleccionado, Por favor seleccione todos los datos necesarios y presione el botón de Evaluar.",
+        duration: 10000,
+        titleStyle: { fontSize: 19, fontFamily: 'Montserrat-Bold' },
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular',textAlign:'justify' },
+        type: "danger",
+        icon: "danger",
+      });
     }
   };
 
   const generarInformeTodos = () => {
     if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       console.log('Generando informe de Todos los estudiantes');
-      navigation.navigate('GraficarPdf', {
-        tipoInforme: 'general',
-        datos: {
-          general: academicData.todos,
-        },
-        programa: academicData.carrera,
-        corteInicial: selectedCorteInicial,
-        corteFinal: selectedCorteFinal
-      });
+      handleNavigation('general', { general: academicData.todos });
     } else {
-      console.log('Error: No hay datos suficientes para generar el informe.');
+      showMessage({
+        message: "Error",
+        description: "No se puede generar un informe general pues no hay ningún programa académico ni cortes seleccionado, Por favor seleccione todos los datos necesarios y presione el botón de Evaluar.",
+        duration: 10000,
+        titleStyle: { fontSize: 19, fontFamily: 'Montserrat-Bold' },
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular',textAlign:'justify' },
+        type: "danger",
+        icon: "danger",
+      });
     }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
-        <TouchableOpacity style={styles.button} onPress={generarInformeTodos}>
-          <FontAwesome5 name="users" size={45} color="white" style={styles.icon} />
-          <Text style={styles.buttonText}>Todos los Estudiantes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={generarInformeGraduados}>
-          <FontAwesome5 name="user-graduate" size={45} color="white" style={styles.icon} />
-          <Text style={styles.buttonText}>Graduados</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.row}>
-        <TouchableOpacity style={styles.button} onPress={generarInformeRetenidos}>
-          <FontAwesome5 name="user-clock" size={45} color="white" style={styles.icon} />
-          <Text style={styles.buttonText}>Retenidos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={generarInformeDesertados}>
-          <FontAwesome5 name="user-times" size={45} color="white" style={styles.icon} />
-          <Text style={styles.buttonText}>Desertados</Text>
-        </TouchableOpacity>
-      </View>
+      {isLoading ? (
+         <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#34531F" />
+            <Text style={styles.loadingText}>Cargando...</Text>
+       </View>
+      ) : (
+        <>
+          <View style={styles.row}>
+            <TouchableOpacity style={styles.button} onPress={generarInformeTodos}>
+              <FontAwesome5 name="users" size={45} color="white" style={styles.icon} />
+              <Text style={styles.buttonText}>Todos los Estudiantes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={generarInformeGraduados}>
+              <FontAwesome5 name="user-graduate" size={45} color="white" style={styles.icon} />
+              <Text style={styles.buttonText}>Graduados</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.row}>
+            <TouchableOpacity style={styles.button} onPress={generarInformeRetenidos}>
+              <FontAwesome5 name="user-clock" size={45} color="white" style={styles.icon} />
+              <Text style={styles.buttonText}>Retenidos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={generarInformeDesertados}>
+              <FontAwesome5 name="user-times" size={45} color="white" style={styles.icon} />
+              <Text style={styles.buttonText}>Desertados</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 };
@@ -149,7 +174,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 10,
-  
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
   },
 });
 

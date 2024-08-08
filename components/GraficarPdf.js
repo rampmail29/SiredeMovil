@@ -1,16 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ImageBackground, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, Image, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { generatePDF } from './Generate'; 
+import { generatePDF } from './Generate';
 
 const GraficarPdf = ({ route, navigation }) => {
   const { tipoInforme, datos, programa, corteInicial, corteFinal } = route.params;
   const dataArray = datos[tipoInforme];
   const [imageUrls, setImageUrls] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchImages = async () => {
     const extensions = ['png', 'jpg', 'jpeg'];
@@ -26,21 +28,17 @@ const GraficarPdf = ({ route, navigation }) => {
             ...prevUrls,
             [documento]: url,
           }));
-          break; // Si encontramos la imagen, salimos del bucle de extensiones
+          break;
         } catch (error) {
-          // Si hay un error (imagen no encontrada), intentamos con la siguiente extensión
         }
       }
     }
   };
 
-  useEffect(() => {
-    fetchImages();
-  }, [dataArray]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchImages(); // Ejecuta fetchImages cuando la pantalla gane foco
+      fetchImages();
     }, [dataArray])
   );
 
@@ -53,8 +51,8 @@ const GraficarPdf = ({ route, navigation }) => {
   };
 
   const scale = useSharedValue(1);
-  const animationDuration = 800; // Duración de la animación (en milisegundos)
-  const scaleFactor = 1.05; // Factor de escala para el zoom
+  const animationDuration = 800;
+  const scaleFactor = 1.05;
 
   useEffect(() => {
     scale.value = withRepeat(
@@ -72,6 +70,16 @@ const GraficarPdf = ({ route, navigation }) => {
       transform: [{ scale: scale.value }],
     };
   });
+
+  const handleGeneratePDF = () => {
+    if (dataArray.length === 0) {
+      setShowModal(true);
+    } else {
+      generatePDF(dataArray, programa, tipoInforme, corteInicial, corteFinal);
+    }
+  };
+
+
 
   return (
     <ImageBackground source={require('../assets/fondoinformes.jpg')} style={styles.backgroundImage}>
@@ -91,7 +99,7 @@ const GraficarPdf = ({ route, navigation }) => {
           <Animated.View style={animatedStyle}>
             <TouchableOpacity 
               style={styles.buttonPdf}
-              onPress={() => generatePDF(dataArray, programa, tipoInforme, corteInicial, corteFinal)} 
+              onPress={handleGeneratePDF}
             >
               <Text style={styles.textButtonPdf}>Generar Informe en PDF</Text>
               <FontAwesome name="file-pdf-o" size={22} color="#F8E9D4" style={styles.pdfIcon} />
@@ -118,7 +126,10 @@ const GraficarPdf = ({ route, navigation }) => {
                     </View>
                     <TouchableOpacity 
                       style={styles.infoIcon}
-                      onPress={() => navigation.navigate('StudentDetail2', { documento: dato.documento })}
+                      onPress={() => navigation.navigate('StudentDetail2', { 
+                        documento: dato.documento, 
+                        corteFinal: corteFinal     
+                      })}
                     >
                       <FontAwesome name="info-circle" size={30} color="#6D100A" />
                     </TouchableOpacity>
@@ -126,10 +137,25 @@ const GraficarPdf = ({ route, navigation }) => {
                 </View>
               ))
             ) : (
-              <Text style={styles.emptyMessage}>No hay datos disponibles para mostrar.</Text>
+              <Text style={styles.emptyMessage}>No hay estudiantes {tipoInforme} en los cortes seleccionados, intente en otro rango.</Text>
             )}
           </View>
         </ScrollView>
+
+        <Modal
+          transparent={true}
+          visible={showModal}
+          onRequestClose={() => setShowModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>No se puede generar un informe en PDF pues no existen estudiantes {tipoInforme} para ese rango de años seleccionados.</Text>
+              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowModal(false)}>
+                <Text style={styles.cancelButtonText}>Cerrar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </ImageBackground>
   );
@@ -228,8 +254,8 @@ const styles = StyleSheet.create({
   },
   emptyMessage: {
     fontSize: 16,
-    fontFamily: 'Montserrat-Regular',
-    color: '#888888',
+    fontFamily: 'Montserrat-Bold',
+    color: 'white',
   },
   infoIcon: {
     marginLeft: 'auto',
@@ -248,13 +274,58 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   textButtonPdf: {
-    fontFamily: 'Montserrat-Bold',
-    fontSize: 18,
     color: '#F8E9D4',
-    marginRight: 5,
+    fontSize: 18,
+    fontFamily: 'Montserrat-Bold',
+    marginRight: 10,
   },
   pdfIcon: {
-    marginLeft: 5,
+    marginLeft: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalText: {
+    fontSize: 18,
+    fontFamily: 'Montserrat-Regular',
+    textAlign: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#6D100A',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'Montserrat-Bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
   },
 });
 

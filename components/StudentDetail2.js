@@ -9,22 +9,33 @@ import { storage } from '../firebaseConfig';
 import { API_BASE_URL } from './Config';
 
 const StudentDetail2 = ({ route, navigation }) => {
-  const { documento } = route.params;
+  const { documento, corteFinal } = route.params;
   const [student, setStudent] = useState(null);
   const [imageUri, setImageUri] = useState(null);
   const [loading, setLoading] = useState(true);
+ 
 
   useEffect(() => {
     const obtenerDetallesEstudiante = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/estudiantes/${documento}`);
+        const response = await fetch(`${API_BASE_URL}/api/estudiantes/${documento}`, {
+          method: 'POST', 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ corteFinal }), // Enviar parámetros en el cuerpo
+        });
         const data = await response.json();
         setStudent(data);
+        console.log(data);
       } catch (error) {
         console.error('Error al obtener detalles del estudiante:', error);
+      } finally {
+        setLoading(false);
       }
     };
+    
 
     const obtenerImagenEstudiante = async () => {
       try {
@@ -56,7 +67,7 @@ const StudentDetail2 = ({ route, navigation }) => {
     };
 
     cargarDatos();
-  }, [documento]);
+  }, [documento, corteFinal]);
 
   const selectImage = async () => {
     try {
@@ -145,112 +156,118 @@ const StudentDetail2 = ({ route, navigation }) => {
           return edad;
         };
 
-
-  return (
-    <SafeAreaProvider>
-    <ImageBackground source={require('../assets/fondoestudiante.jpg')} style={styles.backgroundImage}>
-      
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        <View style={styles.container}>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#34531F" />
-              <Text style={styles.loadingText}>Cargando...</Text>
-            </View>
-          ) : (
-            <>
-              {student && (
-                <>
-                  <Text style={styles.title}>Información del estudiante.</Text>
-                  <View style={styles.infoContainer}>
-                    {imageUri ? (
-                      <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
-                        <ImageBackground source={{ uri: imageUri }} style={styles.image}>                       
-                      </ImageBackground>
-                        <View style={styles.editIcon}>
-                          <FontAwesome name="edit" size={20} color="#34531F" />
-                        </View>
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
-                        <View style={styles.imagePlaceholder}> 
-                          <FontAwesome name="user" size={100} color="#575756" />
-                          <Text style={styles.uploadText}>Subir Foto</Text>
-                        </View>
-                      </TouchableOpacity>
-                    )}
-                    <Text style={styles.textName}>{capitalizeFirstLetter(student.nombres)} {capitalizeFirstLetter(student.apellidos)}</Text>
-                    <Text style={styles.textCarrera}>{capitalizeFirstLetter(student.programa)}</Text>
-
-                    <View style={styles.textInfo}>         
-                        <View style={styles.infoItem1}>
-                          <FontAwesome name="birthday-cake" size={25} color="#34531F" />
-                          <View >
-                            <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                            <Text style={styles.text}>{formatDate(student.fecha_nacimiento)}</Text>
-                          </View>
-                        </View>
-
-                        <View style={styles.separator1} />
-
-                        <View style={styles.infoItem1}>
-                          <FontAwesome name="child" size={35} color="#34531F" />
-                          <View >
-                            <Text style={styles.label}>Edad:</Text>
-                            <Text style={styles.text}>{calcularEdad(student.fecha_nacimiento)} años</Text>
-                          </View>
-                        </View>
-
-                        <View style={styles.separator2} />
-
-                        <View style={styles.infoItem1}>
-                          <FontAwesome name="id-card" size={23} color="#34531F" />
-                          <View>
-                            <Text style={styles.label}>Documento:</Text>
-                            <Text style={styles.text}>{student.documento}</Text>
-                          </View>
-                        </View>
-
-                        <View style={styles.separator3} />
-
-                        <View style={styles.infoItem1}>
-                          <FontAwesome name="calendar" size={25} color="#34531F" />
-                          <View>
-                            <Text style={styles.label}>Año de Matrícula:</Text>
-                            <Text style={styles.text}>{student.año_matricula}</Text>
-                          </View>
-                        </View>
-  
-                        <View style={styles.separator4} />
-
-                        <View style={styles.infoEstado}>
-                          <FontAwesome name="info-circle" size={30} color="#34531F" />
-                          <View>
-                            <Text style={styles.label}>Estado:</Text>
-                            <Text style={styles.text}>{student.estado_estudiante}</Text>
-                          </View>
-                        </View>
-                        <View style={styles.separator5} />
+        return (
+          <SafeAreaProvider>
+            <ImageBackground source={require('../assets/fondoestudiante.jpg')} style={styles.backgroundImage}>
+              <ScrollView contentContainerStyle={styles.scrollView}>
+                <View style={styles.container}>
+                  {loading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="large" color="#34531F" />
+                      <Text style={styles.loadingText}>Cargando...</Text>
                     </View>
-
-
-                    <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
-                      <Text style={styles.buttonText}>Volver</Text>
-                    </TouchableOpacity>
-                  </View>
-                  
-                </>
-              )}
-              
-            </>
-          )}
-        </View>
-      </ScrollView>
+                  ) : (
+                    <>
+                      {student && (
+                        <>
+                          <Text style={styles.title}>Información del estudiante.</Text>
+                          <View style={styles.infoContainer}>
+                            {imageUri ? (
+                              <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
+                                <ImageBackground source={{ uri: imageUri }} style={styles.image} />
+                                <View style={styles.editIcon}>
+                                  <FontAwesome name="edit" size={20} color="#34531F" />
+                                </View>
+                              </TouchableOpacity>
+                            ) : (
+                              <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
+                                <View style={styles.imagePlaceholder}>
+                                  <FontAwesome name="user" size={100} color="#575756" />
+                                  <Text style={styles.uploadText}>Subir Foto</Text>
+                                </View>
+                              </TouchableOpacity>
+                            )}
+                            <Text style={styles.textName}>{capitalizeFirstLetter(student.nombres)} {capitalizeFirstLetter(student.apellidos)}</Text>
+                            <Text style={styles.textCarrera}>{capitalizeFirstLetter(student.programa)}</Text>
       
-    </ImageBackground>
-    </SafeAreaProvider>
-  );
-};
+                            <View style={styles.textInfo}>
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="birthday-cake" size={25} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Fecha de Nacimiento:</Text>
+                                  <Text style={styles.text}>{formatDate(student.fecha_nacimiento)}</Text>
+                                </View>
+                              </View>
+      
+                              <View style={styles.separator1} />
+      
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="child" size={35} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Edad:</Text>
+                                  <Text style={styles.text}>{calcularEdad(student.fecha_nacimiento)} años</Text>
+                                </View>
+                              </View>
+      
+                              <View style={styles.separator2} />
+      
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="id-card" size={23} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Documento:</Text>
+                                  <Text style={styles.text}>{student.documento}</Text>
+                                </View>
+                              </View>
+      
+                              <View style={styles.separator3} />
+      
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="calendar" size={25} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Año de Matrícula:</Text>
+                                  <Text style={styles.text}>{student.año_matricula}</Text>
+                                </View>
+                              </View>
+      
+                              <View style={styles.separator4} />
+      
+                              <View style={styles.infoEstado}>
+                                <FontAwesome name="info-circle" size={30} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Estado:</Text>
+                                  <Text style={styles.text}>{student.estado_estudiante}</Text>
+                                </View>
+                              </View>
+      
+                              {student.fecha_grado && (
+                                <>
+                                  <View style={styles.separator5} />
+                                  <View style={styles.infoItem1}>
+                                    <FontAwesome name="graduation-cap" size={25} color="#34531F" />
+                                    <View>
+                                      <Text style={styles.label}>Fecha de Graduación:</Text>
+                                      <Text style={styles.text}>{formatDate(student.fecha_grado)}</Text>
+                                    </View>
+                                  </View>
+                                </>
+                              )}
+      
+                            </View>
+      
+                            <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
+                              <Text style={styles.buttonText}>Volver</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </>
+                      )}
+                    </>
+                  )}
+                </View>
+              </ScrollView>
+            </ImageBackground>
+          </SafeAreaProvider>
+        );
+      };
 
 const styles = StyleSheet.create({
   backgroundImage: {
