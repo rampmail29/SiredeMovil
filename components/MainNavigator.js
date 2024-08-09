@@ -17,6 +17,7 @@ import InformeEstudiante from './InformeEstudiante';
 import StudentDetail from './StudentDetail';
 import StudentDetail2 from './StudentDetail2';
 import InformeCarrera from './InformeCarrera';
+import CerrarSesion from './CerrarSesion';
 import Animated from 'react-native-reanimated';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -352,6 +353,11 @@ const MainNavigator = () => {
           <Stack.Screen 
           name="StudentDetail2" 
           component={StudentDetail2}
+          options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+          name="CerrarSesion" 
+          component={CerrarSesion}
           options={{ headerShown: false }}
           />
        
