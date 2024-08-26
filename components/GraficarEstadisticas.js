@@ -35,17 +35,17 @@ const Graficar = ({ route }) => {
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
             {renderDot('#C3D730')}
-            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Graduados: {porcentajeGraduados}%</Text>
+            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Graduados: {datosBackend.totalGra}</Text>
           </View>
           <View style={styles.legendItem}>
             {renderDot('#FF9F33')}
-            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Retenidos: {porcentajeRetirados}%</Text>
+            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Retenidos: {datosBackend.totalRet}</Text>
           </View>
         </View>
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
             {renderDot('#6D100A')}
-            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Desertados: {porcentajeDesertados}%</Text>
+            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Desertados: {datosBackend.totalDes}</Text>
           </View>
         </View>
       </View>
@@ -122,25 +122,43 @@ const Graficar = ({ route }) => {
               </Text>
               <Text style={styles.generalText}>
                 de estudiantes desertó.
-              </Text>
+              </Text>{'\n'}
             </Text>
-            <View style={styles.notaContainer}>
-              <Text style={styles.notaText}>
-                <Text style={styles.keywordText}>Nota:</Text>{' '}
-                <Text style={styles.generalText}>
-                  La diferencia entre estudiantes "<Text style={styles.keywordText}>retenidos</Text>", "<Text style={styles.keywordText}>desertores</Text>" y "<Text style={styles.keywordText}>graduados</Text>" se refiere a su estado académico o situación en la institución educativa:
-                </Text>{'\n\n'}
-                <Text style={styles.generalText}>
-                  <Text style={styles.keywordText}>Retenidos:</Text> Se refiere a los estudiantes que continúan matriculados en la institución pero que no han logrado avanzar satisfactoriamente en su proceso educativo. Esto puede deberse a un rendimiento académico deficiente, la repetición de cursos o cualquier otra razón que haya impedido su progreso normal.
-                </Text>{'\n\n'}
-                <Text style={styles.generalText}>
-                  <Text style={styles.keywordText}>Desertores:</Text> Son aquellos estudiantes que abandonan la institución educativa antes de completar su programa de estudios. Pueden hacerlo por diversas razones, como problemas personales, dificultades académicas, falta de interés, entre otros.
-                </Text>{'\n\n'}
-                <Text style={styles.generalText}>
-                  <Text style={styles.keywordText}>Graduados:</Text> Son los estudiantes que han completado satisfactoriamente todos los requisitos de su programa de estudios y han obtenido su título académico o diploma. Representan el éxito en el proceso educativo y están preparados para ingresar al mundo laboral o continuar con estudios superiores.
-                </Text>
+           
+              <Text style={styles.notaText1}> 
+              <Text style={styles.keywordText}>Nota:</Text>{' '}
+                  <Text style={styles.generalText}>
+                    La diferencia entre estudiantes "
+                    <Text style={styles.keywordText}>retenidos</Text>", 
+                    "<Text style={styles.keywordText}>desertores</Text>" y 
+                    "<Text style={styles.keywordText}>graduados</Text>" se refiere a su estado académico o situación en la institución educativa:
+                  </Text>
               </Text>
-            </View>
+
+                <View style={styles.notaContainer}>
+                  <Text style={styles.notaText}>
+                      <Text style={styles.generalText}>
+                        <Text style={styles.keywordText}>Graduados:</Text> Son los estudiantes que han completado satisfactoriamente todos los Se refiere a los estudiantes que continúan matriculados en la institución pero que no han logrado avanzar satisfactoriamente en su proceso educativo. Esto puede deberse a un rendimiento académico deficiente, la repetición de cursos o cualquier otra razón que haya impedido su progreso normal. 
+                      </Text>
+                  </Text>
+                </View>
+
+                <View style={styles.notaContainer1}>
+                  <Text style={styles.notaText}>
+                      <Text style={styles.generalText}>
+                        <Text style={styles.keywordText}>Retenidos:</Text> Se refiere a los estudiantes que continúan matriculados en la institución pero que no han logrado avanzar satisfactoriamente en su proceso educativo. Esto puede deberse a un rendimiento académico deficiente, la repetición de cursos o cualquier otra razón que haya impedido su progreso normal.
+                      </Text>
+                  </Text>
+                </View>
+
+                <View style={styles.notaContainer2}>
+                  <Text style={styles.notaText}>
+                      <Text style={styles.generalText}>
+                        <Text style={styles.keywordText}>Desertores:</Text> Son aquellos estudiantes que abandonan la institución educativa antes de completar su programa de estudios. Pueden hacerlo por diversas razones, como problemas personales, dificultades académicas, falta de interés, entre otros.
+                      </Text>
+                  </Text>
+                </View>
+
           </View>
         </View>
       </ImageBackground>
@@ -232,8 +250,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Medium',
   },
   notaContainer: {
-    marginTop: 20,
-    marginBottom: 80,
+    marginTop: 30,
+    marginBottom: 20,
+    backgroundColor: '#F8E9D4',
+    borderRadius: 40,
+    borderWidth: 5,
+    borderColor: '#C3D730',
+  },
+  notaContainer1: {
+    marginBottom: 20,
+    backgroundColor: '#F8E9D4',
+    borderRadius: 40,
+    borderWidth: 5,
+    borderColor: '#C3D730',
+  },
+  notaContainer2: {
+    marginBottom: 100,
     backgroundColor: '#F8E9D4',
     borderRadius: 40,
     borderWidth: 5,

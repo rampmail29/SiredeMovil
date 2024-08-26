@@ -164,7 +164,6 @@ const Estadisticas = () => {
       });
 
       const data = await response.json();
-      console.log('Datos recibidos del backend:', data);
       setDatosBackend(data);
       setLoading(true); // Mostrar el modal de carga
       
