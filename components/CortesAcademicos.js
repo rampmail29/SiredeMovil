@@ -29,7 +29,6 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
           setCortesIniciales(datCortes);
         }
       } catch (error) {
-        console.error('Error al obtener cortes iniciales:', error);
       }
     };
 

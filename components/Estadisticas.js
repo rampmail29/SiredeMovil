@@ -36,7 +36,15 @@ const Estadisticas = () => {
           }));
           setProgramas(filteredData); // Guarda solo cod_snies, programa y tipo
       } catch (error) {
-          console.error('Error al obtener programas:', error);
+            showMessage({
+              message: "Error",
+              description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
+              type: "danger",
+              icon: "danger",
+              titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+              textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+              duration: 3000,
+            });
       }
   };
 
@@ -49,7 +57,7 @@ const Estadisticas = () => {
           setCortesIniciales(datCortes);
         } 
       } catch (error) {
-        console.error('Error al obtener cortes iniciales:', error);
+       
       }
     };
 
@@ -143,7 +151,7 @@ const Estadisticas = () => {
         showMessage({
           message: "Error",
           description: "Por favor seleccione todos los datos necesarios",
-          duration: 3000, // Duración del mensaje en milisegundos
+          duration: 3000, 
           titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
           textStyle: { fontSize: 16, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
           type: "danger",

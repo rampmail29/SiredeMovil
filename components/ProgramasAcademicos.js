@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Dimensions, SectionList } from 'react-native';
+import { showMessage } from "react-native-flash-message";
 import { Facultades } from './Facultades';
 import { FontAwesome } from '@expo/vector-icons';
 import { API_BASE_URL } from './Config';
 
 const ProgramasAcademicos = ({ onProgramSelect }) => {
   const [programas, setProgramas] = useState([]);
-  const [error, setError] = useState('');
   const [rotateAnimNaturales] = useState(new Animated.Value(0));
   const [rotateAnimSocioeconomicas] = useState(new Animated.Value(0));
   const [programaAnim] = useState(new Animated.Value(0));
@@ -50,8 +50,15 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
         setProgramas(groupedPrograms);
       
       } catch (error) {
-        console.error('Error al obtener programas:', error);
-        setError('No se pudieron obtener los programas.');
+        showMessage({
+          message: "Error",
+          description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
+          type: "danger",
+          icon: "danger",
+          titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+          textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+          duration: 3000,
+        });
       }
     };
 
@@ -154,24 +161,27 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
     </View>
   );
 
+  const EmptyComponent = () => (
+    <Text style={styles.errorText}>
+      No se encontraron programas academicos. Verifica tu conexión a internet.
+    </Text>
+  );
+
   return (
-    <View style={styles.container}>
-      {error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : (
-        <SectionList
-          sections={programas}
-          keyExtractor={(item, index) => item.cod_snies.toString() + index}
-          renderItem={renderItem}
-          renderSectionHeader={renderSectionHeader}
-          contentContainerStyle={styles.listContent}
-        />
-      )}
-    </View>
+      <View style={styles.container}>
+    <SectionList
+      sections={programas}
+      keyExtractor={(item, index) => item.cod_snies?.toString() + index}
+      renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
+      contentContainerStyle={styles.listContent}
+      ListEmptyComponent={EmptyComponent}
+    />
+  </View>
   );
 };
 
-const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
+const { height: windowHeight } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -226,8 +236,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorText: {
-    fontSize: 16,
-    color: 'red',
+    fontSize: 20,
+    color: '#6D100A',
+    fontFamily: 'Montserrat-Bold',
     marginTop: 20,
   },
   listContent: {

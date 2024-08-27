@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, ImageBackground, KeyboardAvoidingView, Platform  } from 'react-native';
+import { View, TextInput, StyleSheet, Text, ImageBackground, KeyboardAvoidingView, Platform, TouchableOpacity  } from 'react-native';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { showMessage } from "react-native-flash-message"; // Importa react-native-flash-message
 
 const Reportes = ({ navigation }) => {
   const [nombre, setNombre] = useState('');
@@ -28,6 +29,20 @@ const Reportes = ({ navigation }) => {
   };
 
   const enviarReporte = async () => {
+   
+    if (!nombre || !correo || !mensaje) {
+      showMessage({
+        message: "Faltan datos",
+        description: "Por favor, completa todos los campos antes de enviar el reporte.",
+        type: "danger",
+        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+        icon: "danger",
+        duration: 2500,
+      });
+      return;
+    }
+
     try {
       await guardarReporteEnFirestore();
       setEnvioExitoso(true);
@@ -38,7 +53,6 @@ const Reportes = ({ navigation }) => {
     }
   };
 
-  
   useEffect(() => {
     if (envioExitoso) {
       const timer = setInterval(() => {
@@ -55,7 +69,6 @@ const Reportes = ({ navigation }) => {
       return () => clearInterval(timer);
     }
   }, [envioExitoso]);
-
 
   return (
     <KeyboardAvoidingView
@@ -86,7 +99,7 @@ const Reportes = ({ navigation }) => {
                         value={correo}
                       />
                       <TextInput
-                        style={[styles.input, { height: Math.max(40, alturaTextArea) }]}
+                        style={[styles.input, { height: Math.max(80, alturaTextArea) }]}
                         placeholder="Describe el problema"
                         onChangeText={(text) => setMensaje(text)}
                         value={mensaje}
@@ -95,8 +108,13 @@ const Reportes = ({ navigation }) => {
                           setAlturaTextArea(event.nativeEvent.contentSize.height);
                         }}
                       />
-
-                      <Button title="Enviar Reporte" onPress={enviarReporte} color="#34531F" />
+                       <TouchableOpacity
+                          style={styles.boton}
+                          onPress={enviarReporte}
+                        >
+                          <Text style={styles.botonTexto} >Enviar Reporte</Text>
+                      </TouchableOpacity>
+                    
                     </>
                   ) : (
                     mostrarMensajes && (
@@ -114,6 +132,7 @@ const Reportes = ({ navigation }) => {
   </KeyboardAvoidingView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container1: {
@@ -161,7 +180,7 @@ const styles = StyleSheet.create({
   mensajeExitoso: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#C71585',
+    color: '#6D100A',
     marginBottom: 10,
     fontFamily: 'Montserrat-Bold',
   },
@@ -184,6 +203,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 5,
     fontFamily: 'Montserrat-Medium',
+  },
+  botonTexto: {
+    fontSize: 20,
+    color: '#F0FFF2',
+    fontWeight: 'bold',
+    fontFamily:'Montserrat-Bold',
+  },
+  boton: {
+    backgroundColor:"#C3D730",
+    padding: 10,
+    borderRadius: 30, 
   },
 });
 

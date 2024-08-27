@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { showMessage } from "react-native-flash-message";
 import { API_BASE_URL } from './Config';
 
 const InformeEstudiante = () => {
@@ -15,7 +16,15 @@ const InformeEstudiante = () => {
       const data = await response.json();
       setResultados(data);
     } catch (error) {
-      console.error('Error al buscar estudiantes:', error);
+      showMessage({
+        message: "Error",
+        description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
+        type: "danger",
+        icon: "danger",
+        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+        duration: 3000,
+      });
     }
   };
 
