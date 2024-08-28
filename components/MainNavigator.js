@@ -18,6 +18,7 @@ import StudentDetail from './StudentDetail';
 import StudentDetail2 from './StudentDetail2';
 import InformeCarrera from './InformeCarrera';
 import CerrarSesion from './CerrarSesion';
+import AccessRequestForm from './AccessRequestForm'; // La pantalla de solicitud de acceso
 import Animated from 'react-native-reanimated';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -360,6 +361,11 @@ const MainNavigator = () => {
           component={CerrarSesion}
           options={{ headerShown: false }}
           />
+          <Stack.Screen 
+          name="AccessRequest" 
+          component={AccessRequestForm}
+          options={{ headerShown: false }}
+           />
        
       </Stack.Navigator>
     

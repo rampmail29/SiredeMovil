@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, Text, ImageBackground, KeyboardAvoidingView, Platform, TouchableOpacity  } from 'react-native';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import { showMessage } from "react-native-flash-message"; // Importa react-native-flash-message
+import { showMessage } from "react-native-flash-message"; 
 
 const Reportes = ({ navigation }) => {
   const [nombre, setNombre] = useState('');
