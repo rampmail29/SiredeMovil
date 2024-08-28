@@ -243,7 +243,7 @@ const estilos = StyleSheet.create({
     width: 300,
     marginBottom: -3,
     borderWidth: 1,
-    padding: 15,
+    padding: 10,
     borderColor: 'yellowgreen',
     borderWidth: 3,
     color: '#FFFFFF',
@@ -272,8 +272,8 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
   },
   olvideContrasenaContainer: {
-    width: 300,
-    alignItems: 'flex-end',
+    //width: 300,
+    //alignItems: 'flex-end',
     marginTop: 10,
     marginBottom: 25,
   },
@@ -338,7 +338,6 @@ const estilos = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-
     borderRadius: 5,
     paddingHorizontal: 10,
   },

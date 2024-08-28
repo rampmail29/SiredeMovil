@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
-
+import React, { useState } from 'react';
+import { TextInput, StyleSheet, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ImageBackground, View  } from 'react-native';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { showMessage } from "react-native-flash-message"; 
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 const AccessRequestForm = () => {
   const [name, setName] = useState('');
@@ -10,82 +11,155 @@ const AccessRequestForm = () => {
 
   const submitRequest = async () => {
     if (!name || !role || !email) {
-      Alert.alert('Error', 'Por favor, completa todos los campos.');
+      showMessage({
+        message: "Faltan datos",
+        description: "Por favor, completa todos los campos antes de enviar tu solicitud de acceso.",
+        type: "danger",
+        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+        icon: "danger",
+        duration: 4000,
+        position:"top",
+      });
       return;
     }
 
     try {
-      await firestore().collection('accessRequests').add({
-        name: name,
-        role: role,
-        email: email,
-        timestamp: firestore.FieldValue.serverTimestamp(),
+      const db = getFirestore();
+      await addDoc(collection(db, 'AccessRequest'), {
+        nombre: name,
+        cargo: role,
+        correo: email,
+        timestamp: serverTimestamp(),
       });
-      Alert.alert('Solicitud enviada', 'Tu solicitud ha sido enviada correctamente.');
+      showMessage({
+        message: "Solicitud enviada",
+        description: "Tu solicitud ha sido enviada correctamente, pronto estaremos en contacto contigo.",
+        type: "success",
+        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+        icon: "success",
+        duration: 4000,
+        position:"top",
+      });
       // Limpiar los campos después de enviar la solicitud
       setName('');
       setRole('');
       setEmail('');
     } catch (error) {
-      Alert.alert('Error', 'Hubo un problema al enviar la solicitud. Inténtalo de nuevo.');
+      showMessage({
+        message: "Error",
+        description: "Hubo un problema al enviar la solicitud. Inténtalo de nuevo.",
+        type: "danger",
+        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+        icon: "danger",
+        duration: 3000,
+        position:"top",
+      });
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Solicitud de Acceso</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Cargo"
-        value={role}
-        onChangeText={setRole}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Correo Institucional"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TouchableOpacity style={styles.button} onPress={submitRequest}>
-        <Text style={styles.buttonText}>Enviar Solicitud</Text>
-      </TouchableOpacity>
-    </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={-20} // Ajusta este valor si es necesario
+    >
+      <ImageBackground
+        source={require('../assets/fondoinicio.jpg')} // Ruta de tu imagen de fondo
+        style={styles.background}> 
+        <ScrollView contentContainerStyle={styles.container}>
+           <View style={styles.icon}>
+            <AntDesign name="adduser" size={80} color="#6D100A" />
+          </View>
+        <Text style={styles.title}>Solicitud de Acceso</Text>
+        <Text style={styles.description}>
+          Completa el siguiente formulario para poder solicitar acceso a nuestra plataforma SIREDE Móvil. Recuerda que esta app es de uso exclusivo del personal administrativo autorizado de las UTS. Nos pondremos en contacto contigo a través de tu correo institucional en la mayor brevedad posible.
+        </Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre"
+          placeholderTextColor="#999"
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Cargo"
+          placeholderTextColor="#999"
+          value={role}
+          onChangeText={setRole}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Correo Institucional"
+          placeholderTextColor="#999"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+        <TouchableOpacity style={styles.button} onPress={submitRequest}>
+          <Text style={styles.buttonText}>Enviar Solicitud</Text>
+        </TouchableOpacity>
+      </ScrollView>
+      </ImageBackground>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
+    flexGrow: 1,
+    padding: 30,
     justifyContent: 'center',
+    
+  },
+  background: {
+    flex: 1,
+    resizeMode: 'cover', // Ajusta la imagen de fondo para cubrir toda la pantalla
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20,
+    fontSize: 30,
+    marginBottom: 10,
     textAlign: 'center',
+    fontFamily: 'Montserrat-Bold',
+    color: '#6D100A',
+  },
+  description: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign:'justify',
+    color: '#575756',
+    lineHeight: 22,
+    fontFamily: 'Montserrat-Medium',
   },
   input: {
-    backgroundColor: '#E0E0E0',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
+    backgroundColor: '#FFF',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    borderColor: '#6D100A',
+    borderWidth: 1,
+    fontSize: 16,
+    color: '#333',
+    fontFamily: 'Montserrat-Medium',
   },
   button: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#6D100A',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 8,
     alignItems: 'center',
+    marginTop: 10,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: 'Montserrat-Bold',
+  },
+  icon: {
+    justifyContent: 'center', // centra verticalmente
+    alignItems: 'center', // centra horizontalmente
   },
 });
 

@@ -39,6 +39,7 @@ const Reportes = ({ navigation }) => {
         textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
         icon: "danger",
         duration: 2500,
+        position:"top",
       });
       return;
     }
