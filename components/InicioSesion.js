@@ -5,6 +5,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Video } from 'expo-av';
 import { showMessage } from "react-native-flash-message";
+import { auth, firestore } from '../firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 const InicioSesion = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -14,6 +16,7 @@ const InicioSesion = ({ navigation }) => {
   const [mostrarCargando, setMostrarCargando] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [emailReset, setEmailReset] = useState('');
+  const [initialSetupCompleted, setInitialSetupCompleted] = useState(null);
 
   const passwordVisibility = () => {
     setSecureTextEntry(!secureTextEntry);
@@ -28,6 +31,48 @@ const InicioSesion = ({ navigation }) => {
       console.log('Usuario autenticado:', user.email);
       setUsuarioAutenticado(true);
       setMostrarCargando(true);
+
+      // Aquí se realiza la verificación en Firestore
+      const checkInitialSetupCompleted = async () => {
+        const userId = user.uid;
+        const userDocRef = doc(firestore, 'users', userId); // Ruta: colección 'users', documento con ID del usuario
+    
+        try {
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            const setupCompleted = data.initialSetupCompleted;
+    
+            if (setupCompleted) {
+              console.log('Initial setup completed:', setupCompleted);
+              // Navegar a la pantalla principal si el setup está completado
+              navigation.replace('TabInicio');
+            } else {
+              console.log('Initial setup not completed.');
+              // Navegar a la pantalla de configuración inicial si no está completado
+              navigation.replace('InitialSetupScreen');
+            }
+          } else {
+            console.log('No such document!');
+          }
+        } catch (error) {
+          setMostrarCargando(false);
+          console.error('Error fetching document:', error);
+          showMessage({
+            message: "Error",
+            description: "Hubo un error al verificar tu cuenta. Por favor, intenta de nuevo.",
+            type: "danger",
+            position: "top",
+            icon: "danger",
+            duration: 4000,
+          });
+        }
+      };
+
+      // Ejecuta la verificación en Firestore
+      checkInitialSetupCompleted();
+      
     } catch (error) {
       console.log('Error al autenticar usuario:', error);
       let mensajeError;
@@ -54,7 +99,7 @@ const InicioSesion = ({ navigation }) => {
         message: "Error",
         description: mensajeError,
         type: "danger",
-        position:"top",
+        position: "top",
         icon: "danger",
         duration: 4000,
       });
@@ -70,7 +115,7 @@ const InicioSesion = ({ navigation }) => {
           message: "Éxito",
           description: "Se ha enviado un correo para restablecer tu contraseña. Revisa tu bandeja de entrada o la carpeta de spam.",
           type: "success",
-          position:"top",
+          position: "top",
           icon: "success",
           duration: 6000,
         });
@@ -79,7 +124,7 @@ const InicioSesion = ({ navigation }) => {
           message: "Error",
           description: "No se encontró ninguna cuenta registrada con este correo electrónico.",
           type: "danger",
-          position:"top",
+          position: "top",
           icon: "danger",
           duration: 4000,
         });
@@ -90,23 +135,12 @@ const InicioSesion = ({ navigation }) => {
         message: "Error",
         description: "Ocurrió un error. Por favor, intenta de nuevo.",
         type: "danger",
-        position:"top",
+        position: "top",
         icon: "danger",
-          duration: 4000,
+        duration: 4000,
       });
     }
   };
-
-  useEffect(() => {
-    if (usuarioAutenticado) {
-      const timer = setTimeout(() => {
-        navigation.replace('TabInicio');
-        setMostrarCargando(false);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [usuarioAutenticado]);
 
   return (
     <View style={estilos.container}>
