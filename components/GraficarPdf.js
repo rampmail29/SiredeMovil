@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ImageBackground, ScrollView, Image, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, Image, TouchableOpacity, Modal} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
@@ -12,8 +12,7 @@ const GraficarPdf = ({ route, navigation }) => {
   const dataArray = datos[tipoInforme];
   const [imageUrls, setImageUrls] = useState({});
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-
+  
   const fetchImages = async () => {
     const extensions = ['png', 'jpg', 'jpeg'];
 

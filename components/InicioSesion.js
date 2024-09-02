@@ -381,7 +381,7 @@ const estilos = StyleSheet.create({
   },
   signupContainer: {
     position: 'absolute', // Posiciona el View en relación al contenedor principal
-    bottom: 0, // Ubica el View en la parte inferior del contenedor
+    bottom: -1, // Ubica el View en la parte inferior del contenedor
     width: '100%', // Asegúrate de que ocupe el ancho completo
     alignItems: 'center',
     padding: 20, // Agrega un poco de padding si es necesario

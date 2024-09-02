@@ -1,155 +1,128 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { getAuth, updateProfile } from 'firebase/auth';
-import { getFirestore, doc, updateDoc, getDoc } from 'firebase/firestore';
+import React, { useRef } from 'react';
+import { 
+  ScrollView, 
+  StyleSheet, 
+  View, 
+  Animated, 
+  useWindowDimensions, 
+  ImageBackground,
+ } from 'react-native';
 
-const InitialSetupScreen = ({ navigation }) => {
-  const [nombre, setNombre] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [profesion, setProfesion] = useState('');
-  const [rol, setRol] = useState('');
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [initialSetupCompleted, setInitialSetupCompleted] = useState(true);
+import PasswordChangeScreen from './PasswordChangeScreen';
+import InfoPerfilScreen from './InfoPerfilScreen';
+import BienvenidoScreen from './BienvenidoScreen';
 
-  
+const InitialSetupScreen = () => {
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef(null);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
-  const auth = getAuth();
-  const db = getFirestore();
-
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          console.log('Usuario actual:', user.uid);
-          setEmail(user.email); // Mostrar el email del usuario
-          const userRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userRef);
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            console.log('Datos del usuario:', userData);
-            setNombre(userData.nombre || '');
-            setTelefono(userData.telefono|| '');
-            setProfesion(userData.profesion || '');
-            setRol(userData.rol || '');
-          } else {
-            console.log('El documento del usuario no existe.');
-          }
-        } else {
-          Alert.alert('Error', 'No hay un usuario registrado.');
-        }
-      } catch (error) {
-        console.log('Error al cargar los datos del usuario:', error);
-        Alert.alert('Error', 'Hubo un problema al cargar los datos del usuario.');
-      }
-    };
-
-    loadUserData();
-  }, []);
-
-  const handleSubmit = async () => {
-    if (!nombre || !telefono || !profesion || !rol) {
-      Alert.alert('Error', 'Por favor, complete todos los campos obligatorios.');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        // Actualizar el perfil del usuario
-        await updateProfile(user, {
-          displayName: nombre,
-        });
-
-        // Actualizar Firestore
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, {
-          nombre,
-          telefono,
-          profesion,
-          rol,
-          initialSetupCompleted
-        });
-
-        // Navegar a la pantalla principal de la app
-        navigation.navigate('TabInicio'); // O la pantalla principal de tu app
-      } else {
-        Alert.alert('Error', 'No hay un usuario registrado.');
-      }
-    } catch (error) {
-      console.log('Error al actualizar el perfil:', error);
-      Alert.alert('Error', 'No se pudo actualizar el perfil. Inténtelo de nuevo.');
-    } finally {
-      setIsSubmitting(false);
+  const scrollToNextPage = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: windowWidth, animated: true });
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Completa tu Perfil</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre Completo"
-        value={nombre}
-        onChangeText={setNombre}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Número de Teléfono"
-        value={telefono}
-        onChangeText={setTelefono}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Carrera o Profesión"
-        value={profesion}
-        onChangeText={setProfesion}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Rol"
-        value={rol}
-        onChangeText={setRol}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Correo Electrónico"
-        value={email}
-        editable={false} // El email no se puede editar
-      />
-      <Button
-        title={isSubmitting ? "Enviando..." : "Enviar"}
-        onPress={handleSubmit}
-        disabled={isSubmitting}
-      />
-    </View>
+    <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
+      <View style={styles.container}>
+        <ScrollView
+          horizontal
+          style={styles.scrollViewStyle}
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: false }
+          )}
+          scrollEventThrottle={16}
+          ref={scrollViewRef}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          {/* Primera pantalla */}
+          <View style={[styles.contentContainer, { width: windowWidth, height: windowHeight }]}>
+            <BienvenidoScreen onNext={scrollToNextPage} />       
+          </View>
+
+          {/* Segunda pantalla */}
+          <View style={[styles.contentContainer, { width: windowWidth, height: windowHeight }]}>
+            <InfoPerfilScreen/>     
+          </View>
+  
+          {/* Tercera pantalla */}
+          <View style={[styles.contentContainer, { width: windowWidth, height: windowHeight }]}> 
+            <PasswordChangeScreen/>                     
+          </View>
+
+          {/* Cuarta pantalla */}
+          <View style={[styles.contentContainer, { width: windowWidth, height: windowHeight }]}>
+        
+          </View>
+          
+        </ScrollView>
+
+        {/* Indicador de puntos */}
+        <View style={styles.indicatorContainer}>
+          {[0, 1, 2, 3].map((_, index) => {
+            const inputRange = [
+              windowWidth * (index - 1),
+              windowWidth * index,
+              windowWidth * (index + 1),
+            ];
+
+            const dotWidth = scrollX.interpolate({
+              inputRange,
+              outputRange: [8, 16, 8],
+              extrapolate: 'clamp',
+            });
+
+            const dotColor = scrollX.interpolate({
+              inputRange,
+              outputRange: ['#132F20', '#C3D730', '#132F20'],
+              extrapolate: 'clamp',
+            });
+
+            return (
+              <Animated.View
+                key={index}
+                style={[
+                  styles.normalDots,
+                  { width: dotWidth, backgroundColor: dotColor }
+                ]}
+              />
+            );
+          })}
+        </View>
+      </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
+  },
+  scrollViewStyle: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  indicatorContainer: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#f8f8f8',
+    marginBottom: 40,
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  input: {
-    width: '100%',
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 8,
-    backgroundColor: '#fff',
+  normalDots: {
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
   },
 });
 
