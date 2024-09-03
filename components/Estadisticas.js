@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ImageBackground, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ImageBackground, ScrollView,  ActivityIndicator } from 'react-native';
 import { showMessage } from "react-native-flash-message";
 import { useNavigation } from '@react-navigation/native'; 
 import { API_BASE_URL } from './Config';

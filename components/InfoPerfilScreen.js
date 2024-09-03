@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect} from 'react';
 import { 
   ScrollView, 
   StyleSheet, 
   View, 
-  Animated, 
   useWindowDimensions, 
   ImageBackground, 
   Text, 
   TouchableOpacity, 
   TextInput, 
-  Easing, 
   Alert,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Modal,
+  ActivityIndicator
  } from 'react-native';
  import { getAuth, updateProfile } from 'firebase/auth';
  import { getFirestore, doc, updateDoc, getDoc } from 'firebase/firestore';
@@ -21,12 +21,11 @@ import {
  import { FontAwesome } from '@expo/vector-icons';
  import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
  import { storage } from '../firebaseConfig';
+ import { showMessage } from "react-native-flash-message";
  
 
-const InfoPerfilScreen = () => {
-  const scrollX = useRef(new Animated.Value(0)).current;
-  const scrollViewRef = useRef(null);
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+const InfoPerfilScreen = ({ onNext }) => {
+  const { height: windowHeight } = useWindowDimensions();
   const [imageUri, setImageUri] = useState(null);
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -34,8 +33,7 @@ const InfoPerfilScreen = () => {
   const [rol, setRol] = useState('');
   const [uid, setUid] = useState('');
   const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [loading, setLoading] = useState(false); 
   const [isFocused1, setIsFocused1] = useState(false);
   const [isFocused2, setIsFocused2] = useState(false);
   const [isFocused3, setIsFocused3] = useState(false);
@@ -43,61 +41,7 @@ const InfoPerfilScreen = () => {
   const [initialSetupCompleted, setInitialSetupCompleted] = useState(true);
   const auth = getAuth();
   const db = getFirestore();
-
-  // Imprime las dimensiones en la consola
-  //console.log(`Height: ${windowHeight}, Width: ${windowWidth}`);
-
-   // Crear referencias para las animaciones de cada pantalla
-   const slideAnim1 = useRef(new Animated.Value(300)).current; // Pantalla 1
-   const slideAnim2 = useRef(new Animated.Value(-300)).current; // Pantalla 
-   const fadeAnim = useRef(new Animated.Value(0)).current; // Inicialmente invisible
-   const slideAnim3 = useRef(new Animated.Value(-500)).current; // Pantalla 3
-   const slideAnim4 = useRef(new Animated.Value(300)).current; // Pantalla 4
-
-    // Función para iniciar las animaciones
-  const animateScreen = (slideAnim, fadeAnim) => {
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      fadeAnim &&
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-    ]).start();
-  };
-
   const isSmallScreen = windowHeight < 750; // Por ejemplo, iPhone 8 Plus tiene un ancho de 375px
-  const scaleFactor = windowHeight < 750 ? 0.9 : 1; // Ajusta según tus necesidades
-
-
-  useEffect(() => {
-    const listenerId = scrollX.addListener(({ value }) => {
-      const screenIndex = Math.floor(value / windowWidth);
-      // Iniciar la animación de la pantalla correspondiente
-      if (screenIndex === 0) {
-        animateScreen(slideAnim1, null);
-      } else if (screenIndex === 1) {
-        animateScreen(slideAnim2, fadeAnim);
-      } else if (screenIndex === 2) {
-        animateScreen(slideAnim3, null);
-      } else if (screenIndex === 3) {
-        animateScreen(slideAnim4, null);
-      }
-    });
-
-    // Iniciar la animación de la primera pantalla al montar el componente
-    animateScreen(slideAnim1, null);
-
-    return () => {
-      scrollX.removeListener(listenerId);
-    };
-  }, [scrollX]);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -119,11 +63,31 @@ const InfoPerfilScreen = () => {
             console.log('El documento del usuario no existe.');
           }
         } else {
-          Alert.alert('Error', 'No hay un usuario registrado.');
+          showMessage({
+            message: "Error",
+            description: "No hay un Usuario registrado.",
+            type: "danger",
+            titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+            textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+            icon: "danger",
+            duration: 2500,
+            position:"top",
+          });
+          return;
         }
       } catch (error) {
         console.log('Error al cargar los datos del usuario:', error);
-        Alert.alert('Error', 'Hubo un problema al cargar los datos del usuario.');
+        showMessage({
+          message: "Error",
+          description: "Hubo un problema al cargar los datos del usuario.",
+          type: "danger",
+          titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+          textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+          icon: "danger",
+          duration: 2500,
+          position:"top",
+        });
+        return;
       }
     };
 
@@ -131,14 +95,20 @@ const InfoPerfilScreen = () => {
   }, []);
 
   
-  const handleSubmit = async () => {
-    if (!nombre || !telefono || !profesion || !rol) {
-      Alert.alert('Error', 'Por favor, complete todos los campos obligatorios.');
+  const guardar = async () => {
+    if (!nombre || !profesion || !rol) {
+      showMessage({
+        message: "Faltan datos",
+        description: "Por favor, complete todos los campos obligatorios.",
+        type: "danger",
+        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+        icon: "danger",
+        duration: 3000,
+        position:"top",
+      });
       return;
     }
-
-    setIsSubmitting(true);
-
     try {
       const user = auth.currentUser;
       if (user) {
@@ -146,7 +116,7 @@ const InfoPerfilScreen = () => {
         await updateProfile(user, {
           displayName: nombre,
         });
-
+  
         // Actualizar Firestore
         const userRef = doc(db, 'users', user.uid);
         await updateDoc(userRef, {
@@ -156,20 +126,33 @@ const InfoPerfilScreen = () => {
           rol,
           initialSetupCompleted
         });
-
-        // Navegar a la pantalla principal de la app
-        navigation.navigate('TabInicio'); // O la pantalla principal de tu app
+        setLoading(true); // Mostrar el modal de carga
+        
+        // Usar setTimeout para llamar a onNext después de 3 segundos
+        setTimeout(() => {
+          setLoading(false); // Oculta el modal de carga
+          onNext(); // Llama a la función onNext
+        }, 3000);
+  
       } else {
         Alert.alert('Error', 'No hay un usuario registrado.');
       }
     } catch (error) {
       console.log('Error al actualizar el perfil:', error);
-      Alert.alert('Error', 'No se pudo actualizar el perfil. Inténtelo de nuevo.');
-    } finally {
-      setIsSubmitting(false);
-    }
+      showMessage({
+        message: "Error",
+        description: "No se pudo actualizar el perfil. Inténtelo de nuevo.",
+        type: "danger",
+        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+        icon: "danger",
+        duration: 2500,
+        position:"top",
+      });
+      return;
+  
+    } 
   };
-
   
   const selectImage = async () => {
     try {
@@ -233,11 +216,6 @@ const InfoPerfilScreen = () => {
     }
   };
 
-  const animatedScroll1  = async () => {
-    scrollViewRef.current.scrollTo({ x: windowWidth*2, animated: true });
-  }
-
-
   return (
     <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -247,9 +225,7 @@ const InfoPerfilScreen = () => {
           <ScrollView style={[styles.container, isSmallScreen && styles.containerPantalla2Small]}>
           
                  <Text style={[styles.title, isSmallScreen && styles.titleSmall]}>Completa la información de tu perfil.</Text>
-                
-             
-                            
+                   
                               {imageUri ? (
                                 <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
                                   <ImageBackground source={{ uri: imageUri }} style={styles.image}>                       
@@ -272,8 +248,11 @@ const InfoPerfilScreen = () => {
                                     <View style={styles.separator1} />
                                   </View>
 
-                          <View style={styles.infoContainer} >
-                            <Text style={styles.infoText}>Nombre: </Text>                              
+                          <View>
+                          <View style={styles.fieldContainer}>
+                                <Text style={styles.asterisk}>*</Text>
+                                <Text style={styles.infoText}>Nombre:</Text>
+                          </View>                        
                               <TextInput
                                  style={[
                                   styles.input,
@@ -286,7 +265,10 @@ const InfoPerfilScreen = () => {
                                 onFocus={() => setIsFocused1(true)}
                                 onBlur={() => setIsFocused1(false)}
                               />
-                              <Text style={styles.infoText}>Cargo: </Text>   
+                               <View style={styles.fieldContainer}>
+                                <Text style={styles.asterisk}>*</Text>
+                                <Text style={styles.infoText}>Cargo:</Text>
+                               </View>  
                               <TextInput
                                  style={[
                                   styles.input,
@@ -299,7 +281,10 @@ const InfoPerfilScreen = () => {
                                 onFocus={() => setIsFocused2(true)}
                                 onBlur={() => setIsFocused2(false)}
                               />
-                               <Text style={styles.infoText}>Profesión: </Text>   
+                                <View style={styles.fieldContainer}>
+                                <Text style={styles.asterisk}>*</Text>
+                                <Text style={styles.infoText}>Profesión:</Text>
+                               </View>   
                               <TextInput
                                  style={[
                                   styles.input,
@@ -327,9 +312,25 @@ const InfoPerfilScreen = () => {
                               />
         
                               </View>
-                              <TouchableOpacity style={[styles.sig, isSmallScreen && styles.sigSmall]} onPress={animatedScroll1}> 
-                                 <FontAwesome name="arrow-circle-right" size={80} color="#6D100A" />   
+                              <TouchableOpacity style={[styles.sig, isSmallScreen && styles.sigSmall]} onPress={guardar}> 
+                                 <Text style={styles.guardar}>Guardar Cambios</Text> 
                               </TouchableOpacity>  
+
+                               {/* Modal para mostrar la pantalla de carga */}
+                                       <Modal
+                                          animationType="fade"
+                                          transparent={true}
+                                          visible={loading}
+                                        >
+                                          <View style={styles.modalContainer}>
+                                            {loading && (
+                                              <View >
+                                                <ActivityIndicator size="large" color="white" />
+                                                <Text style={styles.loadingText}>Actualizando Datos...</Text>
+                                              </View>
+                                            )}
+                                          </View>
+                                        </Modal>
                          
                       </ScrollView>
                       </KeyboardAvoidingView>
@@ -464,12 +465,44 @@ const styles = StyleSheet.create({
     alignItems:'center',
     left: 0,
     right: 0,
+    backgroundColor:'#6D100A',
+    padding:15,
+    borderRadius:50,
+    marginTop:10
+  },
+  guardar:{
+    fontFamily:'Montserrat-Bold',
+    fontSize:20,
+    color:'white'
   },
   sigSmall:{
     alignItems:'center',
     left: 0,
     right: 0,
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+  },
+  loadingText: {
+    color: 'white',
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: 'Montserrat-Bold',
+  },
+  fieldContainer: {
+    flexDirection: 'row', // Esto alinea el asterisco y el nombre en una fila
+    alignItems: 'center', // Alinea verticalmente los elementos al centro
+  },
+  asterisk: {
+    color: 'red', // Cambia esto al color que desees para el asterisco
+    fontFamily: 'Montserrat-Bold', // Usa la misma fuente si deseas coherencia
+    fontSize: 19, // Ajusta el tamaño para que coincida con el de "Nombre"
+    marginRight: 2, // Espacio entre el asterisco y el texto "Nombre"
+  },
+
 });
 
 export default InfoPerfilScreen;

@@ -8,9 +8,9 @@ import {
   ImageBackground,
  } from 'react-native';
 
-import PasswordChangeScreen from './PasswordChangeScreen';
 import InfoPerfilScreen from './InfoPerfilScreen';
 import BienvenidoScreen from './BienvenidoScreen';
+import ConfigList from './ConfigList';
 
 const InitialSetupScreen = () => {
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -20,6 +20,12 @@ const InitialSetupScreen = () => {
   const scrollToNextPage = () => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ x: windowWidth, animated: true });
+    }
+  };
+
+  const scrollToNextPage2 = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: windowWidth*2, animated: true });
     }
   };
 
@@ -46,24 +52,19 @@ const InitialSetupScreen = () => {
 
           {/* Segunda pantalla */}
           <View style={[styles.contentContainer, { width: windowWidth, height: windowHeight }]}>
-            <InfoPerfilScreen/>     
+            <InfoPerfilScreen onNext={scrollToNextPage2}/>     
           </View>
   
           {/* Tercera pantalla */}
           <View style={[styles.contentContainer, { width: windowWidth, height: windowHeight }]}> 
-            <PasswordChangeScreen/>                     
+            <ConfigList/>
           </View>
-
-          {/* Cuarta pantalla */}
-          <View style={[styles.contentContainer, { width: windowWidth, height: windowHeight }]}>
         
-          </View>
-          
         </ScrollView>
 
         {/* Indicador de puntos */}
         <View style={styles.indicatorContainer}>
-          {[0, 1, 2, 3].map((_, index) => {
+          {[0, 1, 2 ].map((_, index) => {
             const inputRange = [
               windowWidth * (index - 1),
               windowWidth * index,

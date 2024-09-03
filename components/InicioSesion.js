@@ -5,7 +5,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Video } from 'expo-av';
 import { showMessage } from "react-native-flash-message";
-import { auth, firestore } from '../firebaseConfig';
+import { firestore } from '../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 
 const InicioSesion = ({ navigation }) => {
@@ -51,7 +51,7 @@ const InicioSesion = ({ navigation }) => {
             } else {
               console.log('Initial setup not completed.');
               // Navegar a la pantalla de configuración inicial si no está completado
-              navigation.replace('InitialSetupScreen');
+              navigation.replace('PasswordChangeScreen');
             }
           } else {
             console.log('No such document!');
@@ -378,6 +378,7 @@ const estilos = StyleSheet.create({
   iconContainer: {
     position: 'absolute',
     right: 20,
+    top:13
   },
   signupContainer: {
     position: 'absolute', // Posiciona el View en relación al contenedor principal
