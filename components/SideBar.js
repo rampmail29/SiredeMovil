@@ -23,7 +23,6 @@ const SideBar = (props) => {
     if (!uid) return;
 
     try {
-      console.log('Intentando obtener imagen para UID:', uid);
       const extensions = ['png', 'jpg', 'jpeg'];
       let imageUrl = null;
 
@@ -32,10 +31,9 @@ const SideBar = (props) => {
         try {
           const url = await getDownloadURL(imageRef);
           imageUrl = url;
-          console.log('Imagen encontrada con extensión:', ext);
           break;
         } catch (error) {
-          // Ignorar el error si la imagen no se encuentra con una extensión
+    
         }
       }
 

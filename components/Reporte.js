@@ -1,17 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, Text, ImageBackground, KeyboardAvoidingView, Platform, TouchableOpacity  } from 'react-native';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc,serverTimestamp   } from 'firebase/firestore';
 import { showMessage } from "react-native-flash-message"; 
+import { getAuth} from 'firebase/auth';
+
+const auth = getAuth();
+const db = getFirestore();
 
 const Reportes = ({ navigation }) => {
   const [nombre, setNombre] = useState('');
-  const [correo, setCorreo] = useState('');
+  const [email, setEmail] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [uid, setUid] = useState('');
   const [mostrarTitulos, setMostrarTitulos] = useState(true);
   const [alturaTextArea, setAlturaTextArea] = useState(80);
   const [envioExitoso, setEnvioExitoso] = useState(false);
   const [mostrarMensajes, setMostrarMensajes] = useState(false);
   const [contador, setContador] = useState(5);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          setEmail(user.email);
+          const userRef = doc(db, 'users', user.uid);
+          setUid(user.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setNombre(userData.nombre || '');
+          }
+        }
+      } catch (error) {
+        console.log('Error al cargar los datos del usuario:', error);
+      } finally {
+      }
+    };
+  
+    loadUserData();
+  }, []);
+
 
   const guardarReporteEnFirestore = async () => {
     try {
@@ -19,8 +48,9 @@ const Reportes = ({ navigation }) => {
       const reportesRef = collection(db, 'reportes');
       await addDoc(reportesRef, {
         nombre: nombre,
-        correo: correo,
+        correo: email,
         mensaje: mensaje,
+        timestamp: serverTimestamp(),
       });
       console.log('Reporte guardado en Firestore');
     } catch (error) {
@@ -30,15 +60,15 @@ const Reportes = ({ navigation }) => {
 
   const enviarReporte = async () => {
    
-    if (!nombre || !correo || !mensaje) {
+    if (!mensaje) {
       showMessage({
         message: "Faltan datos",
-        description: "Por favor, completa todos los campos antes de enviar el reporte.",
+        description: "Por favor, describe el problema correctamente para poder enviar el reporte.",
         type: "danger",
         titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
         textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
         icon: "danger",
-        duration: 2500,
+        duration: 3000,
         position:"top",
       });
       return;
@@ -70,6 +100,7 @@ const Reportes = ({ navigation }) => {
       return () => clearInterval(timer);
     }
   }, [envioExitoso]);
+  const primerNombre = nombre.split(" ")[0];
 
   return (
     <KeyboardAvoidingView
@@ -84,23 +115,11 @@ const Reportes = ({ navigation }) => {
                     <>
                       <View>
                         <Text style={styles.titulo}>Reportar un Problema</Text>
-                        <Text style={styles.subtitulo}>¡Tu retroalimentación es valiosa para nosotros!</Text>
+                        <Text style={styles.subtitulo}>¡{primerNombre}, tu retroalimentación es valiosa para nosotros!</Text>
                       </View>
 
                       <TextInput
-                        style={styles.input}
-                        placeholder="Tu nombre"
-                        onChangeText={(text) => setNombre(text)}
-                        value={nombre}
-                      />
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Tu correo electrónico"
-                        onChangeText={(text) => setCorreo(text)}
-                        value={correo}
-                      />
-                      <TextInput
-                        style={[styles.input, { height: Math.max(80, alturaTextArea) }]}
+                        style={[styles.input, { height: Math.max(130, alturaTextArea) }]}
                         placeholder="Describe el problema"
                         onChangeText={(text) => setMensaje(text)}
                         value={mensaje}
@@ -138,8 +157,6 @@ const Reportes = ({ navigation }) => {
 const styles = StyleSheet.create({
   container1: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   background: {
     flex: 1,
@@ -192,21 +209,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Medium',
   },
   titulo: {
-    fontSize: 25,
+    fontSize: 30,
     color: '#C3D730',
     textAlign:'center',
     marginBottom: 15,
     fontFamily: 'Montserrat-Bold',
   },
   subtitulo: {
-    fontSize: 13,
+    fontSize: 19,
     color: '#34531F',
     textAlign: 'center',
     marginBottom: 5,
     fontFamily: 'Montserrat-Medium',
   },
   botonTexto: {
-    fontSize: 20,
+    fontSize: 15,
     color: '#F0FFF2',
     fontWeight: 'bold',
     fontFamily:'Montserrat-Bold',

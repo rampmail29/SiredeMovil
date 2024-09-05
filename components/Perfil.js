@@ -23,98 +23,61 @@ const Perfil = () => {
     const [uid, setUid] = useState('');
     const [email, setEmail] = useState('');
     const [isFocused1, setIsFocused1] = useState(false);
-  const [isFocused2, setIsFocused2] = useState(false);
-  const [isFocused3, setIsFocused3] = useState(false);
-  const [isFocused4, setIsFocused4] = useState(false);
-  const [loading, setLoading] = useState(false); 
-  const isSmallScreen = windowHeight < 750; // Por ejemplo, iPhone 8 Plus tiene un ancho de 375px
+    const [isFocused2, setIsFocused2] = useState(false);
+    const [isFocused3, setIsFocused3] = useState(false);
+    const [isFocused4, setIsFocused4] = useState(false);
+    const [loading, setLoading] = useState(false); 
+    const [loading2, setLoading2] = useState(true);
+    const isSmallScreen = windowHeight < 750; // Por ejemplo, iPhone 8 Plus tiene un ancho de 375px
  
-  useEffect(() => {
- 
-    const loadUserData = async () => {
-        try {
-          const user = auth.currentUser;
-          if (user) {
-            console.log('Usuario actual:', user.uid);
-            setEmail(user.email); // Mostrar el email del usuario
-            const userRef = doc(db, 'users', user.uid);
-            setUid(user.uid);
-            const userDoc = await getDoc(userRef);
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              setNombre(userData.nombre || '');
-              setTelefono(userData.telefono|| '');
-              setProfesion(userData.profesion || '');
-              setRol(userData.rol || '');   
-            } else {
-              console.log('El documento del usuario no existe.');
-            }
-          } else {
-            showMessage({
-              message: "Error",
-              description: "No hay un Usuario registrado.",
-              type: "danger",
-              titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
-              textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
-              icon: "danger",
-              duration: 2500,
-              position:"top",
-            });
-            return;
-          }
-        } catch (error) {
-          console.log('Error al cargar los datos del usuario:', error);
-          showMessage({
-            message: "Error",
-            description: "Hubo un problema al cargar los datos del usuario.",
-            type: "danger",
-            titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
-            textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
-            icon: "danger",
-            duration: 2500,
-            position:"top",
-          });
-          return;
-        }
-      };
-  
-      loadUserData();
-    }, []);
     useEffect(() => {
+        const loadUserData = async () => {
+          try {
+            const user = auth.currentUser;
+            if (user) {
+              setEmail(user.email);
+              const userRef = doc(db, 'users', user.uid);
+              setUid(user.uid);
+              const userDoc = await getDoc(userRef);
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                setNombre(userData.nombre || '');
+                setTelefono(userData.telefono || '');
+                setProfesion(userData.profesion || '');
+                setRol(userData.rol || '');
+              }
+            }
+          } catch (error) {
+            console.log('Error al cargar los datos del usuario:', error);
+          } finally {
+            setLoading2(false); // Desactivar indicador de carga cuando se cargan los datos
+          }
+        };
+      
+        loadUserData();
+      }, []);
+    
+      useEffect(() => {
         const obtenerImagenEstudiante = async () => {
           try {
-            console.log('Intentando obtener imagen para UID:', uid);
             const extensions = ['png', 'jpg', 'jpeg'];
             let imageUrl = null;
-        
             for (let ext of extensions) {
-              console.log('Intentando obtener la imagen con extensión:', ext);
               const imageRef = ref(storage, `users/${uid}.${ext}`);
               try {
                 const url = await getDownloadURL(imageRef);
                 imageUrl = url;
-                console.log('Imagen encontrada con extensión:', ext);
                 break;
-              } catch (error) {
-                console.log('No se encontró imagen con extensión:', ext);
-              }
+              } catch {}
             }
-        
-            if (imageUrl) {
-              setImageUri(imageUrl);
-              console.log('URL de la imagen:', imageUrl);
-            } else {
-              console.log('No se encontró imagen para el UID especificado.');
-            }
+            setImageUri(imageUrl);
           } catch (error) {
             console.error('Error al obtener la imagen del estudiante:', error);
           }
         };
-        
-      
-        obtenerImagenEstudiante();
+    
+        if (uid) obtenerImagenEstudiante();
       }, [uid]);
-      
 
   const selectImage = async () => {
     try {
@@ -238,10 +201,17 @@ const Perfil = () => {
 
   return (
     <KeyboardAvoidingView
-    style={{ flex: 1 }}
-    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    keyboardVerticalOffset={90} // Ajusta este valor si es necesario
-  >
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={90} // Ajusta este valor si es necesario
+    >
+      {loading2 ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#34531F" />
+          <Text style={styles.loadingText}>Cargando...</Text>
+        </View>
+      ) : (
+        <>
     <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
         
       <ScrollView contentContainerStyle={styles.scrollView}>
@@ -372,6 +342,8 @@ const Perfil = () => {
       
       
     </ImageBackground>
+    </>
+    )}
     </KeyboardAvoidingView>
     
   );
