@@ -110,6 +110,7 @@ const InfoPerfilScreen = ({ onNext }) => {
       return;
     }
     try {
+      setLoading(true); // Mostrar el modal de carga
       const user = auth.currentUser;
       if (user) {
         // Actualizar el perfil del usuario
@@ -126,7 +127,6 @@ const InfoPerfilScreen = ({ onNext }) => {
           rol,
           initialSetupCompleted
         });
-        setLoading(true); // Mostrar el modal de carga
         
         // Usar setTimeout para llamar a onNext después de 3 segundos
         setTimeout(() => {

@@ -22,6 +22,7 @@ import AccessRequestForm from './AccessRequestForm';
 import PasswordChangeScreen from './PasswordChangeScreen';
 import InitialSetupScreen from './InitialSetupScreen';
 import ConfigList from './ConfigList';
+import Perfil from './Perfil'
 import Animated from 'react-native-reanimated';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -238,7 +239,7 @@ const MainNavigator = () => {
         drawerContent={(props) => <SideBar {...props} />}
         screenOptions={({ route }) => ({
           headerStyle: {
-            //backgroundColor: '#F0FFF2', // Cambia el color del encabezado
+            backgroundColor: '#F0FFF2', // Cambia el color del encabezado
           },
             drawerHideStatusBarOnOpen: true, //Ocultar la barra del sistema operativo (reloj,señal. etc)
             //drawerType: 'front',
@@ -317,7 +318,7 @@ const MainNavigator = () => {
 
       <Drawer.Screen
                 name="Perfil"
-                component={ProfileScreen}
+                component={Perfil}
             />
             <Drawer.Screen
                 name="SireBot"
