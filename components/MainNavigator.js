@@ -23,6 +23,7 @@ import PasswordChangeScreen from './PasswordChangeScreen';
 import InitialSetupScreen from './InitialSetupScreen';
 import ConfigList from './ConfigList';
 import Perfil from './Perfil'
+import SireBot from './SireBot';
 import Animated from 'react-native-reanimated';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -33,11 +34,6 @@ import { getStatusBarHeight } from 'react-native-status-bar-height';
 const Drawer = createDrawerNavigator(); 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-
-import {
-  ProfileScreen,
-  MessageScreen,
-} from "../screens";
 
 import SideBar from "./SideBar";
 
@@ -322,7 +318,7 @@ const MainNavigator = () => {
             />
             <Drawer.Screen
                 name="SireBot"
-                component={MessageScreen}
+                component={SireBot}
             />
             <Drawer.Screen
                 name="Reporte"
