@@ -7,7 +7,7 @@ import {
     obtenerDetallesEstudiante,
     obtenerDetalles,
     procesarEstadisticasPdf
- } from '../controllers/productos.controller.js';
+ } from '../controllers/estadisticas.controller.js';
 
 const router = Router();
 

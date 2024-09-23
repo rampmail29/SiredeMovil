@@ -1,15 +1,15 @@
 import express from "express";
 import cors from 'cors';;
 
-//aca importamos las rutas que creamos en la carpeta routes
-import productoRoutes from './routes/productos.routes.js';
+//importamos las rutas que creamos en la carpeta routes
+import estadisticasRoutes from './routes/estadisticas.routes.js';
 
 const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-//aca le decimos al servidor que rutas usar
-app.use('/api', productoRoutes);
+//le decimos al servidor que rutas usar
+app.use('/api', estadisticasRoutes);
 
 //por si se solicita un endpoint que no exista
 app.use((req, res, next) => {

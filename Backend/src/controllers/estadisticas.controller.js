@@ -6,7 +6,7 @@ export const traerProgramas = async (req, res) => {
         res.json(rows);
     } catch (error) {
         console.error('Error al ejecutar la consulta:', error);
-        res.status(500).json({ error: 'Error al obtener datos bebe' });
+        res.status(500).json({ error: 'Error al obtener datos' });
     }
 };
 
@@ -114,6 +114,7 @@ export const buscarEstudiantes = async (req, res) => {
       res.status(500).json({ error: 'Error al obtener datos de estudiantes' });
     }
   };
+
   export const obtenerDetallesEstudiante = async (req, res) => {
     const { documento } = req.params;
     const { corteFinal } = req.body; // Obtener los datos del cuerpo de la solicitud
@@ -279,6 +280,8 @@ export const procesarEstadisticasPdf = async (req, res) => {
       return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
+
+
 export const obtenerDetalles = async (req, res) => {
   const { documento } = req.params;
 

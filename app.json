@@ -28,11 +28,9 @@
     "web": {
       "favicon": "./assets/icon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "00350b10-3f6e-457b-9625-64dbcf0a764e"
-      }
-    },
-    "owner": "andresprada10"
+    "owner": "andresprada10",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
