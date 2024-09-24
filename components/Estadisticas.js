@@ -22,6 +22,9 @@ const Estadisticas = () => {
     totalGra: 0,
     totalRet: 0,
     totalDes: 0,
+    desPorSexo:0,
+    graPorSexo:0,
+    retPorSexo:0
   });
 
   useEffect(() => {
@@ -111,6 +114,9 @@ const Estadisticas = () => {
               totalGra: datosBackend.totalGra,
               totalRet: datosBackend.totalRet,
               totalDes: datosBackend.totalDes,
+              desPorSexo: datosBackend.desPorSexo,
+              graPorSexo:datosBackend.graPorSexo,
+              retPorSexo:datosBackend.retPorSexo
             },
           });
         }, 2500);
@@ -172,6 +178,7 @@ const Estadisticas = () => {
       });
 
       const data = await response.json();
+      console.log(data);
       setDatosBackend(data);
       setLoading(true); // Mostrar el modal de carga
       

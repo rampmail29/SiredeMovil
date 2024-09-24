@@ -21,84 +21,165 @@ export const traerCortesIniciales = async (req, res) => {
 };
 
 export const procesarEstadisticas = async (req, res) => {
-    const { programa, corteInicial, corteFinal } = req.body;
-    console.log('Datos recibidos:', req.body);
+  const { programa, corteInicial, corteFinal } = req.body;
+  console.log('Datos recibidos:', req.body);
 
-    const cod_prog = programa;
-    const [ano1, per1] = corteInicial.split("-").map(Number);
-    const [ano, per] = corteFinal.split("-").map(Number);
-    let fgrado = per === 1 ? `${ano}-06-30` : `${ano}-12-31`;
+  const cod_prog = programa;
+  const [ano1, per1] = corteInicial.split("-").map(Number);
+  const [ano, per] = corteFinal.split("-").map(Number);
+  let fgrado = per === 1 ? `${ano}-06-30` : `${ano}-12-31`;
 
-    try {
-        const connection = await pool.getConnection();
-        console.log('Conexión a la base de datos establecida.');
+  let connection;
 
-        // Total de estudiantes del corte inicial
-        const [totalEstpResult] = await connection.query(
-            `SELECT COUNT(DISTINCT doc_est) AS cantidad FROM estudiante_prog WHERE ano = ? AND periodo = ? AND cod_prog = ?`,
-            [ano1, per1, cod_prog]
-        );
-        const totalEstp = totalEstpResult[0].cantidad;
-        console.log('Total de estudiantes del corte inicial:', totalEstp);
+  try {
+      connection = await pool.getConnection();
+      console.log('Conexión a la base de datos establecida.');
 
-        if (totalEstp <= 0) {
-            connection.release();
-            return res.status(400).json({ error: 'No existen estudiantes para ese año y periodo' });
-        }
+      // Total de estudiantes del corte inicial
+      const [totalEstpResult] = await connection.query(
+          `SELECT COUNT(DISTINCT doc_est) AS cantidad FROM estudiante_prog WHERE ano = ? AND periodo = ? AND cod_prog = ?`,
+          [ano1, per1, cod_prog]
+      );
+      const totalEstp = totalEstpResult[0].cantidad;
+      console.log('Total de estudiantes del corte inicial:', totalEstp);
 
-        // Total de estudiantes graduados
-        const [totalGraResult] = await connection.query(
-            `SELECT COUNT(gdocumento) AS cantidad FROM graduados 
-             WHERE gfechagrado < ? 
-             AND gdocumento IN (
-               SELECT DISTINCT doc_est FROM estudiante_prog 
-               WHERE ano = ? AND periodo = ? AND cod_prog = ?
-             )`,
-            [fgrado, ano1, per1, cod_prog]
-        );
-        const totalGra = totalGraResult[0].cantidad;
-        console.log('Total de estudiantes graduados:', totalGra);
+      if (totalEstp <= 0) {
+          return res.status(400).json({ error: 'No existen estudiantes para ese año y periodo' });
+      }
 
-        // Total de estudiantes retenidos
-        const [totalRetResult] = await connection.query(
-            `SELECT COUNT(DISTINCT doc_est) AS cantidad FROM estudiante_prog 
-             WHERE ano = ? AND periodo = ? AND estado = 'Matriculado' AND cod_prog = ? 
+      // Total de estudiantes graduados
+      const [totalGraResult] = await connection.query(
+          `SELECT COUNT(gdocumento) AS cantidad FROM graduados 
+           WHERE gfechagrado < ? 
+           AND gdocumento IN (
+             SELECT DISTINCT doc_est FROM estudiante_prog 
+             WHERE ano = ? AND periodo = ? AND cod_prog = ?
+           )`,
+          [fgrado, ano1, per1, cod_prog]
+      );
+      const totalGra = totalGraResult[0].cantidad;
+      console.log('Total de estudiantes graduados:', totalGra);
+
+      // Desglose por sexo de los graduados
+      const [graPorSexoResult] = await connection.query(
+          `SELECT e.sexo, COUNT(e.documento) AS cantidad 
+           FROM graduados g
+           JOIN estudiante_prog ep ON g.gdocumento = ep.doc_est
+           JOIN estudiantes e ON e.documento = ep.doc_est
+           WHERE g.gfechagrado < ? 
+             AND ep.ano = ? AND ep.periodo = ? AND ep.cod_prog = ?
+           GROUP BY e.sexo`,
+          [fgrado, ano1, per1, cod_prog]
+      );
+      const graPorSexo = {
+          Masculino: 0,
+          Femenino: 0
+      };
+      graPorSexoResult.forEach(row => {
+          if (row.sexo === 'M') graPorSexo.Masculino = row.cantidad;
+          if (row.sexo === 'F') graPorSexo.Femenino = row.cantidad;
+      });
+      console.log('Graduados por sexo:', graPorSexo);
+
+      // Total de estudiantes retenidos
+      const [totalRetResult] = await connection.query(
+          `SELECT COUNT(DISTINCT doc_est) AS cantidad FROM estudiante_prog 
+           WHERE ano = ? AND periodo = ? AND estado = 'Matriculado' AND cod_prog = ? 
              AND doc_est IN (
                SELECT DISTINCT doc_est FROM estudiante_prog 
                WHERE ano = ? AND periodo = ? AND cod_prog = ?
              )`,
-            [ano, per, cod_prog, ano1, per1, cod_prog]
+          [ano, per, cod_prog, ano1, per1, cod_prog]
+      );
+      const totalRet = totalRetResult[0].cantidad;
+      console.log('Total de estudiantes retenidos:', totalRet);
+
+      // Desglose por sexo de los retenidos
+      const [retPorSexoResult] = await connection.query(
+          `SELECT e.sexo, COUNT(e.documento) AS cantidad 
+           FROM estudiante_prog ep
+           JOIN estudiantes e ON e.documento = ep.doc_est
+           WHERE ep.ano = ? AND ep.periodo = ? AND ep.estado = 'Matriculado' AND ep.cod_prog = ? 
+             AND ep.doc_est IN (
+               SELECT DISTINCT doc_est FROM estudiante_prog 
+               WHERE ano = ? AND periodo = ? AND cod_prog = ?
+             )
+           GROUP BY e.sexo`,
+          [ano, per, cod_prog, ano1, per1, cod_prog]
+      );
+      const retPorSexo = {
+          Masculino: 0,
+          Femenino: 0
+      };
+      retPorSexoResult.forEach(row => {
+          if (row.sexo === 'M') retPorSexo.Masculino = row.cantidad;
+          if (row.sexo === 'F') retPorSexo.Femenino = row.cantidad;
+      });
+      console.log('Retenidos por sexo:', retPorSexo);
+
+      // Validación de consistencia de datos
+      if (totalRet > totalEstp || (totalGra + totalRet) > totalEstp) {
+          return res.status(400).json({ error: 'Existen errores en la base de datos de matriculados para este corte de cierre y este programa' });
+      }
+
+      // Cálculo de desertores
+      const totalDes = totalEstp > 0 ? totalEstp - totalGra - totalRet : 0;
+      console.log('Total de estudiantes desertores:', totalDes);
+     
+        // Si deseas contar desertores por sexo, puedes buscar los que no están en los graduados ni en los retenidos
+        const [desPorSexoResult] = await connection.query(
+          `SELECT e.sexo, COUNT(e.documento) AS cantidad 
+          FROM estudiantes e
+          WHERE e.documento IN (
+              SELECT DISTINCT ep.doc_est 
+              FROM estudiante_prog ep
+              WHERE ep.ano = ? AND ep.periodo = ? AND ep.cod_prog = ?
+          )
+          AND e.documento NOT IN (;
+              SELECT DISTINCT g.gdocumento FROM graduados g
+          )
+          AND e.documento NOT IN (
+              SELECT DISTINCT ep.doc_est FROM estudiante_prog ep
+              WHERE ep.estado = 'Matriculado' AND ep.ano = ? AND ep.periodo = ? AND ep.cod_prog = ?
+          )
+          GROUP BY e.sexo`,
+          [ano1, per1, cod_prog, ano, per, cod_prog]
         );
-        const totalRet = totalRetResult[0].cantidad;
-        console.log('Total de estudiantes retenidos:', totalRet);
 
-        if (totalRet > totalEstp || (totalGra + totalRet) > totalEstp) {
-            connection.release();
-            return res.status(400).json({ error: 'Existen errores en la base de datos de matriculados para este corte de cierre y este programa' });
-        }
+      const desPorSexo = {
+          Masculino: 0,
+          Femenino: 0
+      };
+      desPorSexoResult.forEach(row => {
+          if (row.sexo === 'M') desPorSexo.Masculino = row.cantidad;
+          if (row.sexo === 'F') desPorSexo.Femenino = row.cantidad;
+      });
+      console.log('Desertores por sexo:', desPorSexo);
 
-        const totalDes = totalEstp > 0 ? totalEstp - totalGra - totalRet : 0;
-        console.log('Total de estudiantes desertores:', totalDes);
+      const response = {
+          totalEstp,
+          totalGra,
+          graPorSexo,
+          totalRet,
+          retPorSexo,
+          totalDes,
+          desPorSexo
+      };
 
-        connection.release();
-        console.log('Conexión a la base de datos liberada.');
+      console.log('Datos procesados y enviados:', response);
+      return res.json(response);
 
-        const response = {
-            totalEstp,
-            totalGra,
-            totalRet,
-            totalDes
-        };
-
-        console.log('Datos procesados y enviados:', response); // Aquí se imprime el resultado antes de enviarlo al cliente
-
-        return res.json(response);
-
-    } catch (error) {
-        console.error('Error al realizar las consultas:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
-    }
+  } catch (error) {
+      console.error('Error al realizar las consultas:', error);
+      return res.status(500).json({ error: 'Error interno del servidor' });
+  } finally {
+      if (connection) {
+          connection.release();
+          console.log('Conexión a la base de datos liberada.');
+      }
+  }
 };
+
 
 export const buscarEstudiantes = async (req, res) => {
     const { search } = req.query;
