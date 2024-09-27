@@ -22,8 +22,10 @@ import AccessRequestForm from './AccessRequestForm';
 import PasswordChangeScreen from './PasswordChangeScreen';
 import InitialSetupScreen from './InitialSetupScreen';
 import ConfigList from './ConfigList';
+import SideBar from "./SideBar";
 import Perfil from './Perfil'
 import SireBot from './SireBot';
+import Cargar from './Cargar';
 import Animated from 'react-native-reanimated';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -34,8 +36,6 @@ import { getStatusBarHeight } from 'react-native-status-bar-height';
 const Drawer = createDrawerNavigator(); 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-
-import SideBar from "./SideBar";
 
 
 const MainNavigator = () => {
@@ -72,7 +72,7 @@ const MainNavigator = () => {
       borderTopRightRadius: hp('2%'),
       backgroundColor: '#F0FFF2',
       position: 'absolute',
-   
+      alignItems:'center',
       justifyContent: 'center',  // Centra los elementos verticalmente
       ...Platform.select({
         ios: {
@@ -93,7 +93,6 @@ const MainNavigator = () => {
     iconContainer: {
       alignItems: 'center',  // Centra los elementos horizontalmente
       justifyContent: 'center',  // Centra los elementos verticalmente
-      borderRadius: 15,
       ...Platform.select({
         ios: {
           ...(isIphoneWithNotch && {
@@ -133,6 +132,10 @@ const MainNavigator = () => {
           iconName = focused 
           ? 'document-text' 
           : 'document-text-outline';
+        } else if (route.name === 'Cargar') {
+          iconName = focused 
+          ? 'cloud-upload' 
+          : 'cloud-upload-outline';
         } 
 
         if (focused) {
@@ -158,26 +161,28 @@ const MainNavigator = () => {
       tabBarStyle: tabBarStyles.tabBar,
       tabBarShowLabel: false,
     })}
-  >
-        
+  >    
+  
   <Tab.Screen
   name="Inicio"
   component={Inicio}
   options={{ headerShown: false }}
   />
-  
-
   <Tab.Screen 
   name="Estadisticas" 
   component={Estadisticas}
   options={{ headerShown: false }}
   />
-
   <Tab.Screen 
   name="Informes" 
   component={Informes}
   options={{ headerShown: false }} 
  />
+  <Tab.Screen 
+  name="Cargar" 
+  component={Cargar}
+  options={{ headerShown: false }}
+  />
  
   <Tab.Screen 
   name="Graficar" 

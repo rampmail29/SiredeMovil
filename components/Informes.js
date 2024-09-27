@@ -12,7 +12,7 @@ const Informes = () => {
 
   const programasPress = () => {
     navigation.navigate('InformeCarrera');
-    console.log('Informes por Programas Académicos');
+    
   };
 
   return (

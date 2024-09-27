@@ -135,7 +135,7 @@ export const procesarEstadisticas = async (req, res) => {
               FROM estudiante_prog ep
               WHERE ep.ano = ? AND ep.periodo = ? AND ep.cod_prog = ?
           )
-          AND e.documento NOT IN (;
+          AND e.documento NOT IN (
               SELECT DISTINCT g.gdocumento FROM graduados g
           )
           AND e.documento NOT IN (
