@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Button, Alert,StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import Papa from 'papaparse';
+import { API_BASE_URL } from './Config';
 
 const CargarCSV = () => {
   const [csvData, setCsvData] = useState(null);
@@ -9,15 +10,14 @@ const CargarCSV = () => {
   const pickDocument = async () => {
     try {
       const res = await DocumentPicker.getDocumentAsync({
-        type: '*/*', // Aceptar todos los tipos de archivo
+        type: 'text/csv', // formato aceptado =)
       });
   
       console.log('Resultado de selección de documento:', res);
   
       if (!res.canceled) { // Verifica si no se ha cancelado
         const fileUri = res.assets[0].uri; // Accede al URI del archivo
-        console.log('URI del archivo:', fileUri);
-  
+   
         // Lee el contenido del archivo CSV
         const response = await fetch(fileUri);
         const csvContent = await response.text();
@@ -26,7 +26,7 @@ const CargarCSV = () => {
         Papa.parse(csvContent, {
           header: true,
           complete: (results) => {
-            console.log('Datos del CSV:', results.data);
+            //console.log('Datos del CSV:', results.data);
             setCsvData(results.data);
           },
           error: (error) => {
@@ -43,37 +43,32 @@ const CargarCSV = () => {
     }
   };
   
-  
-  const handleUpload = async () => {
+  const upload = async () => {
     if (csvData && csvData.length > 0) {
-      const validData = csvData.filter(item => item.nombre && item.apellido && item.telefono && item.ciudad);
-      if (validData.length > 0) {
-        // Aquí envías validData a tu backend
+        // No filtramos, simplemente enviamos todos los registros
         try {
-          const response = await fetch('http://tu-api-url.com/subir-csv', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(validData),
-          });
-          const result = await response.json();
-          if (result.success) {
-            Alert.alert(`Se cargaron ${validData.length} registros con éxito.`);
-          } else {
-            Alert.alert('Hubo un error al cargar el archivo CSV');
-          }
+            const response = await fetch(`${API_BASE_URL}/api/cargageneral`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(csvData), // Enviamos todos los registros
+            });
+            const result = await response.json();
+            if (result.success) {
+                Alert.alert(`Se cargaron ${csvData.length} registros con éxito.`);
+            } else {
+                Alert.alert('Hubo un error al cargar el archivo CSV');
+            }
         } catch (error) {
-          console.error('Error al enviar los datos:', error);
-          Alert.alert('Error al enviar los datos al servidor');
+            console.error('Error al enviar los datos:', error);
+            Alert.alert('Error al enviar los datos al servidor');
         }
-      } else {
-        Alert.alert('No se encontraron registros válidos en el archivo CSV.');
-      }
     } else {
-      Alert.alert('Primero debes seleccionar un archivo CSV');
+        Alert.alert('Primero debes seleccionar un archivo CSV');
     }
-  };
+};
+
   
 
   return (
@@ -88,7 +83,7 @@ const CargarCSV = () => {
           
             {csvData && <Text style={{ marginVertical: 10 }}>Archivo CSV cargado correctamente</Text>}
 
-         <TouchableOpacity style={styles.button1} onPress={handleUpload}>
+         <TouchableOpacity style={styles.button1} onPress={upload}>
              <Text style={styles.buttonText1}>Subir archivo a la Base de Datos</Text>
         </TouchableOpacity>
       

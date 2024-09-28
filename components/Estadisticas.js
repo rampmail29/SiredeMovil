@@ -28,36 +28,37 @@ const Estadisticas = () => {
   });
 
   useEffect(() => {
-    const obtenerProgramas = async () => {
-      try {
-          const response = await fetch(`${API_BASE_URL}/api/programas`);
-          const data = await response.json();
-          const filteredData = data.map(element => ({
-              cod_snies: element.cod_snies,
-              programa: element.programa,
-              tipo: element.tipo,
-          }));
-          setProgramas(filteredData); // Guarda solo cod_snies, programa y tipo
-      } catch (error) {
-            showMessage({
-              message: "Error",
-              description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
-              type: "danger",
-              icon: "danger",
-              titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
-              textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
-              duration: 3000,
-            });
-      }
-  };
+   
+  const obtenerProgramas = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/programas`);
+        const data = await response.json();
+        const filteredData = data.map(element => ({
+            cod_snies: element.codigo_programa,
+            programa: element.nombre_programa,
+            tipo: element.tipo_programa,
+        }));
+        setProgramas(filteredData); // Guarda solo cod_snies, programa y tipo
+    } catch (error) {
+          showMessage({
+            message: "Error",
+            description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
+            type: "danger",
+            icon: "danger",
+            titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+            textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+            duration: 3000,
+          });
+    }
+};
 
     const obtenerCortesIniciales = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/cortes-iniciales`);
         const data = await response.json();
+        console.log(data)
         if (Array.isArray(data)) {
-          const datCortes = data.map(element => `${element.ano}-${element.periodo}`);
-          setCortesIniciales(datCortes);
+          setCortesIniciales(data);
         } 
       } catch (error) {
        
@@ -68,38 +69,75 @@ const Estadisticas = () => {
     obtenerCortesIniciales();
   }, []);
 
+  // Función para generar cortes finales
+  const generarCortes = (anio, periodo, cantidadSemestres) => {
+    const cortes = [];
+    let anioActual = anio;
+    let periodoActual = periodo;
+
+    for (let i = 0; i < cantidadSemestres; i++) {
+      cortes.push({ label: `${anioActual}-${periodoActual}`, key: `${anioActual}-${periodoActual}` });
+
+      if (periodoActual === 1) {
+        periodoActual = 2;
+      } else {
+        periodoActual = 1;
+        anioActual += 1;
+      }
+    }
+
+    return cortes;
+  };
+
   useEffect(() => {
     const cargarCortesFinales = () => {
-      if (!selectedCorteInicial || typeof selectedCorteInicial !== 'string') return;
+        if (!selectedCorteInicial || typeof selectedCorteInicial !== 'string' || !codigoSeleccionado) return;
 
-      const cortesFinalesCalculados = [];
-      let anoi, anof, peri, perf;
-      const [ai, pi] = selectedCorteInicial.split('-');
-      anoi = parseInt(ai);
-      peri = parseInt(pi);
+        // Obtener año y periodo del corte inicial
+        const [anioInicial, periodoInicial] = selectedCorteInicial.split('-').map(Number);
+        
+        // Verificar el tipo de programa seleccionado
+        const programaSeleccionadoData = programas.find(programa => programa.cod_snies === codigoSeleccionado);
+        let cantidadSemestres = 0;
 
-      if (peri === 1) {
-        anof = anoi + 3;
-        perf = 2;
-      } else {
-        anof = anoi + 4;
-        perf = 1;
-      }
-
-      cortesFinalesCalculados.push({ label: `${anof}-${perf}`, key: `${anof}-${perf}` });
-
-      cortesIniciales.forEach((corte) => {
-        if (parseInt(corte.split('-')[0]) > anof) {
-          cortesFinalesCalculados.push({ label: corte, key: corte });
+        if (programaSeleccionadoData) {
+            if (programaSeleccionadoData.tipo === "Profesional") {
+                cantidadSemestres = 4; // 4 periodos (2 años) para programas profesionales
+            } else if (programaSeleccionadoData.tipo === "Tecnologia") {
+                cantidadSemestres = 6; // 6 periodos (3 años) para programas tecnológicos
+            }
+        } else {
+            console.error("Programa seleccionado no encontrado.");
+            return; // Salimos si el programa no se encuentra
         }
-      });
 
-      setCortesFinales(cortesFinalesCalculados);
-      setSelectedCorteFinal('');
+        // Generar los cortes finales según el tipo de programa
+        const cortesFinalesCalculados = generarCortes(anioInicial, periodoInicial, cantidadSemestres);
+
+        // Agregar cortes iniciales posteriores al corte calculado
+        cortesIniciales.forEach((corte) => {
+            if (corte.key > selectedCorteInicial) {
+                cortesFinalesCalculados.push({ label: corte.key, key: corte.key });
+            }
+        });
+      
+    // Obtener solo el último corte
+       const ultimoCorteFinal = [];
+       ultimoCorteFinal.push(cortesFinalesCalculados[cortesFinalesCalculados.length - 1])
+
+
+        // Actualizar estado con los cortes finales generados
+        setCortesFinales(ultimoCorteFinal);
     };
 
     cargarCortesFinales();
-  }, [selectedCorteInicial, cortesIniciales]);
+}, [selectedCorteInicial, codigoSeleccionado, programas, cortesIniciales]);
+
+
+
+
+          
+
 
   useEffect(() => {
     if ((datosBackend.totalEstp !== 0 || datosBackend.totalGra !== 0 || datosBackend.totalRet !== 0 || datosBackend.totalDes !== 0)) {

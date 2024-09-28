@@ -24,48 +24,82 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/cortes-iniciales`);
         const data = await response.json();
+        console.log(data)
         if (Array.isArray(data)) {
-          const datCortes = data.map(element => `${element.ano}-${element.periodo}`);
-          setCortesIniciales(datCortes);
-        }
+          setCortesIniciales(data);
+        } 
       } catch (error) {
+       
       }
     };
 
     obtenerCortesIniciales();
   }, []);
+ // Función para generar cortes finales
+ const generarCortes = (anio, periodo, cantidadSemestres) => {
+  const cortes = [];
+  let anioActual = anio;
+  let periodoActual = periodo;
 
-  useEffect(() => {
-    const cargarCortesFinales = () => {
-      if (!selectedCorteInicial || typeof selectedCorteInicial !== 'string') return;
+  for (let i = 0; i < cantidadSemestres; i++) {
+    cortes.push({ label: `${anioActual}-${periodoActual}`, key: `${anioActual}-${periodoActual}` });
 
-      const cortesFinalesCalculados = [];
-      let anoi, anof, peri, perf;
-      const [ai, pi] = selectedCorteInicial.split('-');
-      anoi = parseInt(ai);
-      peri = parseInt(pi);
+    if (periodoActual === 1) {
+      periodoActual = 2;
+    } else {
+      periodoActual = 1;
+      anioActual += 1;
+    }
+  }
 
-      if (peri === 1) {
-        anof = anoi + 3;
-        perf = 2;
+  return cortes;
+};
+
+useEffect(() => {
+  const cargarCortesFinales = () => {
+      if (!selectedCorteInicial || typeof selectedCorteInicial !== 'string' || !selectedProgram.cod_snies) return;
+
+      // Obtener año y periodo del corte inicial
+      const [anioInicial, periodoInicial] = selectedCorteInicial.split('-').map(Number);
+      
+     
+      const programaSeleccionadoData = selectedProgram; 
+
+      let cantidadSemestres = 0;
+
+      if (programaSeleccionadoData) {
+          if (programaSeleccionadoData.tipo === "Profesional") {
+              cantidadSemestres = 4; // 4 periodos (2 años) para programas profesionales
+          } else if (programaSeleccionadoData.tipo === "Tecnologia") {
+              cantidadSemestres = 6; // 6 periodos (3 años) para programas tecnológicos
+          }
       } else {
-        anof = anoi + 4;
-        perf = 1;
+          console.error("Programa seleccionado no encontrado.");
+          return; // Salimos si el programa no se encuentra
       }
 
-      cortesFinalesCalculados.push({ label: `${anof}-${perf}`, key: `${anof}-${perf}` });
+      // Generar los cortes finales según el tipo de programa
+      const cortesFinalesCalculados = generarCortes(anioInicial, periodoInicial, cantidadSemestres);
 
+      // Agregar cortes iniciales posteriores al corte calculado
       cortesIniciales.forEach((corte) => {
-        if (parseInt(corte.split('-')[0]) > anof) {
-          cortesFinalesCalculados.push({ label: corte, key: corte });
-        }
+          if (corte.key > selectedCorteInicial) {
+              cortesFinalesCalculados.push({ label: corte.key, key: corte.key });
+          }
       });
-      setCortesFinales(cortesFinalesCalculados);
-      setSelectedCorteFinal('');
-    };
+    
+  // Obtener solo el último corte
+     const ultimoCorteFinal = [];
+     ultimoCorteFinal.push(cortesFinalesCalculados[cortesFinalesCalculados.length - 1])
 
-    cargarCortesFinales();
-  }, [selectedCorteInicial, cortesIniciales]);
+
+      // Actualizar estado con los cortes finales generados
+      setCortesFinales(ultimoCorteFinal);
+  };
+
+  cargarCortesFinales();
+}, [selectedCorteInicial, cortesIniciales]);
+
 
   const corteInicialSelect = (corteInicial) => {
     setSelectedCorteInicial(corteInicial);

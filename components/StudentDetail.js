@@ -8,18 +8,19 @@ import { storage } from '../firebaseConfig';
 import { API_BASE_URL } from './Config';
 
 const StudentDetail = ({ route, navigation }) => {
-  const { documento } = route.params;
+  const { id } = route.params;
   const [student, setStudent] = useState(null);
   const [imageUri, setImageUri] = useState(null);
   const [loading, setLoading] = useState(true);
-  console.log(documento)
+  console.log(`El id del estudiante es`, id)
 
   useEffect(() => {
-    const obtenerDetallesEstudiante2 = async () => {
+    const obtenerDetallesEstudiante = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/obtener/${documento}`);
+        const response = await fetch(`${API_BASE_URL}/api/obtener/${id}`);
         const data = await response.json();
+        console.log(data)
         setStudent(data);
       } catch (error) {
         console.error('Error al obtener detalles del estudiante:', error);
@@ -33,7 +34,7 @@ const StudentDetail = ({ route, navigation }) => {
 
         for (let ext of extensions) {
           try {
-            const imageRef = ref(storage, `estudiantes/${documento}.${ext}`);
+            const imageRef = ref(storage, `estudiantes/${id}.${ext}`);
             const url = await getDownloadURL(imageRef);
             imageUrl = url;
             break;
@@ -49,14 +50,14 @@ const StudentDetail = ({ route, navigation }) => {
     };
 
     const cargarDatos = async () => {
-      await Promise.all([obtenerDetallesEstudiante2(), obtenerImagenEstudiante()]);
+      await Promise.all([obtenerDetallesEstudiante(), obtenerImagenEstudiante()]);
       setTimeout(() => {
         setLoading(false);
       }, 300);
     };
 
     cargarDatos();
-  }, [documento]);
+  }, [id]);
 
   const selectImage = async () => {
     try {
@@ -101,7 +102,7 @@ const StudentDetail = ({ route, navigation }) => {
 
       for (let ext of allowedExtensions) {
         try {
-          const storageRef = ref(storage, `estudiantes/${documento}.${ext}`);
+          const storageRef = ref(storage, `estudiantes/${id}.${ext}`);
           await uploadBytes(storageRef, blob);
           const url = await getDownloadURL(storageRef);
           setImageUri(url);
@@ -120,31 +121,30 @@ const StudentDetail = ({ route, navigation }) => {
     }
   };
 
-      const capitalizeFirstLetter = (string) => {
-        return string
-          .toLowerCase()
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-      };
+  const capitalizeFirstLetter = (string) => {
+    return string
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
-        const formatDate = (dateString) => {
-          return dateString.split('T')[0];
-        };
-        
-        const calcularEdad = (fechaNacimiento) => {
-          const hoy = new Date();
-          const fechaNac = new Date(fechaNacimiento);
-          let edad = hoy.getFullYear() - fechaNac.getFullYear();
-          const mes = hoy.getMonth() - fechaNac.getMonth();
+  const formatDate = (dateString) => {
+    return dateString.split('T')[0];
+  };
 
-          if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-            edad--;
-          }
+  const calcularEdad = (fechaNacimiento) => {
+    const hoy = new Date();
+    const fechaNac = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const mes = hoy.getMonth() - fechaNac.getMonth();
 
-          return edad;
-        };
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+      edad--;
+    }
 
+    return edad;
+  };
 
   return (
     <ImageBackground source={require('../assets/fondoestudiante.jpg')} style={styles.backgroundImage}>
@@ -157,14 +157,13 @@ const StudentDetail = ({ route, navigation }) => {
             </View>
           ) : (
             <>
-              {student && (
+              {student && student.length > 0 && (
                 <>
                   <Text style={styles.title}>Información del Estudiante</Text>
                   <View style={styles.infoContainer}>
                     {imageUri ? (
                       <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
-                        <ImageBackground source={{ uri: imageUri }} style={styles.image}>                       
-                      </ImageBackground>
+                        <ImageBackground source={{ uri: imageUri }} style={styles.image} />                       
                         <View style={styles.editIcon}>
                           <FontAwesome name="edit" size={20} color="#34531F" />
                         </View>
@@ -177,61 +176,57 @@ const StudentDetail = ({ route, navigation }) => {
                         </View>
                       </TouchableOpacity>
                     )}
-                    <Text style={styles.textName}>{capitalizeFirstLetter(student.nombres)} {capitalizeFirstLetter(student.apellidos)}</Text>
-                    <Text style={styles.textCarrera}>{capitalizeFirstLetter(student.programa)}</Text>
+                    <Text style={styles.textName}>{capitalizeFirstLetter(student[0].nombre)} {capitalizeFirstLetter(student[0].apellido)}</Text>
+                    <Text style={styles.textCarrera}>{capitalizeFirstLetter(student[1]?.nombre_programa || '')}</Text>
 
                     <View style={styles.textInfo}>         
-                        <View style={styles.infoItem1}>
-                          <FontAwesome name="birthday-cake" size={25} color="#34531F" />
-                          <View >
-                            <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                            <Text style={styles.text}>{formatDate(student.fecha_nacimiento)}</Text>
-                          </View>
+                      <View style={styles.infoItem1}>
+                        <FontAwesome name="birthday-cake" size={25} color="#34531F" />
+                        <View>
+                          <Text style={styles.label}>Fecha de Nacimiento:</Text>
+                          <Text style={styles.text}>{formatDate(student[0].fecha_nacimiento)}</Text>
                         </View>
+                      </View>
 
-                        <View style={styles.separator1} />
+                      <View style={styles.separator1} />
 
-                        <View style={styles.infoItem1}>
-                          <FontAwesome name="child" size={35} color="#34531F" />
-                          <View >
-                            <Text style={styles.label}>Edad:</Text>
-                            <Text style={styles.text}>{calcularEdad(student.fecha_nacimiento)} años</Text>
-                          </View>
+                      <View style={styles.infoItem1}>
+                        <FontAwesome name="child" size={35} color="#34531F" />
+                        <View>
+                          <Text style={styles.label}>Edad:</Text>
+                          <Text style={styles.text}>{calcularEdad(student[0].fecha_nacimiento)} años</Text>
                         </View>
+                      </View>
 
-                        <View style={styles.separator2} />
+                      <View style={styles.separator2} />
 
-                        <View style={styles.infoItem1}>
-                          <FontAwesome name="id-card" size={23} color="#34531F" />
-                          <View>
-                            <Text style={styles.label}>Documento:</Text>
-                            <Text style={styles.text}>{student.documento}</Text>
-                          </View>
+                      <View style={styles.infoItem1}>
+                        <FontAwesome name="id-card" size={23} color="#34531F" />
+                        <View>
+                          <Text style={styles.label}>Documento:</Text>
+                          <Text style={styles.text}>{student[0].numero_documento}</Text>
                         </View>
+                      </View>
 
-                        <View style={styles.separator3} />
+                      <View style={styles.separator3} />
 
-                        <View style={styles.infoItem1}>
-                          <FontAwesome name="calendar" size={25} color="#34531F" />
-                          <View>
-                            <Text style={styles.label}>Año de Matrícula:</Text>
-                            <Text style={styles.text}>{student.año_matricula}</Text>
-                          </View>
+                      <View style={styles.infoItem1}>
+                        <FontAwesome name="calendar" size={25} color="#34531F" />
+                        <View>
+                          <Text style={styles.label}>Año de Matrícula:</Text>
+                          <Text style={styles.text}>{new Date(student[1].fecha_matricula).getFullYear()}</Text> 
                         </View>
+                      </View>
   
-                        <View style={styles.separator4} />
-            
+                      <View style={styles.separator4} />
                     </View>
-
 
                     <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('InformeEstudiante')}>
                       <Text style={styles.buttonText}>Volver</Text>
                     </TouchableOpacity>
                   </View>
-                  
                 </>
               )}
-              
             </>
           )}
         </View>
@@ -239,7 +234,6 @@ const StudentDetail = ({ route, navigation }) => {
     </ImageBackground>
   );
 };
-
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
@@ -316,14 +310,14 @@ const styles = StyleSheet.create({
   },
   
   image: {
-    width: 170,
-    height: 170,
+    width: 150,
+    height: 150,
     borderRadius: 100,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white', // Fondo blanco mientras se carga la imagen
-    borderWidth: 8, // Agrega un borde
+    borderWidth: 6, // Agrega un borde
     borderColor: 'white', // Color del borde
     elevation: 10, // Esto es para Android, donde la propiedad de sombra es diferente
   },
@@ -341,8 +335,8 @@ const styles = StyleSheet.create({
     elevation: 5, // Esto es para Android
   },
   imagePlaceholder: {
-    width: 180,
-    height: 180,
+    width: 150,
+    height: 150,
     borderRadius: 90,
     justifyContent: 'center',
     alignItems: 'center',

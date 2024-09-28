@@ -38,12 +38,12 @@ const InformeEstudiante = () => {
   };
 
   const estudianteSeleccionado = (estudiante) => {
-    navigation.navigate('StudentDetail', { documento: estudiante.documento });
+    navigation.navigate('StudentDetail', { id: estudiante.id_estudiante });
   };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.itemContainer} onPress={() => estudianteSeleccionado(item)}>
-      <Text style={styles.itemText}>{`${item.nombres} ${item.apellidos}`}</Text>
+      <Text style={styles.itemText}>{`${item.nombre} ${item.apellido}`}</Text>
     </TouchableOpacity>
   );
 

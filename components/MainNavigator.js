@@ -179,12 +179,6 @@ const MainNavigator = () => {
   options={{ headerShown: false }} 
  />
   <Tab.Screen 
-  name="Cargar" 
-  component={Cargar}
-  options={{ headerShown: false }}
-  />
- 
-  <Tab.Screen 
   name="Graficar" 
   component={Graficar}
   options={{
@@ -273,25 +267,13 @@ const MainNavigator = () => {
                   } else if (route.name === 'SireBot') {
                     iconName = focused ? 'chatbox-ellipses' : 'chatbox-ellipses-outline';
                   } else if (route.name === 'Reporte') {
-                    const gifSource = focused
-                    ? require('../assets/carta.gif') //  Activado
-                    : require('../assets/carta-off.gif'); // Desactivado
-      
-                  return (
-                    <View style={{ alignItems: 'center' }}>
-                      <Image source={gifSource} style={{ width: size, height: size }} />
-                    </View>
-                  );
+                    iconName = focused ? 'clipboard' : 'clipboard-outline';
+                    
                   } else if (route.name === 'Acerca de') {
-                    const gifSource = focused
-                    ? require('../assets/acercade.gif') //  Activado
-                    : require('../assets/acercade-off.gif'); // Desactivado
-      
-                  return (
-                    <View style={{ alignItems: 'center' }}>
-                      <Image source={gifSource} style={{ width: size, height: size }} />
-                    </View>
-                  );
+                    iconName = focused ? 'information-circle' : 'information-circle-outline';
+                
+                  } else if (route.name === 'Cargar CSV') {
+                    iconName = focused ? 'cloud-upload' : 'cloud-upload-outline';
                   }
               
                   iconComponent = <Ionicons name={iconName} size={size} color={color} />;
@@ -333,6 +315,10 @@ const MainNavigator = () => {
                 name="Acerca de"
                 component={AcercaDe}
             />  
+             <Drawer.Screen
+                name="Cargar CSV"
+                component={Cargar}
+            />
            
         </Drawer.Navigator>  
 	)};

@@ -23,13 +23,12 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/programas`);
         const data = await response.json();   
-         
         const groupedPrograms = [
           {
             title: 'Facultad de Ciencias Naturales e Ingenierías',
             data: data.filter(programa =>
               Facultades["FACULTAD DE CIENCIAS NATURALES E INGENIERÍAS"].some(facultadPrograma =>
-                normalizeString(facultadPrograma) === normalizeString(programa.programa)
+                normalizeString(facultadPrograma) === normalizeString(programa.nombre_programa)
               )
             ),
             rotateAnim: rotateAnimNaturales,
@@ -39,7 +38,7 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
             title: 'Facultad de Ciencias Socioeconómicas y Empresariales',
             data: data.filter(programa =>
               Facultades["FACULTAD DE CIENCIAS SOCIOECONÓMICAS Y EMPRESARIALES"].some(facultadPrograma =>
-                normalizeString(facultadPrograma) === normalizeString(programa.programa)
+                normalizeString(facultadPrograma) === normalizeString(programa.nombre_programa)
               )
             ),
             rotateAnim: rotateAnimSocioeconomicas,
@@ -117,9 +116,9 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
   const programSelect = (programa) => {
     if (onProgramSelect) {
       onProgramSelect({
-        cod_snies: programa.cod_snies,
-        programa: programa.programa,
-        tipo: programa.tipo,
+        cod_snies: programa.codigo_programa,
+        programa: programa.nombre_programa,
+        tipo: programa.tipo_programa,
       });
     }
   };
@@ -133,13 +132,13 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
       <View style={styles.programRow}>
         <Animated.View style={[styles.programButtonWrapper, { opacity: programaAnim, transform: [{ scale: programaAnim }] }]}>
           <TouchableOpacity style={styles.programButton} onPress={() => programSelect(item)}>
-            <Text style={styles.programText}>{capitalizeFirstLetter(item.programa)}</Text>
+            <Text style={styles.programText}>{capitalizeFirstLetter(item.nombre_programa)}</Text>
           </TouchableOpacity>
         </Animated.View>
         {secondItem && (
           <Animated.View style={[styles.programButtonWrapper, { opacity: programaAnim, transform: [{ scale: programaAnim }] }]}>
             <TouchableOpacity style={styles.programButton} onPress={() => programSelect(secondItem)}>
-              <Text style={styles.programText}>{capitalizeFirstLetter(secondItem.programa)}</Text>
+              <Text style={styles.programText}>{capitalizeFirstLetter(secondItem.nombre_programa)}</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -171,7 +170,7 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
       <View style={styles.container}>
     <SectionList
       sections={programas}
-      keyExtractor={(item, index) => item.cod_snies?.toString() + index}
+      keyExtractor={(item, index) => item.codigo_programa?.toString() + index}
       renderItem={renderItem}
       renderSectionHeader={renderSectionHeader}
       contentContainerStyle={styles.listContent}

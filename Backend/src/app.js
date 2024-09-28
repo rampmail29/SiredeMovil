@@ -1,20 +1,22 @@
 import express from "express";
-import cors from 'cors';;
+import cors from 'cors';
 
-//importamos las rutas que creamos en la carpeta routes
+// Importamos las rutas que creamos en la carpeta routes
 import estadisticasRoutes from './routes/estadisticas.routes.js';
 
 const app = express();
 app.use(cors({ origin: '*' }));
-app.use(express.json());
 
-//le decimos al servidor que rutas usar
+// Aumentamos el límite del tamaño del payload a 10mb
+app.use(express.json({ limit: '10mb' }));
+
+// Le decimos al servidor que rutas usar
 app.use('/api', estadisticasRoutes);
 
-//por si se solicita un endpoint que no exista
+// Por si se solicita un endpoint que no exista
 app.use((req, res, next) => {
-    console.log("peticion a ruta no encontrada, respondiendo eso...");
+    console.log("Petición a ruta no encontrada, respondiendo eso...");
     res.status(404).json({ message: 'Ruta no encontrada' });
-})
+});
 
 export default app;
