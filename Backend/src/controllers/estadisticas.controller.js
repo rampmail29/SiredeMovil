@@ -60,6 +60,7 @@ export const cargarEstudiantes = async (req, res) => {
             // Cambiar el estado_academico en estudiante_carrera
             await actualizarEstadoAcademico(estudianteId, carreraId, estado_nuevo);
           }
+          
       }
 
       return res.status(200).json({ success: true, message: 'Todos los datos han sido procesados correctamente.' });

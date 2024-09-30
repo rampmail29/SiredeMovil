@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, ScrollView, Alert, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { FontAwesome } from '@expo/vector-icons';
@@ -146,9 +146,15 @@ const StudentDetail = ({ route, navigation }) => {
     return edad;
   };
 
+   // Función para ordenar las carreras cronológicamente
+   const ordenarCarrerasPorFecha = (carreras) => {
+    return carreras.sort((a, b) => new Date(a.fecha_matricula) - new Date(b.fecha_matricula));
+  };
+
   return (
     <ImageBackground source={require('../assets/fondoestudiante.jpg')} style={styles.backgroundImage}>
       <ScrollView contentContainerStyle={styles.scrollView}>
+
         <View style={styles.container}>
           {loading ? (
             <View style={styles.loadingContainer}>
@@ -160,7 +166,8 @@ const StudentDetail = ({ route, navigation }) => {
               {student && student.length > 0 && (
                 <>
                   <Text style={styles.title}>Información del Estudiante</Text>
-                  <View style={styles.infoContainer}>
+                  <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.infoContainer}> 
+                  
                     {imageUri ? (
                       <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
                         <ImageBackground source={{ uri: imageUri }} style={styles.image} />                       
@@ -171,64 +178,158 @@ const StudentDetail = ({ route, navigation }) => {
                     ) : (
                       <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
                         <View style={styles.imagePlaceholder}> 
-                          <FontAwesome name="user" size={100} color="#575756" />
+                          <FontAwesome name="user" size={50} color="#575756" />
                           <Text style={styles.uploadText}>Subir Foto</Text>
                         </View>
                       </TouchableOpacity>
                     )}
-                    <Text style={styles.textName}>{capitalizeFirstLetter(student[0].nombre)} {capitalizeFirstLetter(student[0].apellido)}</Text>
-                    <Text style={styles.textCarrera}>{capitalizeFirstLetter(student[1]?.nombre_programa || '')}</Text>
+                      
+                            <Text style={styles.title2}>Detalles Personales</Text>
+                            <View style={styles.textInfo}>   
 
-                    <View style={styles.textInfo}>         
-                      <View style={styles.infoItem1}>
-                        <FontAwesome name="birthday-cake" size={25} color="#34531F" />
-                        <View>
-                          <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                          <Text style={styles.text}>{formatDate(student[0].fecha_nacimiento)}</Text>
-                        </View>
-                      </View>
+                            <View style={styles.infoItem1}>
+                                <FontAwesome name="user" size={35} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Nombre:</Text>
+                                  <Text style={styles.text}>{capitalizeFirstLetter(student[0].nombre)} {capitalizeFirstLetter(student[0].apellido)}</Text>
+                                </View>
+                              </View>
 
-                      <View style={styles.separator1} />
+                            <View style={styles.infoItem1}>
+                                <FontAwesome name="id-card" size={23} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Documento:</Text>
+                                  <Text style={styles.text}>{student[0].tipo_documento} {student[0].numero_documento}</Text>
+                                </View>
+                              </View>
 
-                      <View style={styles.infoItem1}>
-                        <FontAwesome name="child" size={35} color="#34531F" />
-                        <View>
-                          <Text style={styles.label}>Edad:</Text>
-                          <Text style={styles.text}>{calcularEdad(student[0].fecha_nacimiento)} años</Text>
-                        </View>
-                      </View>
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="birthday-cake" size={25} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Fecha de Nacimiento:</Text>
+                                  <Text style={styles.text}>{formatDate(student[0].fecha_nacimiento)}</Text>
+                                </View>
+                              </View>
+                        
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="child" size={35} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Edad:</Text>
+                                  <Text style={styles.text}>{calcularEdad(student[0].fecha_nacimiento)} años</Text>
+                                </View>
+                              </View>
 
-                      <View style={styles.separator2} />
+              
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="envelope" size={25} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Correo:</Text>
+                                  <Text style={styles.text}>{student[0].correo_electronico}</Text> 
+                                </View>
+                              </View>
+          
+                          
 
-                      <View style={styles.infoItem1}>
-                        <FontAwesome name="id-card" size={23} color="#34531F" />
-                        <View>
-                          <Text style={styles.label}>Documento:</Text>
-                          <Text style={styles.text}>{student[0].numero_documento}</Text>
-                        </View>
-                      </View>
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="phone" size={30} color="#34531F" />
+                                <View>
+                                  <Text style={styles.label}>Celular:</Text>
+                                  <Text style={styles.text}>{student[0].celular}</Text> 
+                                </View>
+                              </View>
+                          </View>
+                          
 
-                      <View style={styles.separator3} />
+                          <Text style={styles.title3}>Detalles Académicos</Text>
+                                              
+                                      
+                          {student.length > 1 && ordenarCarrerasPorFecha(student.slice(1)).map((carrera, index) => (
+                            <View key={index} style={styles.infoCarrera}>
 
-                      <View style={styles.infoItem1}>
-                        <FontAwesome name="calendar" size={25} color="#34531F" />
-                        <View>
-                          <Text style={styles.label}>Año de Matrícula:</Text>
-                          <Text style={styles.text}>{new Date(student[1].fecha_matricula).getFullYear()}</Text> 
-                        </View>
-                      </View>
-  
-                      <View style={styles.separator4} />
-                    </View>
+                              
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="chevron-circle-right" size={30} color="#6D100A" />
+                                <View>
+                                  <Text style={styles.labell}>Carrera:</Text>
+                                  <Text style={styles.text}>{capitalizeFirstLetter(carrera.nombre_programa)}</Text>
+                                </View>
+                              </View>
 
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="calendar" size={30} color="#6D100A" />
+                                <View>
+                                  <Text style={styles.labell}>Fecha de Matrícula:</Text>
+                                  <Text style={styles.text}>{formatDate(carrera.fecha_matricula)}</Text>
+                                </View>
+                              </View>
+
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="map-signs" size={30} color="#6D100A" />
+                                <View>
+                                  <Text style={styles.labell}>Sede:</Text>
+                                  <Text style={styles.text}>{carrera.sede}</Text>
+                                </View>
+                              </View>
+
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="compass" size={35} color="#6D100A" />
+                                <View>
+                                  <Text style={styles.labell}>Jornada:</Text>
+                                  <Text style={styles.text}>{carrera.jornada}</Text>
+                                </View>
+                              </View>
+
+                              <View style={styles.infoItem1}>
+                                <FontAwesome name="spinner" size={30} color="#6D100A" />
+                                <View>
+                                  <Text style={styles.labell}>Estado Académico:</Text>
+                                  <Text style={styles.text}>{carrera.estado_academico}</Text>
+                                </View>
+                              </View>
+
+                             
+                              {carrera.estado_academico === 'Graduado' && (
+                                <View style={styles.infoItem1}>
+                                  <FontAwesome name="calendar-check-o" size={30} color="#6D100A" />
+                                  <View>
+                                    <Text style={styles.labell}>Fecha de Graduación:</Text>
+                                    <Text style={styles.text}>{formatDate(carrera.fecha_graduacion)}</Text>
+                                  </View>
+                                </View>
+                              )}
+
+                          
+                              {carrera.estado_academico === 'Desertor' && (
+                                <View style={styles.infoItem1}>
+                                  <FontAwesome name="calendar-times-o" size={30} color="#6D100A" />
+                                  <View>
+                                    <Text style={styles.labell}>Periodo de Deserción:</Text>
+                                    <Text style={styles.text}>{carrera.periodo_desercion}</Text>
+                                  </View>
+                                </View>
+                              )}
+       
+                            </View>
+                          ))}
+
+                                                                        
+            
                     <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('InformeEstudiante')}>
                       <Text style={styles.buttonText}>Volver</Text>
                     </TouchableOpacity>
-                  </View>
+                   
+                  
+
+                  </ImageBackground>
+                  
+                 
+                 
+                 
                 </>
               )}
             </>
           )}
+                 
         </View>
       </ScrollView>
     </ImageBackground>
@@ -248,23 +349,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 35,
+    fontSize: 40,
     padding:30,
     fontFamily: 'Montserrat-Bold',
     alignSelf: 'flex-start',
-    marginBottom: 70,
     color: 'white',
   },
-  infoContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderTopLeftRadius: 90,
-    borderTopRightRadius: 90,
-    marginBottom: 20,
-    width: '100%',
-    height: '100%', 
-    alignItems:'center'  
+  title2: {
+    fontSize: 37,
+    padding:20,
+    marginTop:'-35%',
+    fontFamily: 'Montserrat-Bold',
+    color: '#34531F',
+    alignSelf: 'flex-start',
   },
+  title3: {
+    fontSize: 37,
+    padding:20,
+    fontFamily: 'Montserrat-Bold',
+    color: '#6D100A',
+    alignSelf: 'flex-start',
+  },
+  infoContainer: {
+    padding: 20,
+    alignItems:'center',
+    paddingBottom:40,
+    borderTopRightRadius: 100, // Ajusta el valor según sea necesario
+    borderTopLeftRadius: 0, // 0 si no deseas radio en la parte izquierda
+    overflow: 'hidden', // Esto es importante para que el radio se aplique correctamente  
+  },  
   text: {
     fontSize: 18,
     fontFamily: 'Montserrat-Medium',
@@ -276,42 +389,31 @@ const styles = StyleSheet.create({
     fontSize:20,
     marginLeft:10
   },
-  textInfo: {
-    marginTop:10,
-    width:'90%',
-    marginBottom:20
-  },
-  textName: {
-    fontSize: 23,
+  labell: {
     fontFamily: 'Montserrat-Bold',
-    marginTop:15,
-    marginBottom: 5,
-    textAlign:'center',
-    color:'#6D100A',  
+    color: '#132F20',
+    fontSize:20,
+    marginLeft:10
   },
-  textCarrera: {
-    fontSize: 14,
-    fontFamily: 'Montserrat-Medium',
-    textAlign:'center',
-    marginBottom:20
+  textInfo: {
+    alignSelf: 'flex-start',
+    padding:20,
   },
   imageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
     position: 'relative',
-    marginTop: -100, // Ajustar según el tamaño de la imagen y el diseño general
+    marginLeft:'70%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 30, // Esto es para Android, donde la propiedad de sombra es diferente
   },
-  
   image: {
-    width: 150,
-    height: 150,
+    width: 120,
+    height: 120,
     borderRadius: 100,
     overflow: 'hidden',
     justifyContent: 'center',
@@ -335,8 +437,8 @@ const styles = StyleSheet.create({
     elevation: 5, // Esto es para Android
   },
   imagePlaceholder: {
-    width: 150,
-    height: 150,
+    width: 120,
+    height: 120,
     borderRadius: 90,
     justifyContent: 'center',
     alignItems: 'center',
@@ -374,69 +476,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 60,
     width:120,
-    justifyContent:'center'
+    justifyContent:'center',
+    marginTop:20,
   },
   buttonText: {
     fontSize: 16,
     fontFamily: 'Montserrat-Bold',
     color: '#fff',
   },
-  separator: {
-    height: 2,
-    width: '30%',
-    backgroundColor: '#6D100A',
-    marginVertical: 10,
-  },
-  separator1: {
-    height: 5,
-    width: '73%',
-    backgroundColor: '#6D100A',
-    marginVertical:5,
-    marginBottom: 15,
-    borderRadius:200,
-  },
-  separator2: {
-    height: 5,
-    width: '30%',
-    backgroundColor: '#6D100A',
-    marginVertical:5,
-    marginBottom: 15,
-    borderRadius:200,
-  },
-  separator3: {
-    height: 5,
-    width: '47%',
-    backgroundColor: '#6D100A',
-    marginVertical:5,
-    marginBottom: 15,
-    borderRadius:200,
-  },
-  separator4: {
-    height: 5,
-    width: '60%',
-    backgroundColor: '#6D100A',
-    marginVertical:5,
-    marginBottom: 15,
-    borderRadius:200,
-  },
-  separator5: {
-    height: 5,
-    width: '40%',
-    backgroundColor: '#6D100A',
-    marginVertical:5,
-    marginBottom: 15,
-    borderRadius:200,
-  },
   infoItem1: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 'auto', // Mueve el item a la derecha
+    marginBottom: 15,
+    alignSelf: 'flex-start',
   },
-  infoEstado: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 'auto', // Mueve el item a la derecha
- 
+  infoCarrera: {
+    alignSelf: 'flex-start',
+    padding:20,
+    borderBottomWidth:1,
   },
   
 });
