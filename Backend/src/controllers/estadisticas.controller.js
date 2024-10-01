@@ -1,4 +1,4 @@
-import { pool } from '../db.js'
+import { pool } from '../db.js';
 
 export const cargarEstudiantes = async (req, res) => {
   const estudiantesData = req.body; // Obtenemos los datos del CSV
@@ -9,34 +9,132 @@ export const cargarEstudiantes = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No se recibieron datos para procesar.' });
   }
 
+      function convertirFecha(fechaStr) {
+        if (!fechaStr || typeof fechaStr !== 'string') {
+            return null; // Si no es una cadena válida
+        }
+
+        // Separar fecha y hora, si está presente
+        const partesFechaHora = fechaStr.split(' ');
+        const partesFecha = partesFechaHora[0].split('/');
+
+        if (partesFecha.length !== 3) {
+            return null; // Si el formato no es el esperado
+        }
+
+        let [dia, mes, año] = partesFecha;
+
+        // Asegurarse de que el día y el mes tengan dos dígitos
+        dia = dia.length === 1 ? '0' + dia : dia;
+        mes = mes.length === 1 ? '0' + mes : mes;
+
+        // Crear un objeto Date con el formato adecuado
+        const fecha = new Date(`${año}-${mes}-${dia}`);
+
+        // Verificar si la fecha es válida
+        if (isNaN(fecha.getTime())) {
+            return null;
+        }
+
+        // Retornar solo la fecha en formato YYYY-MM-DD
+        return fecha.toISOString().split('T')[0];
+    }
+    function obtenerPeriodo(fechaStr) {
+      if (!fechaStr || typeof fechaStr !== 'string') {
+          return null; // Si no es una cadena válida
+      }
+  
+      // Separar la fecha y la hora
+      const partesFechaHora = fechaStr.split(' ');
+      const partesFecha = partesFechaHora[0].split('/');
+  
+      if (partesFecha.length !== 3) {
+          return null; // Si el formato no es el esperado
+      }
+  
+      let [dia, mes, año] = partesFecha;
+  
+      // Convertir a número para facilitar comparaciones
+      mes = parseInt(mes, 10);
+      año = parseInt(año, 10);
+  
+      // Determinar el periodo con base en el mes
+      if (mes >= 1 && mes <= 3) {
+          // Enero a marzo
+          return `${año}-1`; // Primer semestre del mismo año
+      } else if (mes >= 4 && mes <= 8) {
+          // Abril a agosto
+          return `${año}-2`; // Segundo semestre del mismo año
+      } else if (mes >= 9 && mes <= 12) {
+          // Septiembre a diciembre
+          return `${año + 1}-1`; // Primer semestre del siguiente año
+      }
+  
+      return null; // En caso de que no sea un mes válido
+  }
+
+
   try {
       for (const estudiante of estudiantesData) {
           const {
-              nombre,
-              apellido,
-              tipo_documento,
-              numero_documento,
-              fecha_nacimiento,
-              sexo,
-              correo_electronico,
-              celular,
-              nombre_programa,
-              codigo_programa,
-              tipo_programa,
-              codigo_matricula,
-              fecha_matricula,
-              periodo_inicio,
-              periodo_desercion,
-              fecha_graduacion,
-              estado_academico,
-              jornada,
-              sede,
-              estado_anterior,
-              estado_nuevo,
-              fecha_cambio,
-              observacion,
+            PENG_PRIMERNOMBRE,
+            PENG_SEGUNDONOMBRE,
+            PENG_PRIMERAPELLIDO,
+            PENG_SEGUNDOAPELLIDO,
+            PEGE_DOCUMENTOIDENTIDAD,
+            PEGE_MAIL,
+            PEGE_TELEFONOCELULAR,
+            PEGE_TELEFONO,
+            ESTP_FECHAINGRESO,
+            PROG_NOMBRE,
+            PROG_CODIGOICFES,
+            ESTP_ID,
+            FRAN_DESCRIPCION,
+            UNID_NOMBRE,
+            PERIODO,
+            MAAC_PROMEDIO,
+            ESTP_PROMEDIOGENERAL,
+            TIPOPROGRAMA,
+            
           } = estudiante;
+                
+              const nombre= PENG_PRIMERNOMBRE + ' ' + PENG_SEGUNDONOMBRE; // Concatenar nombres
+              const apellido = PENG_PRIMERAPELLIDO + ' ' + PENG_SEGUNDOAPELLIDO; // Concatenar apellidos
+              const numero_documento = PEGE_DOCUMENTOIDENTIDAD;
+              const correo_electronico = PEGE_MAIL;
+              const celular= PEGE_TELEFONOCELULAR || PEGE_TELEFONO; // Usar el celular o teléfono si no hay
 
+                //Tabla estudiante_carrera
+              const codigo_matricula = ESTP_ID;
+              const fecha_ingreso = convertirFecha(ESTP_FECHAINGRESO);
+              const periodo_inicio = obtenerPeriodo(ESTP_FECHAINGRESO);
+              const estado_academico = 'Activo';
+              const jornada = FRAN_DESCRIPCION;
+              const sede = UNID_NOMBRE
+
+                //Tabla carrera
+              const nombre_programa = PROG_NOMBRE;
+              const codigo_programa = PROG_CODIGOICFES;
+              const tipo_programa = TIPOPROGRAMA;
+
+              //Tabla Historico_Matriculas
+              const periodo_matricula = PERIODO;
+              const promedio_semestral = parseFloat(MAAC_PROMEDIO);
+              const promedio_general =  parseFloat(ESTP_PROMEDIOGENERAL);
+
+               // Asignar valores a las variables con verificación
+                const tipo_documento = estudiante.tipodocumento; // Vacío si no está
+                const fecha_nacimiento = convertirFecha(estudiante.fechanacimiento); // Vacío si no está
+                const sexo = estudiante.genero; // Vacío si no está
+                const fecha_desercion = convertirFecha(estudiante.periododesercion); // Vacío si no está
+                const fecha_graduacion = convertirFecha(estudiante.fechagraduacion); // Vacío si no está
+                const estado_anterior = estudiante.estado_anterior;
+                const estado_nuevo = estudiante.estado_nuevo;
+          
+              
+
+
+            
           // Validar los datos de la carrera
           if (!nombre_programa || !codigo_programa || !tipo_programa) {
               console.error(`Datos inválidos para carrera en estudiante ${numero_documento}: ${JSON.stringify(estudiante)}`);
@@ -50,16 +148,8 @@ export const cargarEstudiantes = async (req, res) => {
           const estudianteId = await insertarEstudiante(nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular);
 
           // 3. Insertar en la tabla 'estudiante_carrera'
-          await insertarEstudianteCarrera(estudianteId, carreraId, codigo_matricula, fecha_matricula, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede);
+          await insertarEstudianteCarrera(estudianteId, carreraId, codigo_matricula, fecha_ingreso, periodo_inicio, fecha_desercion, fecha_graduacion, estado_academico, jornada, sede);
 
-          // 4. Solo insertar en la tabla 'historico_estado' si hay cambios
-          if (estado_anterior !== estado_nuevo) {
-            // Actualizar el histórico de estado
-            await insertarHistoricoEstado(estudianteId, carreraId, estado_anterior, estado_nuevo, fecha_cambio, observacion);
-            
-            // Cambiar el estado_academico en estudiante_carrera
-            await actualizarEstadoAcademico(estudianteId, carreraId, estado_nuevo);
-          }
           
       }
 
@@ -73,13 +163,13 @@ export const cargarEstudiantes = async (req, res) => {
 export const insertarCarrera = async (nombre_programa, codigo_programa, tipo_programa) => {
   try {
       // Verificar si el codigo_programa ya existe
-      const [existing] = await pool.query('SELECT * FROM carrera WHERE codigo_programa = ?', [codigo_programa]);
+      const [existing] = await pool.query('SELECT * FROM carreras WHERE codigo_programa = ?', [codigo_programa]);
 
       if (existing.length > 0) {
           // Actualizar si ya existe
           console.log(`Actualizando la carrera con el código ${codigo_programa}.`);
           await pool.query(
-              'UPDATE carrera SET nombre_programa = ?, tipo_programa = ? WHERE codigo_programa = ?',
+              'UPDATE carreras SET nombre_programa = ?, tipo_programa = ? WHERE codigo_programa = ?',
               [nombre_programa, tipo_programa, codigo_programa]
           );
           return existing[0].id_carrera; // Retorna el ID de la carrera existente
@@ -87,37 +177,48 @@ export const insertarCarrera = async (nombre_programa, codigo_programa, tipo_pro
 
       // Si no existe, insertar nueva carrera
       const [result] = await pool.query(
-          'INSERT INTO carrera (nombre_programa, codigo_programa, tipo_programa) VALUES (?, ?, ?)',
+          'INSERT INTO carreras (nombre_programa, codigo_programa, tipo_programa) VALUES (?, ?, ?)',
           [nombre_programa, codigo_programa, tipo_programa]
       );
 
       return result.insertId; // Retorna el nuevo ID de la carrera insertada
   } catch (error) {
-      console.error('Error al insertar/actualizar carrera:', error);
+      console.error('Error al insertar/actualizar carreras:', error);
       throw error; // Propagar el error para ser manejado más arriba
   }
 };
 
 
-
 export const insertarEstudiante = async (nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular) => {
   try {
       // Verificar si el estudiante ya existe
-      const [existing] = await pool.query('SELECT * FROM estudiante WHERE numero_documento = ?', [numero_documento]);
+      const [existing] = await pool.query('SELECT * FROM estudiantes WHERE numero_documento = ?', [numero_documento]);
 
       if (existing.length > 0) {
           // Actualizar si ya existe
           console.log(`Actualizando el estudiante con el número de documento ${numero_documento}.`);
+
+          // Solo actualizamos los campos si no son null o vacíos
+          const updates = [
+              nombre,
+              apellido,
+              (tipo_documento && tipo_documento.trim() !== '') ? tipo_documento : existing[0].tipo_documento,
+              (fecha_nacimiento && fecha_nacimiento.trim() !== '') ? fecha_nacimiento : existing[0].fecha_nacimiento,
+              (sexo && sexo.trim() !== '') ? sexo : existing[0].sexo,
+              correo_electronico,
+              celular
+          ];
+
           await pool.query(
-              'UPDATE estudiante SET nombre = ?, apellido = ?, tipo_documento = ?, fecha_nacimiento = ?, sexo = ?, correo_electronico = ?, celular = ? WHERE numero_documento = ?',
-              [nombre, apellido, tipo_documento, fecha_nacimiento, sexo, correo_electronico, celular, numero_documento]
+              'UPDATE estudiantes SET nombre = ?, apellido = ?, tipo_documento = ?, fecha_nacimiento = ?, sexo = ?, correo_electronico = ?, celular = ? WHERE numero_documento = ?',
+              [...updates, numero_documento]
           );
           return existing[0].id_estudiante; // Retornar el ID del estudiante existente
       }
 
       // Si no existe, insertar nuevo estudiante
       const [result] = await pool.query(
-          'INSERT INTO estudiante (nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          'INSERT INTO estudiantes (nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
           [nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular]
       );
 
@@ -129,24 +230,38 @@ export const insertarEstudiante = async (nombre, apellido, tipo_documento, numer
 };
 
 
-
-export const insertarEstudianteCarrera = async (id_estudiante, id_carrera, codigo_matricula, fecha_matricula, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede) => {
+export const insertarEstudianteCarrera = async (id_estudiante, id_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, fecha_desercion, fecha_graduacion, estado_academico, jornada, sede) => {
   try {
       // Verificar si la relación ya existe
-      const [existing] = await pool.query('SELECT * FROM estudiante_carrera WHERE id_estudiante = ? AND id_carrera = ?', [id_estudiante, id_carrera]);
+      const [existing] = await pool.query('SELECT * FROM estudiantes_carreras WHERE id_estudiante = ? AND id_carrera = ?', [id_estudiante, id_carrera]);
 
       if (existing.length > 0) {
           // Actualizar si ya existe y el estudiante sigue en la misma carrera
           console.log(`Actualizando la relación entre estudiante ${id_estudiante} y carrera ${id_carrera}.`);
+
+          // Solo actualizamos los campos si no son null o vacíos
+          const updates = [
+              codigo_matricula,
+              fecha_ingreso,
+              periodo_inicio,
+              (fecha_desercion && fecha_desercion.trim() !== '') ? fecha_desercion : existing[0].fecha_desercion,
+              (fecha_graduacion && fecha_graduacion.trim() !== '') ? fecha_graduacion : existing[0].fecha_graduacion,
+              estado_academico,
+              jornada,
+              sede,
+              id_estudiante,
+              id_carrera
+          ];
+
           await pool.query(
-              'UPDATE estudiante_carrera SET codigo_matricula = ?, fecha_matricula = ?, periodo_inicio = ?, periodo_desercion = ?, fecha_graduacion = ?, estado_academico = ?, jornada = ?, sede = ? WHERE id_estudiante = ? AND id_carrera = ?',
-              [codigo_matricula, fecha_matricula, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede, id_estudiante, id_carrera]
+              'UPDATE estudiantes_carreras SET codigo_matricula = ?, fecha_ingreso = ?, periodo_inicio = ?, fecha_desercion = ?, fecha_graduacion = ?, estado_academico = ?, jornada = ?, sede = ? WHERE id_estudiante = ? AND id_carrera = ?',
+              updates
           );
       } else {
           // Insertar nueva relación
           const [result] = await pool.query(
-              'INSERT INTO estudiante_carrera (id_estudiante, id_carrera, codigo_matricula, fecha_matricula, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [id_estudiante, id_carrera, codigo_matricula, fecha_matricula, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede]
+              'INSERT INTO estudiantes_carreras (id_estudiante, id_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, fecha_desercion, fecha_graduacion, estado_academico, jornada, sede) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [id_estudiante, id_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, fecha_desercion, fecha_graduacion, estado_academico, jornada, sede]
           );
           return result.insertId; // Retorna el ID de la relación insertada
       }
@@ -156,54 +271,7 @@ export const insertarEstudianteCarrera = async (id_estudiante, id_carrera, codig
   }
 };
 
-const insertarHistoricoEstado = async (id_estudiante, id_carrera, estado_anterior, estado_nuevo, fecha_cambio, observacion) => {
-  try {
-      // Verificar si el registro ya existe (puedes agregar lógica para determinar cuándo se considera un duplicado)
-      const [existing] = await pool.query('SELECT * FROM historico_estado WHERE id_estudiante = ? AND id_carrera = ? AND fecha_cambio = ?', [id_estudiante, id_carrera, fecha_cambio]);
 
-      if (existing.length > 0) {
-          // Actualizar si ya existe
-          console.log(`Actualizando el histórico de estado para el estudiante ${id_estudiante} en la carrera ${id_carrera}.`);
-          await pool.query(
-              'UPDATE historico_estado SET estado_anterior = ?, estado_nuevo = ?, observacion = ? WHERE id_estudiante = ? AND id_carrera = ? AND fecha_cambio = ?',
-              [estado_anterior, estado_nuevo, observacion, id_estudiante, id_carrera, fecha_cambio]
-          );
-          return existing[0].id_historico_estado; // Retornar el ID del registro existente
-      }
-
-      // Si no existe, insertar nuevo registro
-      const query = 'INSERT INTO historico_estado (id_estudiante, id_carrera, estado_anterior, estado_nuevo, fecha_cambio, observacion) VALUES (?, ?, ?, ?, ?, ?)';
-      const [result] = await pool.query(query, [id_estudiante, id_carrera, estado_anterior, estado_nuevo, fecha_cambio, observacion]);
-      return result.insertId; // Retorna el nuevo ID del registro insertado
-  } catch (error) {
-      console.error('Error al insertar/actualizar histórico de estado:', error);
-      throw error; // Propagar el error para ser manejado más arriba
-  }
-};
-;
-const actualizarEstadoAcademico = async (id_estudiante, id_carrera, nuevo_estado_academico) => {
-  try {
-      // Actualizar el estado_academico en la tabla estudiante_carrera
-      await pool.query(
-          'UPDATE estudiante_carrera SET estado_academico = ? WHERE id_estudiante = ? AND id_carrera = ?',
-          [nuevo_estado_academico, id_estudiante, id_carrera]
-      );
-  } catch (error) {
-      console.error('Error al actualizar el estado académico del estudiante en carrera:', error);
-      throw error; // Propagar el error para ser manejado más arriba
-  }
-};
-
-
-export const traerProgramas = async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM carrera');
-        res.json(rows);
-    } catch (error) {
-        console.error('Error al ejecutar la consulta:', error);
-        res.status(500).json({ error: 'Error al obtener datos' });
-    }
-};
 
 
 export const traerCortesIniciales = async (req, res) => {
@@ -211,7 +279,7 @@ export const traerCortesIniciales = async (req, res) => {
       // Consulta para obtener los cortes iniciales únicos, ordenados y que sigan el formato 'YYYY-MM'
       const [rows] = await pool.query(`
           SELECT DISTINCT periodo_inicio
-          FROM estudiante_carrera
+          FROM estudiantes_carreras
           WHERE periodo_inicio IS NOT NULL
           AND periodo_inicio REGEXP '^[0-9]{4}-(01|02)$'
           ORDER BY periodo_inicio
@@ -233,7 +301,7 @@ export const buscarEstudiantes = async (req, res) => {
 
   try {
     // Verifica que los nombres de las columnas coincidan con tu base de datos
-    const sql = `SELECT * FROM estudiante WHERE nombre LIKE ? OR apellido LIKE ?`;
+    const sql = `SELECT * FROM estudiantes WHERE nombre LIKE ? OR apellido LIKE ?`;
 
     // Asegúrate de que el parámetro 'search' esté correctamente formateado
     const params = [`%${search}%`, `%${search}%`];
@@ -260,13 +328,13 @@ export const obtenerDetalles = async (req, res) => {
         ec.*,  -- Selecciona todos los campos de la tabla estudiante_carrera
         c.nombre_programa  -- Nombre del programa en la tabla carrera
       FROM 
-        estudiante e
+        estudiantes e
       LEFT JOIN 
-        estudiante_carrera ec ON e.id_estudiante = ec.id_estudiante  -- Unión con estudiante_carrera
+        estudiantes_carreras ec ON e.id_estudiante = ec.id_estudiante  -- Unión con estudiante_carrera
       LEFT JOIN 
-        carrera c ON ec.id_carrera = c.id_carrera  -- Unión con carrera
+        carreras c ON ec.id_carrera = c.id_carrera  -- Unión con carrera
       WHERE 
-        e.id_estudiante = ?
+        e.id_estudiantes = ?
     `;
 
     const [rows] = await pool.query(sql, [id]); // Ejecutar la consulta con el id
@@ -289,9 +357,9 @@ export const obtenerDetalles = async (req, res) => {
       const carreras = rows.map(row => ({
         id_carrera: row.id_carrera,
         codigo_matricula: row.codigo_matricula,
-        fecha_matricula: row.fecha_matricula,
+        fecha_ingreso: row.fecha_ingreso,
         periodo_inicio: row.periodo_inicio,
-        periodo_desercion: row.periodo_desercion,
+        fecha_desercion: row.fecha_desercion,
         fecha_graduacion: row.fecha_graduacion,
         estado_academico: row.estado_academico,
         jornada: row.jornada,

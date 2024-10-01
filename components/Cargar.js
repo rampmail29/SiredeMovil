@@ -46,6 +46,7 @@ const CargarCSV = () => {
   const upload = async () => {
     if (csvData && csvData.length > 0) {
         // No filtramos, simplemente enviamos todos los registros
+        
         try {
             const response = await fetch(`${API_BASE_URL}/api/cargageneral`, {
                 method: 'POST',
