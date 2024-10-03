@@ -73,10 +73,13 @@ export const cargarEstudiantes = async (req, res) => {
       return null; // En caso de que no sea un mes válido
   }
 
-
   try {
-      for (const estudiante of estudiantesData) {
-          const {
+    let carreraId = null; // Inicializamos fuera del loop para la segunda fase
+    let periodo_matricula = null; // Variable para el periodo actual
+
+    // Recorrer los datos de estudiantes
+    for (const estudiante of estudiantesData) {
+        const {
             PENG_PRIMERNOMBRE,
             PENG_SEGUNDONOMBRE,
             PENG_PRIMERAPELLIDO,
@@ -95,98 +98,122 @@ export const cargarEstudiantes = async (req, res) => {
             MAAC_PROMEDIO,
             ESTP_PROMEDIOGENERAL,
             TIPOPROGRAMA,
-            
-          } = estudiante;
-                
-              const nombre= PENG_PRIMERNOMBRE + ' ' + PENG_SEGUNDONOMBRE; // Concatenar nombres
-              const apellido = PENG_PRIMERAPELLIDO + ' ' + PENG_SEGUNDOAPELLIDO; // Concatenar apellidos
-              const numero_documento = PEGE_DOCUMENTOIDENTIDAD;
-              const correo_electronico = PEGE_MAIL;
-              const celular= PEGE_TELEFONOCELULAR || PEGE_TELEFONO; // Usar el celular o teléfono si no hay
+        } = estudiante;
 
-                //Tabla estudiante_carrera
-              const codigo_matricula = ESTP_ID;
-              const fecha_ingreso = convertirFecha(ESTP_FECHAINGRESO);
-              const periodo_inicio = obtenerPeriodo(ESTP_FECHAINGRESO);
-              const estado_academico = 'Activo';
-              const jornada = FRAN_DESCRIPCION;
-              const sede = UNID_NOMBRE
+        const nombre = PENG_PRIMERNOMBRE + ' ' + PENG_SEGUNDONOMBRE;
+        const apellido = PENG_PRIMERAPELLIDO + ' ' + PENG_SEGUNDOAPELLIDO;
+        const numero_documento = PEGE_DOCUMENTOIDENTIDAD;
+        const correo_electronico = PEGE_MAIL;
+        const celular = PEGE_TELEFONOCELULAR || PEGE_TELEFONO;
+        const codigo_matricula = ESTP_ID;
+        const fecha_ingreso = convertirFecha(ESTP_FECHAINGRESO);
+        const periodo_inicio = obtenerPeriodo(ESTP_FECHAINGRESO);
+        const estado_academico = 'Activo';
+        const jornada = FRAN_DESCRIPCION;
+        const sede = UNID_NOMBRE;
+        const nombre_programa = PROG_NOMBRE;
+        const codigo_programa = PROG_CODIGOICFES;
+        const tipo_programa = TIPOPROGRAMA;
 
-                //Tabla carrera
-              const nombre_programa = PROG_NOMBRE;
-              const codigo_programa = PROG_CODIGOICFES;
-              const tipo_programa = TIPOPROGRAMA;
+        if (!PERIODO) {
+          console.error(`PERIODO no definido para estudiante ${numero_documento}`);
+          continue; // O lanzar un error si prefieres
+      }
+        periodo_matricula = PERIODO; // Guardamos el periodo de matrícula actual
+        console.log(`PERIODO para estudiante ${numero_documento}: ${PERIODO}`);
+        const promedio_semestral = MAAC_PROMEDIO ? parseFloat(MAAC_PROMEDIO.replace(',', '.')) : null;
+        const promedio_general = ESTP_PROMEDIOGENERAL ? parseFloat(ESTP_PROMEDIOGENERAL.replace(',', '.')) : null;
 
-              //Tabla Historico_Matriculas
-              const periodo_matricula = PERIODO;
-              const promedio_semestral = parseFloat(MAAC_PROMEDIO);
-              const promedio_general =  parseFloat(ESTP_PROMEDIOGENERAL);
+        const tipo_documento = estudiante.tipodocumento;
+        const fecha_nacimiento = convertirFecha(estudiante.fechanacimiento);
+        const sexo = estudiante.genero;
+        const periodo_desercion = convertirFecha(estudiante.periododesercion);
+        const fecha_graduacion = convertirFecha(estudiante.fechagraduacion);
 
-               // Asignar valores a las variables con verificación
-                const tipo_documento = estudiante.tipodocumento; // Vacío si no está
-                const fecha_nacimiento = convertirFecha(estudiante.fechanacimiento); // Vacío si no está
-                const sexo = estudiante.genero; // Vacío si no está
-                const fecha_desercion = convertirFecha(estudiante.periododesercion); // Vacío si no está
-                const fecha_graduacion = convertirFecha(estudiante.fechagraduacion); // Vacío si no está
-                const estado_anterior = estudiante.estado_anterior;
-                const estado_nuevo = estudiante.estado_nuevo;
-          
-              
-
-
-            
           // Validar los datos de la carrera
           if (!nombre_programa || !codigo_programa || !tipo_programa) {
-              console.error(`Datos inválidos para carrera en estudiante ${numero_documento}: ${JSON.stringify(estudiante)}`);
-              continue; // O puedes lanzar un error si prefieres
-          }
+            console.error(`Datos inválidos para carrera en estudiante ${numero_documento}: ${JSON.stringify(estudiante)}`);
+            continue; // O puedes lanzar un error si prefieres
+        }
 
-          // 1. Insertar en la tabla 'carrera'
-          const carreraId = await insertarCarrera(nombre_programa, codigo_programa, tipo_programa);
+        // 1. Insertar en la tabla 'carrera'
+        carreraId = await insertarCarrera(nombre_programa, codigo_programa, tipo_programa);
 
-          // 2. Insertar en la tabla 'estudiante' o actualizar si ya existe
-          const estudianteId = await insertarEstudiante(nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular);
+        // 2. Insertar en la tabla 'estudiante' o actualizar si ya existe
+        const estudianteId = await insertarEstudiante(nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular);
 
-          // 3. Insertar en la tabla 'estudiante_carrera'
-          await insertarEstudianteCarrera(estudianteId, carreraId, codigo_matricula, fecha_ingreso, periodo_inicio, fecha_desercion, fecha_graduacion, estado_academico, jornada, sede);
+        // 3. Insertar en la tabla 'estudiante_carrera'
+        await insertarEstudianteCarrera(estudianteId, carreraId, codigo_matricula, fecha_ingreso, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede);
 
-          
-      }
+        // 4. Insertar el historial de matrícula del estudiante
+        await insertarHistoricoMatricula(estudianteId, carreraId, periodo_matricula, promedio_semestral, promedio_general);
+    }
+      console.log(carreraId)
+      console.log(periodo_matricula)
 
-      return res.status(200).json({ success: true, message: 'Todos los datos han sido procesados correctamente.' });
-  } catch (error) {
-      console.error('Error en el procesamiento de datos:', error);
-      return res.status(500).json({ success: false, message: 'Error en el procesamiento de datos.' });
-  }
+    // Fase 2: Cambiar estado académico si existe un periodo anterior
+
+    
+
+    if (carreraId && periodo_matricula) {
+        await verificarYActualizarGraduacion(carreraId, periodo_matricula);
+
+        await cambiarEstadoAcademicoSegunMatriculas(carreraId, periodo_matricula);
+    }
+
+    return res.status(200).json({ success: true, message: 'Todos los datos han sido procesados correctamente y los estados académicos han sido actualizados.' });
+} catch (error) {
+    console.error('Error en el procesamiento de datos:', error);
+    return res.status(500).json({ success: false, message: 'Error en el procesamiento de datos.' });
+}
 };
 
-export const insertarCarrera = async (nombre_programa, codigo_programa, tipo_programa) => {
+
+
+
+async function insertarCarrera(nombre_Programa, codigo_Programa, tipo_Programa) {
   try {
-      // Verificar si el codigo_programa ya existe
-      const [existing] = await pool.query('SELECT * FROM carreras WHERE codigo_programa = ?', [codigo_programa]);
+     
+      // Verificar si la carrera ya existe
+      const [existing] = await pool.query('SELECT * FROM carreras WHERE codigo_programa = ?', [codigo_Programa]);
 
       if (existing.length > 0) {
-          // Actualizar si ya existe
-          console.log(`Actualizando la carrera con el código ${codigo_programa}.`);
-          await pool.query(
-              'UPDATE carreras SET nombre_programa = ?, tipo_programa = ? WHERE codigo_programa = ?',
-              [nombre_programa, tipo_programa, codigo_programa]
-          );
-          return existing[0].id_carrera; // Retorna el ID de la carrera existente
+          console.log(`La carrera con el código ${codigo_Programa} ya existe. Actualizando en lugar de insertar.`);
+
+          // Intentar actualizar la carrera existente
+          try {
+              await pool.query(
+                  'UPDATE carreras SET nombre_programa = ?, tipo_programa = ? WHERE codigo_programa = ?',
+                  [nombre_Programa, tipo_Programa, codigo_Programa]
+              );
+              // Retornar el ID de la carrera existente
+              return existing[0].id_carrera;
+          } catch (updateError) {
+              console.error('Error al actualizar la carrera:', updateError);
+              // Ignorar el error y continuar
+          }
+      } else {
+          // Intentar insertar nueva carrera
+          try {
+              const [result] = await pool.query(
+                  `INSERT INTO carreras (nombre_programa, codigo_programa, tipo_programa)
+                   VALUES (?, ?, ?)`,
+                  [nombre_Programa, codigo_Programa, tipo_Programa]
+              );
+              // Retornar el ID de la carrera insertada
+              return result.insertId;
+          } catch (insertError) {
+              console.error('Error al insertar nueva carrera:', insertError);
+              // Ignorar el error y continuar
+          }
       }
-
-      // Si no existe, insertar nueva carrera
-      const [result] = await pool.query(
-          'INSERT INTO carreras (nombre_programa, codigo_programa, tipo_programa) VALUES (?, ?, ?)',
-          [nombre_programa, codigo_programa, tipo_programa]
-      );
-
-      return result.insertId; // Retorna el nuevo ID de la carrera insertada
   } catch (error) {
-      console.error('Error al insertar/actualizar carreras:', error);
-      throw error; // Propagar el error para ser manejado más arriba
+      console.error('Error general al insertar/actualizar carreras:', error);
+      // Ignorar el error y continuar
   }
-};
+}
+
+
 
 
 export const insertarEstudiante = async (nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular) => {
@@ -229,9 +256,16 @@ export const insertarEstudiante = async (nombre, apellido, tipo_documento, numer
   }
 };
 
-
-export const insertarEstudianteCarrera = async (id_estudiante, id_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, fecha_desercion, fecha_graduacion, estado_academico, jornada, sede) => {
+export const insertarEstudianteCarrera = async (id_estudiante, codigo_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede) => {
   try {
+      // Obtener el id_carrera a partir del codigo_carrera
+      const [carrera] = await pool.query('SELECT id_carrera FROM carreras WHERE id_carrera = ?', [codigo_carrera]);
+      const id_carrera = carrera.length > 0 ? carrera[0].id_carrera : null;
+
+      if (!id_carrera) {
+          throw new Error(`No se encontró la carrera para el código: ${codigo_carrera}`);
+      }
+
       // Verificar si la relación ya existe
       const [existing] = await pool.query('SELECT * FROM estudiantes_carreras WHERE id_estudiante = ? AND id_carrera = ?', [id_estudiante, id_carrera]);
 
@@ -244,7 +278,7 @@ export const insertarEstudianteCarrera = async (id_estudiante, id_carrera, codig
               codigo_matricula,
               fecha_ingreso,
               periodo_inicio,
-              (fecha_desercion && fecha_desercion.trim() !== '') ? fecha_desercion : existing[0].fecha_desercion,
+              (periodo_desercion && periodo_desercion.trim() !== '') ? periodo_desercion : existing[0].periodo_desercion,
               (fecha_graduacion && fecha_graduacion.trim() !== '') ? fecha_graduacion : existing[0].fecha_graduacion,
               estado_academico,
               jornada,
@@ -254,20 +288,311 @@ export const insertarEstudianteCarrera = async (id_estudiante, id_carrera, codig
           ];
 
           await pool.query(
-              'UPDATE estudiantes_carreras SET codigo_matricula = ?, fecha_ingreso = ?, periodo_inicio = ?, fecha_desercion = ?, fecha_graduacion = ?, estado_academico = ?, jornada = ?, sede = ? WHERE id_estudiante = ? AND id_carrera = ?',
+              'UPDATE estudiantes_carreras SET codigo_matricula = ?, fecha_ingreso = ?, periodo_inicio = ?, periodo_desercion = ?, fecha_graduacion = ?, estado_academico = ?, jornada = ?, sede = ? WHERE id_estudiante = ? AND id_carrera = ?',
               updates
           );
       } else {
           // Insertar nueva relación
           const [result] = await pool.query(
-              'INSERT INTO estudiantes_carreras (id_estudiante, id_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, fecha_desercion, fecha_graduacion, estado_academico, jornada, sede) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [id_estudiante, id_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, fecha_desercion, fecha_graduacion, estado_academico, jornada, sede]
+              'INSERT INTO estudiantes_carreras (id_estudiante, id_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [id_estudiante, id_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede]
           );
           return result.insertId; // Retorna el ID de la relación insertada
       }
   } catch (error) {
       console.error('Error al insertar/actualizar estudiante en carrera:', error);
       throw error; // Propagar el error para ser manejado más arriba
+  }
+};
+
+      // Función para insertar datos en la tabla 'historico_matriculas'
+      async function insertarHistoricoMatricula(id_estudiante, id_carrera, periodo_matricula, promedio_semestral, promedio_general) {
+        try {
+          // Verificar si ya existe un registro en historico_matriculas para este estudiante y período
+          const [existingRecord] = await pool.query(
+              `SELECT * FROM historico_matriculas 
+               WHERE id_estudiante = ? AND id_carrera = ? AND periodo_matricula = ?`,
+              [id_estudiante, id_carrera, periodo_matricula]
+          );
+  
+          if (existingRecord.length > 0) {
+              // Actualizar el registro existente
+              await pool.query(
+                  `UPDATE historico_matriculas 
+                   SET promedio_semestral = ?, promedio_general = ? 
+                   WHERE id_estudiante = ? AND id_carrera = ? AND periodo_matricula = ?`,
+                  [promedio_semestral, promedio_general, id_estudiante, id_carrera, periodo_matricula]
+              );
+              console.log(`Registro actualizado en historico_matriculas para el estudiante ${id_estudiante} en el período ${periodo_matricula}.`);
+          } else {
+              // Insertar un nuevo registro
+              await pool.query(
+                  `INSERT INTO historico_matriculas (id_estudiante, id_carrera, periodo_matricula, promedio_semestral, promedio_general) 
+                   VALUES (?, ?, ?, ?, ?)`,
+                  [id_estudiante, id_carrera, periodo_matricula, promedio_semestral, promedio_general]
+              );
+              console.log(`Registro insertado en historico_matriculas para el estudiante ${id_estudiante} en el período ${periodo_matricula}.`);
+          }
+      } catch (error) {
+          console.error('Error al insertar o actualizar en historico_matriculas:', error);
+          throw error; // Lanza el error para que se maneje más arriba
+      }
+  }
+// Función para verificar la fecha de graduación y restaurar el estado a 'Graduado' sin duplicados en historico_estado
+async function verificarYActualizarGraduacion(carreraId, periodoActual) {
+  try {
+      // Obtener los estudiantes matriculados en el periodo actual
+      const [estudiantesMatriculados] = await pool.query(
+          `SELECT id_estudiante FROM historico_matriculas
+           WHERE id_carrera = ? AND periodo_matricula = ?`,
+          [carreraId, periodoActual]
+      );
+
+      // Extraer los IDs de los estudiantes
+      const estudianteIds = estudiantesMatriculados.map(e => e.id_estudiante);
+
+      if (estudianteIds.length === 0) {
+          console.log(`No hay estudiantes matriculados en el periodo ${periodoActual}.`);
+          return; // Si no hay estudiantes, salir
+      }
+
+      // 1. Consultar la información del estudiante para ver si tiene una fecha de graduación
+      const [estudiantes] = await pool.query(
+          `SELECT ec.id_estudiante, ec.estado_academico, ec.fecha_graduacion 
+           FROM estudiantes_carreras ec
+           WHERE ec.id_estudiante IN (?) AND ec.id_carrera = ?`,
+          [estudianteIds, carreraId]
+      );
+
+      // 2. Procesar cada estudiante
+      for (const estudiante of estudiantes) {
+          const estudianteId = estudiante.id_estudiante;
+
+          // Verificar si el estudiante tiene fecha de graduación
+          if (!estudiante.fecha_graduacion) {
+              console.log(`Estudiante ${estudianteId} no tiene fecha de graduación registrada.`);
+              continue; // Si no tiene fecha de graduación, continuar con el siguiente
+          }
+
+          // 3. Verificar si el estudiante ya tiene el estado académico 'Graduado'
+          if (estudiante.estado_academico === 'Graduado') {
+              console.log(`Estudiante ${estudianteId} ya está graduado y no será actualizado.`);
+              continue; // Si ya está graduado, no hacer nada más
+          }
+
+          // 4. Verificar si ya existe un registro de graduación en cualquier periodo en historico_estado
+          const [registroGraduacionPrevio] = await pool.query(
+              `SELECT * FROM historico_estado
+               WHERE id_estudiante = ? AND id_carrera = ? AND estado_nuevo = 'Graduado'`,
+              [estudianteId, carreraId]
+          );
+
+          if (registroGraduacionPrevio.length > 0) {
+              console.log(`El estudiante ${estudianteId} ya tiene un registro de graduación en el histórico en un periodo anterior.`);
+              continue; // Evitar registrar duplicados si ya existe un registro de graduación en cualquier periodo
+          }
+
+          // 5. Actualizar el estado académico del estudiante a 'Graduado' en la tabla 'estudiantes_carreras'
+          await pool.query(
+              `UPDATE estudiantes_carreras SET estado_academico = ? 
+               WHERE id_estudiante = ? AND id_carrera = ?`,
+              ['Graduado', estudianteId, carreraId]
+          );
+
+          // 6. Registrar el cambio en la tabla 'historico_estado' solo si no existe un registro previo de 'Graduado'
+          await pool.query(
+              `INSERT INTO historico_estado (id_estudiante, id_carrera, estado_anterior, estado_nuevo, fecha_cambio, periodo_cambio)
+               VALUES (?, ?, ?, ?, ?, ?)`,
+              [estudianteId, carreraId, estudiante.estado_academico, 'Graduado', new Date(), periodoActual]
+          );
+
+          console.log(`Estudiante ${estudianteId} ha sido marcado como 'Graduado' para el periodo ${periodoActual}.`);
+      }
+  } catch (error) {
+      console.error('Error al verificar y actualizar la graduación:', error);
+      throw error;
+  }
+}
+
+
+async function cambiarEstadoAcademicoSegunMatriculas(carreraId, periodoActual) {
+  try {
+    // Obtener todos los estudiantes de la carrera
+    const [todosEstudiantes] = await pool.query(
+        `SELECT id_estudiante FROM estudiantes_carreras WHERE id_carrera = ?`,
+        [carreraId]
+    );
+
+    console.log('Todos los estudiantes de la carrera:', todosEstudiantes);
+
+    // Obtener los estudiantes matriculados en el periodo actual
+    const [estudiantesMatriculadosActual] = await pool.query(
+        `SELECT id_estudiante FROM historico_matriculas
+         WHERE id_carrera = ? AND periodo_matricula = ?`,
+        [carreraId, periodoActual]
+    );
+
+    // Verifica si la consulta ha devuelto resultados
+    if (!estudiantesMatriculadosActual || estudiantesMatriculadosActual.length === 0) {
+        console.error('Error: La consulta de estudiantes matriculados actuales no devolvió resultados válidos.');
+        return; // Si no hay estudiantes matriculados en el periodo actual, no hacemos nada
+    }
+
+    // Obtener los IDs de los estudiantes matriculados en el periodo actual
+    const idsEstudiantesMatriculadosActual = estudiantesMatriculadosActual.map(e => e.id_estudiante);
+
+    // Iterar sobre todos los estudiantes registrados en la carrera
+    for (const { id_estudiante } of todosEstudiantes) {
+        // Si el estudiante no está en el periodo actual
+        if (!idsEstudiantesMatriculadosActual.includes(id_estudiante)) {
+            
+            // Hacer una consulta para obtener el estado_academico actual del estudiante
+            const [resultado] = await pool.query(
+                `SELECT estado_academico FROM estudiantes_carreras
+                WHERE id_estudiante = ? AND id_carrera = ?`,
+                [id_estudiante, carreraId]
+            );
+            
+            if (!resultado || resultado.length === 0) {
+                console.error(`No se encontró estado académico para el estudiante ${id_estudiante}`);
+                continue; // Si no se encuentra el estado, pasamos al siguiente estudiante
+            }
+            
+            const estadoActual = resultado[0].estado_academico;
+
+              // Si el estado es 'Graduado' o 'Desertor', no se hacen cambios
+              if (estadoActual === 'Graduado' || estadoActual === 'Desertor') {
+                console.log(`El estudiante ${id_estudiante} tiene estado '${estadoActual}', no se realizan cambios.`);
+                continue; // No hacemos nada, pasamos al siguiente estudiante
+            }
+
+            // Verificar si el estado es 'Activo' o 'Retenido'
+            if (estadoActual === 'Activo' || estadoActual === 'Retenido') {
+                // Cambiar el estado a 'Inactivo'
+                await cambiarEstadoAcademico(id_estudiante, carreraId, 'Inactivo', estadoActual, periodoActual);
+                console.log(`Estudiante ${id_estudiante} ha sido marcado como 'Inactivo' para el periodo ${periodoActual}`);
+            } 
+            // Verificar si el estudiante ya estaba 'Inactivo'
+            else if (estadoActual === 'Inactivo') {
+                // Cambiar el estado a 'Desertor'
+                await cambiarEstadoAcademico(id_estudiante, carreraId, 'Desertor', estadoActual, periodoActual);
+                console.log(`Estudiante ${id_estudiante} ha sido marcado como 'Desertor' para el periodo ${periodoActual}`);
+            } else {
+                console.log(`El estado del estudiante ${id_estudiante} es '${estadoActual}', no se realizaron cambios.`);
+            }
+        }
+    }
+
+} catch (error) {
+    console.error('Error al cambiar el estado académico:', error);
+    throw error;
+}
+}
+
+
+
+// Función para cambiar el estado académico y actualizar el registro en historico_estado
+async function cambiarEstadoAcademico(estudianteId, carreraId, nuevoEstado, estadoAnterior, periodoActual) {
+  try {
+      // 1. Actualizar el estado en la tabla 'estudiante_carrera'
+      await pool.query(
+          `UPDATE estudiantes_carreras SET estado_academico = ?
+           WHERE id_estudiante = ? AND id_carrera = ?`,
+          [nuevoEstado, estudianteId, carreraId]
+      );
+
+      // 2. Verificar si ya existe un registro con el mismo estudiante, carrera y periodo en 'historico_estado'
+      const [resultado] = await pool.query(
+          `SELECT id_historial FROM historico_estado
+           WHERE id_estudiante = ? AND id_carrera = ? AND periodo_cambio = ?`,
+          [estudianteId, carreraId, periodoActual]
+      );
+
+      if (resultado.length > 0) {
+          console.log(`Ya existe un registro en historico_estado para el estudiante ${estudianteId}, carrera ${carreraId}, periodo ${periodoActual}.`);
+          return; // Si ya existe, no insertamos un nuevo registro
+      }
+
+      // 3. Insertar el cambio en la tabla 'historico_estado' si no existe un registro duplicado
+      await pool.query(
+          `INSERT INTO historico_estado (id_estudiante, id_carrera, estado_anterior, estado_nuevo, fecha_cambio, periodo_cambio)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [estudianteId, carreraId, estadoAnterior, nuevoEstado, new Date(), periodoActual]
+      );
+
+      console.log(`Se ha insertado el cambio de estado para el estudiante ${estudianteId}, carrera ${carreraId}, periodo ${periodoActual}.`);
+  } catch (error) {
+      console.error('Error al cambiar el estado académico en la base de datos:', error);
+      throw error;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const traerProgramas = async (req, res) => {
+  try {
+      const [rows] = await pool.query('SELECT * FROM carreras');
+      res.json(rows);
+  } catch (error) {
+      console.error('Error al ejecutar la consulta:', error);
+      res.status(500).json({ error: 'Error al obtener datos' });
   }
 };
 
@@ -359,7 +684,7 @@ export const obtenerDetalles = async (req, res) => {
         codigo_matricula: row.codigo_matricula,
         fecha_ingreso: row.fecha_ingreso,
         periodo_inicio: row.periodo_inicio,
-        fecha_desercion: row.fecha_desercion,
+        periodo_desercion: row.periodo_desercion,
         fecha_graduacion: row.fecha_graduacion,
         estado_academico: row.estado_academico,
         jornada: row.jornada,
