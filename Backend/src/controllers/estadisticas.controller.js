@@ -159,7 +159,11 @@ export const cargarEstudiantes = async (req, res) => {
         await verificarYActualizarGraduacion(carreraId, periodo_matricula);
 
         await cambiarEstadoAcademicoSegunMatriculas(carreraId, periodo_matricula);
+
+        await procesarCambioEstadoRetenido(carreraId, periodo_matricula)
     }
+
+    
 
     return res.status(200).json({ success: true, message: 'Todos los datos han sido procesados correctamente y los estados académicos han sido actualizados.' });
 } catch (error) {
@@ -527,6 +531,103 @@ async function cambiarEstadoAcademico(estudianteId, carreraId, nuevoEstado, esta
   }
 }
 
+// Función para obtener el periodo actual en formato YYYY-S
+const obtenerPeriodoActual = () => {
+  const fechaActual = new Date();
+  const añoActual = fechaActual.getFullYear();
+  const semestreActual = fechaActual.getMonth() < 6 ? 1 : 2; // Primer semestre: enero-junio; Segundo semestre: julio-diciembre
+  return `${añoActual}-${semestreActual}`;
+};
+
+async function procesarCambioEstadoRetenido() {
+  try {
+      // Obtener el periodo actual
+      const periodoActual = obtenerPeriodoActual();
+      console.log('Periodo actual:', periodoActual); // Muestra el periodo actual calculado
+
+      // Paso 1: Filtrar estudiantes a procesar
+      const [estudiantesActivos] = await pool.query(
+          `SELECT ec.id_estudiante, ec.id_carrera, ec.periodo_inicio, ec.estado_academico
+          FROM estudiantes_carreras ec
+          WHERE ec.estado_academico = 'Activo'`
+      );
+
+      // Paso 2: Procesar cada estudiante activo
+      for (const estudiante of estudiantesActivos) {
+          const { id_estudiante, id_carrera, periodo_inicio } = estudiante;
+
+          // Convertir el periodo_inicio a año y semestre
+          const [yearInicio, semestreInicio] = periodo_inicio.split('-').map(Number);
+          // Obtener el tipo de carrera
+          const [carrera] = await pool.query('SELECT tipo_programa FROM carreras WHERE id_carrera = ?', [id_carrera]);
+          const tipo_programa = carrera.length > 0 ? carrera[0].tipo_programa : null;
+
+          // Calcular el periodo máximo de graduación
+          let maxSemestres;
+
+          if (tipo_programa === 'Tecnologia') {
+              maxSemestres = 6;
+          } else if (tipo_programa === 'Profesional') {
+              maxSemestres = 4;
+          } else {
+              console.log(`Tipo de programa desconocido para el estudiante ${id_estudiante}.`);
+              continue; // Si el tipo de programa no es válido, continuar
+          }
+
+          // Calcular el periodo tope para la graduación
+          let yearTope = yearInicio;
+          let semestreTope = semestreInicio;
+
+          for (let i = 0; i < maxSemestres-1; i++) {
+              if (semestreTope === 2) {
+                  semestreTope = 1; // Cambiar a primer semestre
+                  yearTope++; // Avanzar al siguiente año
+              } else {
+                  semestreTope = 2; // Cambiar a segundo semestre
+              }
+          }
+
+          const periodoTope = `${yearTope}-${semestreTope}`; // Formato YYYY-S
+          console.log(`Procesando estudiante ${id_estudiante} con periodo de inicio ${periodo_inicio}`);
+          console.log(`Periodo tope calculado para estudiante ${id_estudiante}: ${periodoTope}`);
+          console.log(`Periodo actual: ${periodoActual}`); // Muestra el periodo actual calculado
+
+          // Comparar el periodo actual con el periodo tope
+          if (periodoTope < periodoActual) {
+              // Verificar si no ha graduado
+              const [graduacion] = await pool.query(
+                  `SELECT fecha_graduacion FROM estudiantes_carreras 
+                  WHERE id_estudiante = ? AND id_carrera = ?`,
+                  [id_estudiante, id_carrera]
+              );
+
+              if (graduacion.length === 0 || !graduacion[0].fecha_graduacion) {
+                  console.log(`Actualizando el estado del estudiante ${id_estudiante} a 'Retenido'.`);
+
+                  // Paso 4: Registro en historico_estado
+                  await pool.query(
+                      `INSERT INTO historico_estado (id_estudiante, id_carrera, estado_anterior, estado_nuevo, fecha_cambio, periodo_cambio)
+                      VALUES (?, ?, ?, ?, ?, ?)`,
+                      [id_estudiante, id_carrera, 'Activo', 'Retenido', new Date(), periodoActual]
+                  );
+
+                  // Paso 5: Actualización del estado
+                  await pool.query(
+                      `UPDATE estudiantes_carreras 
+                      SET estado_academico = 'Retenido' 
+                      WHERE id_estudiante = ? AND id_carrera = ?`,
+                      [id_estudiante, id_carrera]
+                  );
+              }
+          }
+      }
+  } catch (error) {
+      console.error('Error al procesar el cambio de estado a "Retenido":', error);
+      throw error; // Lanza el error para que se maneje más arriba
+  }
+}
+
+
 
 
 
@@ -659,7 +760,7 @@ export const obtenerDetalles = async (req, res) => {
       LEFT JOIN 
         carreras c ON ec.id_carrera = c.id_carrera  -- Unión con carrera
       WHERE 
-        e.id_estudiantes = ?
+        e.id_estudiante = ?
     `;
 
     const [rows] = await pool.query(sql, [id]); // Ejecutar la consulta con el id

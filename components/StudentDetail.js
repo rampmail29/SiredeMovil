@@ -207,15 +207,19 @@ const StudentDetail = ({ route, navigation }) => {
                                 <FontAwesome name="birthday-cake" size={25} color="#34531F" />
                                 <View>
                                   <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                                  <Text style={styles.text}>{formatDate(student[0].fecha_nacimiento)}</Text>
+                                  <Text style={styles.text}>
+                                      {student[0].fecha_nacimiento ? formatDate(student[0].fecha_nacimiento) : 'No disponible'}
+                                  </Text>
                                 </View>
                               </View>
                         
                               <View style={styles.infoItem1}>
                                 <FontAwesome name="child" size={35} color="#34531F" />
                                 <View>
-                                  <Text style={styles.label}>Edad:</Text>
-                                  <Text style={styles.text}>{calcularEdad(student[0].fecha_nacimiento)} años</Text>
+                                <Text style={styles.label}>Edad:</Text>
+                                <Text style={styles.text}>
+                                  {student[0].fecha_nacimiento ? `${calcularEdad(student[0].fecha_nacimiento)} años` : 'No disponible'}
+                                </Text>
                                 </View>
                               </View>
 
@@ -258,8 +262,8 @@ const StudentDetail = ({ route, navigation }) => {
                               <View style={styles.infoItem1}>
                                 <FontAwesome name="calendar" size={30} color="#6D100A" />
                                 <View>
-                                  <Text style={styles.labell}>Fecha de Matrícula:</Text>
-                                  <Text style={styles.text}>{formatDate(carrera.fecha_matricula)}</Text>
+                                  <Text style={styles.labell}>Periodo de Inicio:</Text>
+                                  <Text style={styles.text}>{carrera.periodo_inicio}</Text>
                                 </View>
                               </View>
 
