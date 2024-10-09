@@ -7,7 +7,7 @@ import * as Font from 'expo-font';
 import VideoScreen from './VideoScreen';
 import InicioSesion from './InicioSesion';
 import Inicio from './Inicio';
-import Estadisticas from './Estadisticas';
+import Estadis_Cohorte from './Estadis_Cohorte';
 import Informes from './Informes';
 import AcercaDe from './AcercaDe';
 import Reporte from './Reporte';
@@ -26,6 +26,7 @@ import SideBar from "./SideBar";
 import Perfil from './Perfil'
 import SireBot from './SireBot';
 import Cargar from './Cargar';
+import Estadisticas from './Estadisticas'
 import Animated from 'react-native-reanimated';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -132,10 +133,6 @@ const MainNavigator = () => {
           iconName = focused 
           ? 'document-text' 
           : 'document-text-outline';
-        } else if (route.name === 'Cargar') {
-          iconName = focused 
-          ? 'cloud-upload' 
-          : 'cloud-upload-outline';
         } 
 
         if (focused) {
@@ -217,6 +214,15 @@ const MainNavigator = () => {
    <Tab.Screen 
   name="InformeCarrera" 
   component={InformeCarrera}
+  options={{
+    tabBarButton: () => null,
+    tabBarVisible:false,
+    headerShown: false 
+}}
+  />
+    <Tab.Screen 
+  name="Estadis_Cohorte" 
+  component={Estadis_Cohorte}
   options={{
     tabBarButton: () => null,
     tabBarVisible:false,
