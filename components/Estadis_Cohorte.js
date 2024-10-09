@@ -14,18 +14,17 @@ const Estadisticas = () => {
   const [idSeleccionado, setIdSeleccionado] = useState('');
   const [tipoProgramaSeleccionado, setTipoProgramaSeleccionado] = useState('');
   const [selectedCorteInicial, setSelectedCorteInicial] = useState('');
-  const [selectedCorteFinal, setSelectedCorteFinal] = useState('');
   const [modalProgramaVisible, setModalProgramaVisible] = useState(false);
   const [modalCorteInicialVisible, setModalCorteInicialVisible] = useState(false);
   const [loading, setLoading] = useState(false); 
   const [datosBackend, setDatosBackend] = useState({
-    totalEstp: 0,
-    totalGra: 0,
-    totalRet: 0,
-    totalDes: 0,
-    desPorSexo:0,
-    graPorSexo:0,
-    retPorSexo:0
+    totalEstudiantes: [],
+    graduados: [],
+    retenidos: [],
+    desertados: [],
+    activos: [],
+    inactivos: [],
+    
   });
 
       const capitalizeFirstLetter = (string) => {
@@ -160,7 +159,6 @@ const Estadisticas = () => {
 
           const cohorteInicialSelect = (corteInicial) => {
             setSelectedCorteInicial(corteInicial);
-            setSelectedCorteFinal('');
             setModalCorteInicialVisible(false);
           };
 
@@ -205,30 +203,37 @@ const Estadisticas = () => {
     }
   };
 
-      
   useEffect(() => {
-    if ((datosBackend.totalEstp !== 0 || datosBackend.totalGra !== 0 || datosBackend.totalRet !== 0 || datosBackend.totalDes !== 0)) {
-        const timeout = setTimeout(() => {
-          setLoading(false);
-          navigation.navigate('Graficar', {
-            selectedCorteInicial,
-            selectedCorteFinal,
-            programaSeleccionado,
-            datosBackend: {
-              totalEstp: datosBackend.totalEstp,
-              totalGra: datosBackend.totalGra,
-              totalRet: datosBackend.totalRet,
-              totalDes: datosBackend.totalDes,
-              desPorSexo: datosBackend.desPorSexo,
-              graPorSexo:datosBackend.graPorSexo,
-              retPorSexo:datosBackend.retPorSexo
-            },
-          });
-        }, 2500);
+    if (
+      datosBackend?.todosEstudiantes?.length > 0 || 
+      datosBackend?.graduados?.length > 0 || 
+      datosBackend?.retenidos?.length > 0 || 
+      datosBackend?.desertados?.length > 0 || 
+      datosBackend?.activos?.length > 0 || 
+      datosBackend?.inactivos?.length > 0
+    ) {
+      const timeout = setTimeout(() => {
+        setLoading(false);
+        navigation.navigate('GraficarCohorte', {
+          selectedCorteInicial,
+          corteFinal,
+          programaSeleccionado,
+          datosBackend: {
+            totalEstudiantes: datosBackend.todosEstudiantes,
+            graduados: datosBackend.graduados,
+            retenidos: datosBackend.retenidos,
+            desertados: datosBackend.desertados,
+            activos: datosBackend.activos,
+            inactivos: datosBackend.inactivos,
+          },
+        });
+      }, 2500);
   
-        return () => clearTimeout(timeout);
-      }
+      return () => clearTimeout(timeout);
+    }
   }, [datosBackend]);
+  
+  
 
   
  

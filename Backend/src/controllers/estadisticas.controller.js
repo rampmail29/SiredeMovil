@@ -866,8 +866,7 @@ export const traerCortesIniciales = async (req, res) => {
       AND periodo_inicio REGEXP '^[0-9]{4}-(1|2)$'
       ORDER BY periodo_inicio
     `, [id_carrera]);
-    console.log( `El Id utilizado fue: ${id_carrera}`)
-
+  
     const periodos = rows.map(row => row.periodo_inicio);
     res.json(periodos);
   } catch (error) {
@@ -963,28 +962,28 @@ export const obtenerDetalles = async (req, res) => {
 
 // Controlador para obtener los estudiantes por periodo inicial y carrera
 export const obtenerEstudiantesPorCorte = async (req, res) => {
-  const { idCarrera, periodoInicio } = req.body; // Recibimos id de la carrera y el periodo inicial desde el front
+  const { idCarrera, periodoInicial } = req.body; // Recibimos id de la carrera y el periodo inicial desde el front
   
+  console.log('idCarrera:', idCarrera, 'periodoInicio:',  periodoInicial); // Depuración
+
   try {
-    // Consulta para obtener todos los estudiantes del periodo y carrera seleccionada
     const [rows] = await pool.query(`
       SELECT e.id_estudiante, e.nombre, e.apellido, e.numero_documento, ec.estado_academico
       FROM estudiantes e
       JOIN estudiantes_carreras ec ON e.id_estudiante = ec.id_estudiante
       WHERE ec.id_carrera = ? AND ec.periodo_inicio = ?
-    `, [idCarrera, periodoInicio]);
+    `, [idCarrera, periodoInicial]);
 
-    // Array general con todos los estudiantes
+    console.log('Estudiantes obtenidos:', rows); // Depuración
+
     const estudiantes = rows;
 
-    // Dividir los estudiantes según su estado académico
     const graduados = estudiantes.filter(est => est.estado_academico === 'Graduado');
     const desertados = estudiantes.filter(est => est.estado_academico === 'Desertor');
     const retenidos = estudiantes.filter(est => est.estado_academico === 'Retenido');
     const activos = estudiantes.filter(est => est.estado_academico === 'Activo');
     const inactivos = estudiantes.filter(est => est.estado_academico === 'Inactivo');
 
-    // Enviar la respuesta con los arrays divididos
     res.json({
       todosEstudiantes: estudiantes,
       graduados,
@@ -995,7 +994,7 @@ export const obtenerEstudiantesPorCorte = async (req, res) => {
     });
   } catch (error) {
     console.error('Error al obtener los estudiantes:', error);
-    res.status(500).json({ error: 'Error al obtener los estudiantes' });
+    res.status(500).json({ error: 'Error al obtener los estudiantes', details: error.message });
   }
 };
 

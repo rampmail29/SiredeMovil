@@ -12,6 +12,7 @@ import Informes from './Informes';
 import AcercaDe from './AcercaDe';
 import Reporte from './Reporte';
 import Graficar from './GraficarEstadisticas';
+import GraficarCohorte from './GraficarPorCohorte';
 import GraficarPdf from './GraficarPdf';  
 import InformeEstudiante from './InformeEstudiante';
 import StudentDetail from './StudentDetail';
@@ -178,6 +179,15 @@ const MainNavigator = () => {
   <Tab.Screen 
   name="Graficar" 
   component={Graficar}
+  options={{
+    tabBarButton: () => null,
+    tabBarVisible:false,
+    headerShown: false 
+}}
+  />
+   <Tab.Screen 
+  name="GraficarCohorte" 
+  component={GraficarCohorte}
   options={{
     tabBarButton: () => null,
     tabBarVisible:false,
