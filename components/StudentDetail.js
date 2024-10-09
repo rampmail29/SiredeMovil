@@ -20,44 +20,48 @@ const StudentDetail = ({ route, navigation }) => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/obtener/${id}`);
         const data = await response.json();
-        console.log(data)
         setStudent(data);
       } catch (error) {
         console.error('Error al obtener detalles del estudiante:', error);
+      } finally {
+        setLoading(false); // Esto asegura que loading se establezca en false incluso si hay un error
       }
     };
-
+  
+    obtenerDetallesEstudiante();
+  }, [id]); // Solo dependemos de id para obtener detalles
+  
+  useEffect(() => {
     const obtenerImagenEstudiante = async () => {
       try {
-        const extensions = ['png', 'jpg', 'jpeg'];
-        let imageUrl = null;
-
-        for (let ext of extensions) {
-          try {
-            const imageRef = ref(storage, `estudiantes/${id}.${ext}`);
-            const url = await getDownloadURL(imageRef);
-            imageUrl = url;
-            break;
-          } catch (error) {
-            // No es necesario manejar errores aquí
+        if (student && student.length > 0) {
+          const numeroDocumento = student[0].numero_documento; // Extraer el numero_documento del primer objeto
+          const extensions = ['png', 'jpg', 'jpeg'];
+          let imageUrl = null;
+  
+          for (let ext of extensions) {
+            try {
+              const imageRef = ref(storage, `estudiantes/${numeroDocumento}.${ext}`);
+              const url = await getDownloadURL(imageRef);
+              imageUrl = url;
+              break; // Sale del bucle si se obtiene la URL
+            } catch (error) {
+              // No es necesario manejar errores aquí
+            }
           }
+  
+          setImageUri(imageUrl || null);
         }
-
-        setImageUri(imageUrl || null);
       } catch (error) {
         console.error('Error al obtener la imagen del estudiante:', error);
       }
     };
-
-    const cargarDatos = async () => {
-      await Promise.all([obtenerDetallesEstudiante(), obtenerImagenEstudiante()]);
-      setTimeout(() => {
-        setLoading(false);
-      }, 300);
-    };
-
-    cargarDatos();
-  }, [id]);
+  
+    if (student) {
+      obtenerImagenEstudiante(); // Solo se llama si student está definido
+    }
+  }, [student]); // Este efecto se ejecutará cada vez que student cambie
+  
 
   const selectImage = async () => {
     try {
@@ -93,16 +97,20 @@ const StudentDetail = ({ route, navigation }) => {
   };
 
   const uploadImage = async (uri) => {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
+  try {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    
+    // Asegúrate de que student esté definido y tenga al menos un elemento para acceder al numero_documento
+    if (student && student.length > 0) {
+      const numeroDocumento = student[0].numero_documento; // Extraer el numero_documento del primer objeto
       
       const allowedExtensions = ['png', 'jpg', 'jpeg'];
       let uploaded = false;
 
       for (let ext of allowedExtensions) {
         try {
-          const storageRef = ref(storage, `estudiantes/${id}.${ext}`);
+          const storageRef = ref(storage, `estudiantes/${numeroDocumento}.${ext}`); // Cambia id por numeroDocumento
           await uploadBytes(storageRef, blob);
           const url = await getDownloadURL(storageRef);
           setImageUri(url);
@@ -116,10 +124,12 @@ const StudentDetail = ({ route, navigation }) => {
       if (!uploaded) {
         console.error('No se pudo subir la imagen con ninguna extensión válida.');
       }
-    } catch (error) {
-      console.error('Error al subir la imagen:', error);
     }
-  };
+  } catch (error) {
+    console.error('Error al subir la imagen:', error);
+  }
+};
+
 
   const capitalizeFirstLetter = (string) => {
     return string
@@ -455,6 +465,7 @@ const styles = StyleSheet.create({
   uploadText: {
     fontFamily: 'Montserrat-Medium',
     color: '#34531F',
+    fontSize:12
   },
   loadingContainer: {
     flex: 1,
