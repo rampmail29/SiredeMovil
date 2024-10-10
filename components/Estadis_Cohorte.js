@@ -205,7 +205,7 @@ const Estadisticas = () => {
 
   useEffect(() => {
     if (
-      datosBackend?.todosEstudiantes?.length > 0 || 
+      datosBackend?.totalEstudiantes?.length > 0 || 
       datosBackend?.graduados?.length > 0 || 
       datosBackend?.retenidos?.length > 0 || 
       datosBackend?.desertados?.length > 0 || 
@@ -219,7 +219,7 @@ const Estadisticas = () => {
           corteFinal,
           programaSeleccionado,
           datosBackend: {
-            totalEstudiantes: datosBackend.todosEstudiantes,
+            totalEstudiantes: datosBackend.totalEstudiantes,
             graduados: datosBackend.graduados,
             retenidos: datosBackend.retenidos,
             desertados: datosBackend.desertados,

@@ -38,7 +38,7 @@ const InformeEstudiante = () => {
   };
 
   const estudianteSeleccionado = (estudiante) => {
-    navigation.navigate('StudentDetail', { id: estudiante.id_estudiante });
+    navigation.navigate('StudentDetail', { id: estudiante.id_estudiante, fromScreen: 'InformeEstudiante' });
   };
 
   const renderItem = ({ item }) => (

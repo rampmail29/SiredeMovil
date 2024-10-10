@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, ScrollView, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { FontAwesome } from '@expo/vector-icons';
@@ -8,7 +8,21 @@ import { storage } from '../firebaseConfig';
 import { API_BASE_URL } from './Config';
 
 const StudentDetail = ({ route, navigation }) => {
-  const { id } = route.params;
+  const { id, fromScreen } = route.params || {};
+  
+  // Inicializa variables opcionales
+  let selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend;
+
+  // Verifica de dónde proviene la navegación
+  if (fromScreen === 'GraficarCohorte') {
+    selectedCorteInicial = route.params.selectedCorteInicial; // Asigna si proviene de GraficarCohorte
+    corteFinal = route.params.corteFinal;
+    programaSeleccionado = route.params.programaSeleccionado;
+    datosBackend = route.params.datosBackend;
+  }
+
+
+  
   const [student, setStudent] = useState(null);
   const [imageUri, setImageUri] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -327,10 +341,28 @@ const StudentDetail = ({ route, navigation }) => {
                           ))}
 
                                                                         
-            
-                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('InformeEstudiante')}>
-                      <Text style={styles.buttonText}>Volver</Text>
-                    </TouchableOpacity>
+                                    
+                    <TouchableOpacity 
+                            style={styles.button} 
+                            onPress={() => {
+                              if (fromScreen === 'GraficarCohorte') {
+                                // Regresa a GraficarCohorte y pasa los datos
+                                navigation.navigate(fromScreen, { 
+                                  selectedCorteInicial, 
+                                  corteFinal, 
+                                  programaSeleccionado, 
+                                  datosBackend 
+                                });
+                              } else if (fromScreen === 'InformeEstudiante') {
+                                // Solo regresa a InformeEstudiante
+                                navigation.navigate(fromScreen); // O solo navigation.goBack();
+                              } else {
+                                navigation.goBack(); // Regresa a la pantalla anterior si no coincide
+                              }
+                            }}
+                          >
+                          <Text style={styles.buttonText}>Volver</Text>
+                        </TouchableOpacity>
                    
                   
 

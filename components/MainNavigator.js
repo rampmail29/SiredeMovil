@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, StyleSheet, Platform, Dimensions, View, Image } from 'react-native';
+import { Text, StyleSheet, Platform, Dimensions} from 'react-native';
 import * as Font from 'expo-font';
 import VideoScreen from './VideoScreen';
 import InicioSesion from './InicioSesion';

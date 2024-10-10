@@ -1,13 +1,43 @@
-import React from 'react';
-import { View, Text, StyleSheet,ImageBackground, ScrollView } from 'react-native';
+import React, {useState, useRef} from 'react';
+import { View, Text, StyleSheet,ImageBackground, ScrollView, TouchableOpacity, Animated} from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
-
+import Collapsible from 'react-native-collapsible';
+import { FontAwesome } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const GraficarCohorte = ({ route }) => {
     const { selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend } = route.params;
+    const navigation = useNavigation();
 
-    // Verifica si los datos llegaron correctamente
-    console.log('Datos Backend:', datosBackend);
+    const [isGraduadosCollapsed, setGraduadosCollapsed] = useState(true);
+    const [isDesertadosCollapsed, setDesertadosCollapsed] = useState(true);
+    const [isRetenidosCollapsed, setRetenidosCollapsed] = useState(true);
+    const [isActivosCollapsed, setActivosCollapsed] = useState(true);
+    const [isInactivosCollapsed, setInactivosCollapsed] = useState(true);
+
+
+    // Animaciones de rotación
+    const rotationGraduados = useRef(new Animated.Value(0)).current; // Para el acordeón de graduados
+    const rotationDesertados = useRef(new Animated.Value(0)).current;
+    const rotationRetenidos = useRef(new Animated.Value(0)).current;
+    const rotationActivos = useRef(new Animated.Value(0)).current;
+    const rotationInactivos = useRef(new Animated.Value(0)).current;
+
+    const toggleAccordion = (isCollapsed, setCollapsed, rotation) => {
+        Animated.timing(rotation, {
+            toValue: isCollapsed ? 1 : 0, // 1 si está colapsado, 0 si está abierto
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+        setCollapsed(!isCollapsed);
+    };
+
+    const getRotation = (rotation) => {
+        return rotation.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '90deg'], // Cambia de 0 a 90 grados
+        });
+    };
     
     // Asegúrate de que los arrays estén definidos
     const graduados = datosBackend.graduados || [];
@@ -19,22 +49,26 @@ const GraficarCohorte = ({ route }) => {
     // Corrige el uso de la propiedad .length
     const totalCohorte = graduados.length + retenidos.length + desertados.length + activos.length + inactivos.length;
     
-    console.log('Total Cohorte:', totalCohorte);
-    
     // Calcula los porcentajes solo si totalCohorte no es 0 para evitar divisiones por 0
-    const porcentajeGraduados = totalCohorte > 0 ? ((graduados.length * 100) / totalCohorte).toFixed(2) : 0;
-    const porcentajeDesertados = totalCohorte > 0 ? ((desertados.length * 100) / totalCohorte).toFixed(2) : 0;
-    const porcentajeRetirados = totalCohorte > 0 ? ((retenidos.length * 100) / totalCohorte).toFixed(2) : 0;
-    const porcentajeActivos = totalCohorte > 0 ? ((activos.length * 100) / totalCohorte).toFixed(2) : 0;
-    const porcentajeInactivos = totalCohorte > 0 ? ((inactivos.length * 100) / totalCohorte).toFixed(2) : 0;
+    const formatearPorcentaje = (valor) => {
+      return Number.isInteger(valor) ? valor : valor.toFixed(1);
+    };
     
-    console.log('Porcentaje Graduados:', porcentajeGraduados);
-    console.log('Porcentaje Desertados:', porcentajeDesertados);
-    console.log('Porcentaje Retirados:', porcentajeRetirados);
-    console.log('Porcentaje Activos:', porcentajeActivos);
-    console.log('Porcentaje Inactivos:', porcentajeInactivos);
- 
-              
+    const porcentajeGraduados = totalCohorte > 0 ? formatearPorcentaje((graduados.length * 100) / totalCohorte) : 0;
+    const porcentajeDesertados = totalCohorte > 0 ? formatearPorcentaje((desertados.length * 100) / totalCohorte) : 0;
+    const porcentajeRetenidos = totalCohorte > 0 ? formatearPorcentaje((retenidos.length * 100) / totalCohorte) : 0;
+    const porcentajeActivos = totalCohorte > 0 ? formatearPorcentaje((activos.length * 100) / totalCohorte) : 0;
+    const porcentajeInactivos = totalCohorte > 0 ? formatearPorcentaje((inactivos.length * 100) / totalCohorte) : 0;
+    
+    const capitalizeFirstLetter = (string) => {
+        return string
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      };
+
+  
       const pieData = [
         { value: graduados.length , color: '#C3D730', gradientCenterColor: 'black', focused: true,},
         { value: desertados.length, color: '#6D100A', gradientCenterColor: 'black'},
@@ -43,7 +77,55 @@ const GraficarCohorte = ({ route }) => {
         { value: inactivos.length, color: '#878787', gradientCenterColor: 'black'},
       ];
 
-      
+      const renderEstudiantes = (estudiantes) => {
+        return estudiantes.map((estudiante, index) => (
+          <TouchableOpacity 
+            key={index} 
+            style={styles.estudianteContainer}
+            onPress={() => navigation.navigate('StudentDetail', { 
+                id: estudiante.id_estudiante, 
+                fromScreen: 'GraficarCohorte',
+                selectedCorteInicial, // Asegúrate de que estas variables existan
+                corteFinal,
+                programaSeleccionado,
+                datosBackend
+              })}
+          >
+            <View style={styles.headerContent}>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.nombreText}>
+                        {capitalizeFirstLetter(estudiante.nombre)}
+                        </Text>
+                        <Text style={styles.apellidoText}>
+                        {`${capitalizeFirstLetter(estudiante.apellido)}`}
+                        </Text>
+                    </View>
+                    <FontAwesome name="info-circle" size={24} color="#6D100A" />
+            </View>
+          </TouchableOpacity>
+        ));
+      };
+            
+      const renderAccordion = (title, estudiantes, isCollapsed, toggleCollapse, rotation) => {
+        // Solo mostrar si hay estudiantes
+        if (estudiantes.length === 0) return null;
+    
+        return (
+            <View style={styles.accordionContainer}>
+                <TouchableOpacity onPress={toggleCollapse} style={styles.accordionHeader}>
+                    <View style={styles.headerContent}>
+                    <Text style={styles.accordionTitle}>{`${title} (${estudiantes.length})`}</Text>
+                        <Animated.View style={{ transform: [{ rotate: getRotation(rotation) }] }}>
+                            <FontAwesome name="caret-right" size={24} color="#F0FFF2" />
+                        </Animated.View>
+                    </View>
+                </TouchableOpacity>
+                <Collapsible collapsed={isCollapsed}>
+                    {renderEstudiantes(estudiantes)}
+                </Collapsible>
+            </View>
+        );
+    };
 
   const renderDot = color => {
     return (
@@ -96,6 +178,54 @@ const GraficarCohorte = ({ route }) => {
     );
   };
 
+  const generarTextoDinamico = () => {
+    const hayGraduados = graduados.length > 0;
+    const hayDesertados = desertados.length > 0;
+    const hayRetenidos = retenidos.length > 0;
+    const hayActivos = activos.length > 0;
+    const hayInactivos = inactivos.length > 0;
+  
+    if (hayGraduados && hayDesertados && hayRetenidos && !hayActivos && !hayInactivos) {
+      return `En este análisis, se observa que del total de estudiantes, el ${porcentajeGraduados}% se graduó, el ${porcentajeDesertados}% desertó y el ${porcentajeRetenidos}% está retenido. No hay estudiantes activos ni inactivos en el rango seleccionado.`;
+    }
+  
+    if (hayGraduados && hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
+      const comparacion = graduados.length > desertados.length ? "más" : "menos";
+      return `En este análisis, se observa que del total de estudiantes, el ${porcentajeGraduados}% se graduó y el ${porcentajeDesertados}% desertó, siendo los graduados ${comparacion} que los desertados. No hay estudiantes activos, retenidos ni inactivos en el rango seleccionado.`;
+    }
+  
+    if (hayGraduados && !hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
+      return `El ${porcentajeGraduados}% de los estudiantes ha completado sus estudios y se ha graduado. No hay estudiantes desertados, retenidos, activos ni inactivos.`;
+    }
+  
+    if (!hayGraduados && hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
+      return `El ${porcentajeDesertados}% de los estudiantes ha desertado. No hay estudiantes graduados, retenidos, activos ni inactivos.`;
+    }
+  
+    if (hayGraduados && hayDesertados && hayRetenidos && hayInactivos && !hayActivos) {
+      return `Este análisis muestra que el ${porcentajeGraduados}% se graduó, el ${porcentajeDesertados}% desertó, el ${porcentajeRetenidos}% está retenido y el ${porcentajeInactivos}% está inactivo. No hay estudiantes activos en este grupo.`;
+    }
+  
+    if (hayGraduados && hayDesertados && hayActivos && !hayRetenidos && !hayInactivos) {
+      return `En este análisis, el ${porcentajeGraduados}% de los estudiantes se ha graduado, el ${porcentajeDesertados}% ha desertado y el ${porcentajeActivos}% sigue activo. No hay estudiantes retenidos ni inactivos.`;
+    }
+  
+    if (hayActivos && hayInactivos && hayDesertados && !hayGraduados && !hayRetenidos) {
+      return `El ${porcentajeActivos}% de los estudiantes está actualmente activo, mientras que el ${porcentajeInactivos}% está inactivo y el ${porcentajeDesertados}% ha desertado. No hay estudiantes graduados ni retenidos en este grupo.`;
+    }
+  
+    if (hayActivos && !hayInactivos && !hayGraduados && !hayDesertados && !hayRetenidos) {
+      return `Actualmente, el ${porcentajeActivos}% de los estudiantes sigue activo. No hay estudiantes graduados, desertados, retenidos ni inactivos.`;
+    }
+  
+    if (hayActivos && hayInactivos && !hayGraduados && !hayDesertados && !hayRetenidos) {
+      return `Este análisis muestra que el ${porcentajeActivos}% de los estudiantes sigue activo y el ${porcentajeInactivos}% está inactivo. No hay estudiantes graduados, desertados ni retenidos.`;
+    }
+  
+    return "No hay suficientes datos para generar un análisis significativo.";
+  };
+  
+
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
       <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
@@ -125,51 +255,24 @@ const GraficarCohorte = ({ route }) => {
             />
             {renderLegendComponent()}
           </View>
-          <View style={styles.resultadosContainer}>
-            <Text style={styles.resultadosText}>Total de Estudiantes: {totalCohorte}</Text>
-            <Text style={styles.notaText1}>
-              <Text style={styles.generalText}>
-                En el rango analizado se evidencia que desde el corte inicial
-              </Text>
-              <Text style={styles.keywordText}>
-                {` ${selectedCorteInicial} `}
-              </Text>
-              <Text style={styles.generalText}>
-                hasta el corte final
-              </Text>
-              <Text style={styles.keywordText}>
-                {` ${corteFinal} `}
-              </Text>
-              <Text style={styles.generalText}>
-                del programa académico
-              </Text>
-              <Text style={styles.keywordText}>
-                {` ${programaSeleccionado}, `}
-              </Text>
-              <Text style={styles.generalText}>
-                el
-              </Text>
-              <Text style={styles.keywordText}>
-                {` ${porcentajeGraduados}% `}
-              </Text>
-              <Text style={styles.generalText}>
-                de los estudiantes logró obtener su título profesional, el
-              </Text>
-              <Text style={styles.keywordText}>
-                {` ${porcentajeRetirados}% `}
-              </Text>
-              <Text style={styles.generalText}>
-                de estudiantes se retiró de la universidad y el
-              </Text>
-              <Text style={styles.keywordText}>
-                {` ${porcentajeDesertados}% `}
-              </Text>
-              <Text style={styles.generalText}>
-                de estudiantes desertó.
-              </Text>{'\n'}
-            </Text>
+          <Text style={styles.resultadosText}>Total de Estudiantes: {totalCohorte}</Text>
 
-                 
+          <Text style={styles.analisisText}>{generarTextoDinamico()}</Text>
+
+           
+                  
+          {/* Acordiones solo se mostrarán si hay datos */}
+          {renderAccordion("Estudiantes Graduados", graduados, isGraduadosCollapsed, () => toggleAccordion(isGraduadosCollapsed, setGraduadosCollapsed, rotationGraduados),rotationGraduados)}
+          {renderAccordion("Estudiantes Desertados", desertados, isDesertadosCollapsed,  () => toggleAccordion(isDesertadosCollapsed, setDesertadosCollapsed, rotationDesertados),rotationDesertados)}
+          {renderAccordion("Estudiantes Retenidos", retenidos, isRetenidosCollapsed, () => toggleAccordion(isRetenidosCollapsed, setRetenidosCollapsed, rotationRetenidos),rotationRetenidos)}
+          {renderAccordion("Estudiantes Activos", activos, isActivosCollapsed, () => toggleAccordion(isActivosCollapsed, setActivosCollapsed, rotationActivos),rotationActivos)}
+          {renderAccordion("Estudiantes Inactivos", inactivos, isInactivosCollapsed, () => toggleAccordion(isInactivosCollapsed, setInactivosCollapsed, rotationInactivos),rotationInactivos)}
+
+
+
+
+          <View style={styles.resultadosContainer}>
+                     
            
               <Text style={styles.notaText1}> 
               <Text style={styles.keywordText}>Nota:</Text>{' '}
@@ -283,7 +386,7 @@ const styles = StyleSheet.create({
   resultadosText: {
     fontSize: 15,
     fontFamily: 'Montserrat-Medium',
-    marginTop:-10,
+    marginTop:10,
     marginBottom: 10,
     color:'#132F20'
   },
@@ -356,6 +459,53 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 10,
     borderWidth: 3,
+  },
+  accordionContainer: {
+    marginTop: 10,
+    width: '100%',
+    backgroundColor: '#132F20',
+    padding: 20,
+    borderRadius: 10,
+  },
+  estudianteContainer: {
+    backgroundColor: '#ffffff',
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#C3D730',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+ nombreText: {
+    fontSize: 18,
+    fontFamily: 'Montserrat-Bold',
+    color: '#132F20', 
+  },
+  apellidoText: {
+    fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
+    color: '#132F20', 
+  },
+  accordionTitle: {
+    fontFamily: 'Montserrat-Bold',
+    fontSize: 17,
+    color: '#F0FFF2',
+    textAlign:'center',
+   
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+},
+textContainer: {
+    flexDirection: 'column',
+    flexShrink: 1, // Esto permite que el texto se ajuste sin empujar el icono
   },
   
 });
