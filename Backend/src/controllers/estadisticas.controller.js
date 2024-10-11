@@ -784,66 +784,6 @@ export const cargarGraduados = async (req, res) => {
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const traerProgramas = async (req, res) => {
   try {
       const [rows] = await pool.query('SELECT * FROM carreras');
@@ -868,6 +808,26 @@ export const traerCortesIniciales = async (req, res) => {
     `, [id_carrera]);
   
     const periodos = rows.map(row => row.periodo_inicio);
+    res.json(periodos);
+  } catch (error) {
+    console.error('Error al ejecutar la consulta:', error);
+    res.status(500).json({ error: 'Error al obtener datos' });
+  }
+};
+
+export const traerPeriodosMatriculas = async (req, res) => {
+  const { id_carrera } = req.params;
+  try {
+    const [rows] = await pool.query(`
+      SELECT DISTINCT periodo_matricula
+      FROM historico_Matriculas
+      WHERE id_carrera = ?
+      AND periodo_matricula IS NOT NULL
+      AND periodo_matricula REGEXP '^[0-9]{4}-(1|2)$'
+      ORDER BY periodo_matricula
+    `, [id_carrera]);
+  
+    const periodos = rows.map(row => row.periodo_matricula);
     res.json(periodos);
   } catch (error) {
     console.error('Error al ejecutar la consulta:', error);

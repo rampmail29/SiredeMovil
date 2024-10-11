@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { View, Text, StyleSheet,ImageBackground, ScrollView, TouchableOpacity, Animated} from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
 import Collapsible from 'react-native-collapsible';
@@ -6,9 +6,41 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const GraficarCohorte = ({ route }) => {
-    const { selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend } = route.params;
+    const { fromScreen, selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend } = route.params;
     const navigation = useNavigation();
 
+    const obtenerPeriodoActual = () => {
+      const hoy = new Date();
+      const año = hoy.getFullYear();
+      const mes = hoy.getMonth() + 1; // getMonth() retorna 0-11, así que sumamos 1 para obtener el mes correcto
+  
+      // Determinar el semestre
+      const semestre = mes <= 6 ? 1 : 2;
+  
+      return `${año}-${semestre}`;
+  };
+  
+  // Ejemplo de uso
+  const periodoActual = obtenerPeriodoActual();
+ 
+  const compararPeriodos = (corteFinal, periodoActual) => {
+    // Extraer año y semestre del periodo final
+    const [añoFinal, semestreFinal] = corteFinal.split('-').map(Number);
+
+    // Extraer año y semestre del periodo actual
+    const [añoActual, semestreActual] = periodoActual.split('-').map(Number);
+
+    // Comparar años
+    if (añoFinal > añoActual || (añoFinal === añoActual && semestreFinal > semestreActual)) {
+          return "Periodo en curso";
+    } else if (añoFinal === añoActual && semestreFinal === semestreActual) {
+          return "Periodo en curso";
+    } else {
+      return "Periodo finalizado";
+    }
+};
+
+   compararPeriodos(corteFinal, periodoActual);
     const [isGraduadosCollapsed, setGraduadosCollapsed] = useState(true);
     const [isDesertadosCollapsed, setDesertadosCollapsed] = useState(true);
     const [isRetenidosCollapsed, setRetenidosCollapsed] = useState(true);
@@ -70,12 +102,60 @@ const GraficarCohorte = ({ route }) => {
 
   
       const pieData = [
-        { value: graduados.length , color: '#C3D730', gradientCenterColor: 'black', focused: true,},
+        { value: graduados.length , color: '#C3D730', gradientCenterColor: '#728200',},
         { value: desertados.length, color: '#6D100A', gradientCenterColor: 'black'},
-        { value: retenidos.length, color: '#FF9F33', gradientCenterColor: 'black'},
-        { value: activos.length, color: '#6998fd', gradientCenterColor: 'black'},
+        { value: retenidos.length, color: '#FF9F33', gradientCenterColor: '#81501a'},
+        { value: activos.length, color: '#6998fd', gradientCenterColor: '#012e8e'},
         { value: inactivos.length, color: '#878787', gradientCenterColor: 'black'},
       ];
+
+      const [focusedValue, setFocusedValue] = useState(null);
+      const [centerLabel, setCenterLabel] = useState({ value: '', label: '' });
+      useEffect(() => {
+        // Resetear el estado cada vez que cambian los datos
+        setFocusedValue(null);
+        setCenterLabel({ value: '', label: '' });
+    
+        // Determina cuál es el enfoque por defecto
+        const maxValue = Math.max(
+          graduados.length,
+          desertados.length,
+          retenidos.length,
+          activos.length,
+          inactivos.length
+        );
+    
+    
+        // Establece el foco inicial basado en el valor máximo
+        const initialFocusedIndex = pieData.findIndex(item => item.value === maxValue);
+        setFocusedValue(initialFocusedIndex);
+    
+        // Establecer el texto del centro
+    updateCenterLabel(initialFocusedIndex);
+    }, [graduados, desertados, retenidos, activos, inactivos]); // Dependencias
+
+    
+      const updateCenterLabel = (index) => {
+        switch (index) {
+          case 0:
+            setCenterLabel({ value: porcentajeGraduados, label: 'Graduados' });
+            break;
+          case 1:
+            setCenterLabel({ value: porcentajeDesertados, label: 'Desertados' });
+            break;
+          case 2:
+            setCenterLabel({ value: porcentajeRetenidos, label: 'Retenidos' });
+            break;
+          case 3:
+            setCenterLabel({ value: porcentajeActivos, label: 'Activos' });
+            break;
+          case 4:
+            setCenterLabel({ value: porcentajeInactivos, label: 'Inactivos' });
+            break;
+          default:
+            setCenterLabel({ value: '', label: '' });
+        }
+      };
 
       const renderEstudiantes = (estudiantes) => {
         return estudiantes.map((estudiante, index) => (
@@ -186,81 +266,108 @@ const GraficarCohorte = ({ route }) => {
     const hayInactivos = inactivos.length > 0;
   
     if (hayGraduados && hayDesertados && hayRetenidos && !hayActivos && !hayInactivos) {
-      return `En este análisis, se observa que del total de estudiantes, el ${porcentajeGraduados}% se graduó, el ${porcentajeDesertados}% desertó y el ${porcentajeRetenidos}% está retenido. No hay estudiantes activos ni inactivos en el rango seleccionado.`;
+      return `En este grupo de estudiantes que empezo su formacion academica en el periodo ${selectedCorteInicial}, se destaca que ${graduados.length} estudiantes completaron su formación con éxito, Sin embargo, también se evidencia que ${desertados.length} han desertado y ${retenidos.length} permanecen retenidos. Podremos ver mas detalles de estos estudiantes a continuación:`;
     }
   
     if (hayGraduados && hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
-      const comparacion = graduados.length > desertados.length ? "más" : "menos";
-      return `En este análisis, se observa que del total de estudiantes, el ${porcentajeGraduados}% se graduó y el ${porcentajeDesertados}% desertó, siendo los graduados ${comparacion} que los desertados. No hay estudiantes activos, retenidos ni inactivos en el rango seleccionado.`;
+      const comparacion = graduados.length > desertados.length  ? "un mayor" : graduados.length < desertados.length  ? "un menor"  : "igual";
+      return `En esta cohorte, ${graduados.length} estudiantes lograron graduarse, lo cual es un gran éxito. Sin embargo, también se observa que ${desertados.length} han desertado, con ${comparacion} número de graduados que de desertados. Podremos ver mas detalles de estos estudiantes a continuación:`;
     }
   
     if (hayGraduados && !hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
-      return `El ${porcentajeGraduados}% de los estudiantes ha completado sus estudios y se ha graduado. No hay estudiantes desertados, retenidos, activos ni inactivos.`;
+      return `¡Felicitaciones! Todos los estudiantes han completado con éxito sus estudios y se han graduado. Podremos ver mas detalles de estos estudiantes a continuación: `;
+
     }
   
     if (!hayGraduados && hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
-      return `El ${porcentajeDesertados}% de los estudiantes ha desertado. No hay estudiantes graduados, retenidos, activos ni inactivos.`;
+      return `Es preocupante que todos los estudiantes hayan desertado de sus estudios. No se registra ningún estudiante que haya completado su formación. Es crucial tomar medidas para reducir el índice de deserción y mejorar el acompañamiento a los estudiantes. Podremos ver mas detalles de estos estudiantes a continuación:`;
+
     }
   
     if (hayGraduados && hayDesertados && hayRetenidos && hayInactivos && !hayActivos) {
-      return `Este análisis muestra que el ${porcentajeGraduados}% se graduó, el ${porcentajeDesertados}% desertó, el ${porcentajeRetenidos}% está retenido y el ${porcentajeInactivos}% está inactivo. No hay estudiantes activos en este grupo.`;
+      return `En este análisis detallado, se observa que ${graduados.length} estudiantes han logrado completar con éxito su formación académica y se han graduado. Sin embargo, ${desertados.length} estudiantes han desertado, interrumpiendo su proceso educativo. Además, ${retenidos.length} estudiantes se encuentran retenidos, aún sin haber finalizado sus estudios, mientras que ${inactivos.length} han cesado toda actividad académica. Podremos ver mas detalles de estos estudiantes a continuación:`;
+
     }
   
     if (hayGraduados && hayDesertados && hayActivos && !hayRetenidos && !hayInactivos) {
-      return `En este análisis, el ${porcentajeGraduados}% de los estudiantes se ha graduado, el ${porcentajeDesertados}% ha desertado y el ${porcentajeActivos}% sigue activo. No hay estudiantes retenidos ni inactivos.`;
+      return `En este análisis, se destaca que el ${porcentajeGraduados}% de los estudiantes han completado sus estudios y se han graduado, ${porcentajeDesertados}% han desertado, y ${activos.length} continúan activos en su formación. Podremos ver mas detalles de estos estudiantes a continuación:`;
+
     }
   
     if (hayActivos && hayInactivos && hayDesertados && !hayGraduados && !hayRetenidos) {
-      return `El ${porcentajeActivos}% de los estudiantes está actualmente activo, mientras que el ${porcentajeInactivos}% está inactivo y el ${porcentajeDesertados}% ha desertado. No hay estudiantes graduados ni retenidos en este grupo.`;
+      return `El ${porcentajeActivos}% de los estudiantes está actualmente activo, mientras que el ${porcentajeInactivos}% está inactivo y el ${porcentajeDesertados}% ha desertado. Podremos ver mas detalles de estos estudiantes a continuación:`;
     }
   
     if (hayActivos && !hayInactivos && !hayGraduados && !hayDesertados && !hayRetenidos) {
-      return `Actualmente, el ${porcentajeActivos}% de los estudiantes sigue activo. No hay estudiantes graduados, desertados, retenidos ni inactivos.`;
+      return `Afortunadamente, todos los estudiantes se encuentran activos hasta la fecha actual lo que es un indicador positivo del compromiso en su proceso académico. Podremos ver mas detalles de estos estudiantes a continuación:`;
+
     }
   
     if (hayActivos && hayInactivos && !hayGraduados && !hayDesertados && !hayRetenidos) {
-      return `Este análisis muestra que el ${porcentajeActivos}% de los estudiantes sigue activo y el ${porcentajeInactivos}% está inactivo. No hay estudiantes graduados, desertados ni retenidos.`;
+      return `Este análisis muestra que el ${porcentajeActivos}% de los estudiantes sigue activo y el ${porcentajeInactivos}% está inactivo.Podremos ver mas detalles de estos estudiantes a continuación:`;
     }
   
     return "No hay suficientes datos para generar un análisis significativo.";
   };
-  
+   // Obtener mensaje basado en la comparación de los periodos
+   const mensajePeriodo = compararPeriodos(corteFinal, periodoActual);
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
       <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
         <View style={styles.container}>
           <Text style={styles.title}>Resultados del análisis</Text>
-          <Text style={styles.subtitle}>Estadistica General</Text>
+
+          {/* Mostrar el mensaje de periodo a la derecha debajo del título */}
+               <View style={styles.mensajeContainer}>
+                    <Text style={styles.mensajePeriodo}>{mensajePeriodo}</Text>
+                </View>
+          <Text style={styles.subtitle}>
+            Este
+            <Text style={{ fontFamily:'Montserrat-Bold'}}> análisis estadístico </Text>             
+             se enfoca en los estudiantes que comenzaron su formación en la carrera de
+            <Text style={{ fontFamily:'Montserrat-Bold'}}> {capitalizeFirstLetter(programaSeleccionado)} </Text> 
+            durante el periodo
+            <Text style= {{ fontFamily:'Montserrat-Bold' }}> {selectedCorteInicial}</Text>.
+            Aquí se muestra cómo han progresado a lo largo del tiempo.
+          </Text>
           <View style={styles.pieChartContainer}>
-            <PieChart
-              data={pieData}
+          <PieChart
+              data={pieData.map((item, index) => ({
+                ...item,
+                focused: index === focusedValue,
+              }))}
               donut
               showGradient
               focusOnPress
-              toggleFocusOnPress={false}
+              toggleFocusOnPress
               radius={100}
               innerRadius={70}
               innerCircleColor={'#ffffff'}
-              centerLabelComponent={() => {
-                return (
-                  <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22, color: '#132F20', fontWeight: 'bold', fontFamily: 'Montserrat-Medium', }}>
-                      {porcentajeGraduados}%
-                    </Text>
-                    <Text style={{ fontSize: 14, color: '#132F20', fontFamily: 'Montserrat-Medium', }}>Graduados</Text>
-                  </View>
-                );
+              onPress={(item, index) => {
+                setFocusedValue(index);
+                updateCenterLabel(index); // Cambia el texto en el centro cuando se presiona
               }}
+              centerLabelComponent={() => (
+                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 22, color: '#132F20', fontWeight: 'bold', fontFamily: 'Montserrat-Medium' }}>
+                    {centerLabel.value}%
+                  </Text>
+                  <Text style={{ fontSize: 14, color: '#132F20', fontFamily: 'Montserrat-Medium' }}>
+                    {centerLabel.label}
+                  </Text>
+                </View>
+              )}
             />
             {renderLegendComponent()}
           </View>
+
           <Text style={styles.resultadosText}>Total de Estudiantes: {totalCohorte}</Text>
+          <View style={styles.separator} />
 
           <Text style={styles.analisisText}>{generarTextoDinamico()}</Text>
 
-           
-                  
+                           
           {/* Acordiones solo se mostrarán si hay datos */}
           {renderAccordion("Estudiantes Graduados", graduados, isGraduadosCollapsed, () => toggleAccordion(isGraduadosCollapsed, setGraduadosCollapsed, rotationGraduados),rotationGraduados)}
           {renderAccordion("Estudiantes Desertados", desertados, isDesertadosCollapsed,  () => toggleAccordion(isDesertadosCollapsed, setDesertadosCollapsed, rotationDesertados),rotationDesertados)}
@@ -268,48 +375,17 @@ const GraficarCohorte = ({ route }) => {
           {renderAccordion("Estudiantes Activos", activos, isActivosCollapsed, () => toggleAccordion(isActivosCollapsed, setActivosCollapsed, rotationActivos),rotationActivos)}
           {renderAccordion("Estudiantes Inactivos", inactivos, isInactivosCollapsed, () => toggleAccordion(isInactivosCollapsed, setInactivosCollapsed, rotationInactivos),rotationInactivos)}
 
-
-
-
-          <View style={styles.resultadosContainer}>
-                     
-           
-              <Text style={styles.notaText1}> 
-              <Text style={styles.keywordText}>Nota:</Text>{' '}
-                  <Text style={styles.generalText}>
-                    La diferencia entre estudiantes "
-                    <Text style={styles.keywordText}>retenidos</Text>", 
-                    "<Text style={styles.keywordText}>desertores</Text>" y 
-                    "<Text style={styles.keywordText}>graduados</Text>" se refiere a su estado académico o situación en la institución educativa:
-                  </Text>
-              </Text>
-
-                <View style={styles.notaContainer}>
-                  <Text style={styles.notaText}>
-                      <Text style={styles.generalText}>
-                        <Text style={styles.keywordText}>Graduados:</Text> Son los estudiantes que han completado satisfactoriamente todos los Se refiere a los estudiantes que continúan matriculados en la institución pero que no han logrado avanzar satisfactoriamente en su proceso educativo. Esto puede deberse a un rendimiento académico deficiente, la repetición de cursos o cualquier otra razón que haya impedido su progreso normal. 
-                      </Text>
-                  </Text>
-                </View>
-
-                <View style={styles.notaContainer1}>
-                  <Text style={styles.notaText}>
-                      <Text style={styles.generalText}>
-                        <Text style={styles.keywordText}>Retenidos:</Text> Se refiere a los estudiantes que continúan matriculados en la institución pero que no han logrado avanzar satisfactoriamente en su proceso educativo. Esto puede deberse a un rendimiento académico deficiente, la repetición de cursos o cualquier otra razón que haya impedido su progreso normal.
-                      </Text>
-                  </Text>
-                </View>
-
-                <View style={styles.notaContainer2}>
-                  <Text style={styles.notaText}>
-                      <Text style={styles.generalText}>
-                        <Text style={styles.keywordText}>Desertores:</Text> Son aquellos estudiantes que abandonan la institución educativa antes de completar su programa de estudios. Pueden hacerlo por diversas razones, como problemas personales, dificultades académicas, falta de interés, entre otros.
-                      </Text>
-                  </Text>
-                </View>
-
-          </View>
+                       <TouchableOpacity 
+                            style={styles.button} 
+                            onPress={() => {
+                              navigation.navigate(fromScreen);                         
+                            }}
+                          >
+                          <Text style={styles.buttonText}>Volver</Text>
+                        </TouchableOpacity>
         </View>
+
+       
       </ImageBackground>
     </ScrollView>
   );
@@ -338,7 +414,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 20,
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: 'Montserrat-Medium',
+    textAlign:'justify',
     color: '#132F20',
     marginBottom:10
   },
@@ -384,14 +461,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resultadosText: {
-    fontSize: 15,
-    fontFamily: 'Montserrat-Medium',
+    fontSize: 18,
+    fontFamily: 'Montserrat-Bold',
     marginTop:10,
     marginBottom: 10,
     color:'#132F20'
   },
   analisisText: {
-    fontSize: 18,
+    fontSize: 19,
     textAlign: 'justify',
     fontFamily: 'Montserrat-Medium',
   },
@@ -490,23 +567,60 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Medium',
     color: '#132F20', 
   },
-  accordionTitle: {
+   accordionTitle: {
     fontFamily: 'Montserrat-Bold',
     fontSize: 17,
     color: '#F0FFF2',
     textAlign:'center',
    
   },
-  headerContent: {
+   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
 },
-textContainer: {
+  textContainer: {
     flexDirection: 'column',
     flexShrink: 1, // Esto permite que el texto se ajuste sin empujar el icono
   },
+  separator: {
+    height: 2,
+    width: '50%',
+    backgroundColor: '#6D100A',
+    marginVertical: 10,
+  },
+  button: {
+    backgroundColor: '#6D100A',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 80,
+    width:120,
+    justifyContent:'center',
+    marginTop:20,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontFamily: 'Montserrat-Bold',
+    color: '#fff',
+  },
+  mensajeContainer: {
+    marginTop: -10,
+    marginBottom:15,
+    alignSelf: 'flex-end',
+    backgroundColor:'#C3D730',
+    padding: 10,
+    borderBottomLeftRadius:15,
+    borderTopLeftRadius:15,
+},
+mensajePeriodo: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: '#132F20',
+    fontFamily:'Montserrat'
+},
   
 });
 

@@ -8,6 +8,7 @@ import VideoScreen from './VideoScreen';
 import InicioSesion from './InicioSesion';
 import Inicio from './Inicio';
 import Estadis_Cohorte from './Estadis_Cohorte';
+import Estadis_Matricula from './Estadis_Matricula';
 import Informes from './Informes';
 import AcercaDe from './AcercaDe';
 import Reporte from './Reporte';
@@ -233,6 +234,15 @@ const MainNavigator = () => {
     <Tab.Screen 
   name="Estadis_Cohorte" 
   component={Estadis_Cohorte}
+  options={{
+    tabBarButton: () => null,
+    tabBarVisible:false,
+    headerShown: false 
+}}
+  />
+  <Tab.Screen 
+  name="Estadis_Matricula" 
+  component={Estadis_Matricula}
   options={{
     tabBarButton: () => null,
     tabBarVisible:false,

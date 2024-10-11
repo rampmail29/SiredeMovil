@@ -3,6 +3,7 @@ import {
     buscarEstudiantes, 
     traerProgramas,
     traerCortesIniciales, 
+    traerPeriodosMatriculas,
     obtenerEstudiantesPorCorte, 
     obtenerDetallesEstudiante,
     obtenerDetalles,
@@ -15,6 +16,7 @@ const router = Router();
 
 router.get('/programas', traerProgramas);
 router.get('/cortes-iniciales/:id_carrera', traerCortesIniciales);
+router.get('/periodos/:id_carrera', traerPeriodosMatriculas);
 router.get('/estudiantes', buscarEstudiantes);
 router.get('/obtener/:id', obtenerDetalles);
 router.post('/estudiantes/:documento', obtenerDetallesEstudiante);

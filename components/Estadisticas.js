@@ -10,7 +10,7 @@ const Informes = () => {
   };
 
   const matriculaPress = () => {
-    navigation.navigate('InformeCarrera');
+    navigation.navigate('Estadis_Matricula');
     
   };
 
@@ -18,7 +18,7 @@ const Informes = () => {
     <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
       <View style={styles.container}>
         <Text style={styles.title}>Estadísticas</Text>
-        <Text style={styles.subtitle}>Por favor, seleccione el tipo de consulta del estado académico de los estudiantes por cohorte o periodo de matrícula:</Text>
+        <Text style={styles.subtitle}>Por favor, seleccione el tipo de consulta del estado académico de los estudiantes por cohorte o rango de matrícula:</Text>
         
         <TouchableOpacity style={styles.button} onPress={cohortePress}>
           <FontAwesome name="sign-in" size={60} color="#C3D730" />  
@@ -27,7 +27,7 @@ const Informes = () => {
 
         <TouchableOpacity style={styles.button} onPress={matriculaPress}>
           <FontAwesome name="calendar" size={60} color="#C3D730" />
-          <Text style={styles.buttonText}>Estado Académico por Periodo de Matrícula.</Text>
+          <Text style={styles.buttonText}>Estado Académico por Rango de Matrículas.</Text>
         </TouchableOpacity>
 
       </View>

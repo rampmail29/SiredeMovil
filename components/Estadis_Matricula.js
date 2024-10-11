@@ -8,10 +8,8 @@ const Estadisticas = () => {
   const navigation = useNavigation();
   const [programas, setProgramas] = useState([]);
   const [cortesIniciales, setCortesIniciales] = useState([]);
-  const [corteFinal, setCorteFinal] = useState([]);
   const [programaSeleccionado, setProgramaSeleccionado] = useState('');
   const [idSeleccionado, setIdSeleccionado] = useState('');
-  const [tipoProgramaSeleccionado, setTipoProgramaSeleccionado] = useState('');
   const [selectedCorteInicial, setSelectedCorteInicial] = useState('');
   const [modalProgramaVisible, setModalProgramaVisible] = useState(false);
   const [modalCorteInicialVisible, setModalCorteInicialVisible] = useState(false);
@@ -34,124 +32,64 @@ const Estadisticas = () => {
           .join(' ');
       };
 
-     useEffect(() => {
-            const obtenerProgramas = async () => {
-              try {
-                  const response = await fetch(`${API_BASE_URL}/api/programas`);
-                  const data = await response.json();
-                  const filteredData = data.map(element => ({
-                      cod_snies: element.codigo_programa,
-                      programa: element.nombre_programa,
-                      tipo: element.tipo_programa,
-                      id: element.id_carrera
-                  }));
-                  setProgramas(filteredData); 
-              } catch (error) {
-                    showMessage({
-                      message: "Error",
-                      description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
-                      type: "danger",
-                      icon: "danger",
-                      titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
-                      textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
-                      duration: 3000,
-                    });
-              }
-          };
+            useEffect(() => {
+                    const obtenerProgramas = async () => {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/programas`);
+                        const data = await response.json();
+                        const filteredData = data.map(element => ({
+                            cod_snies: element.codigo_programa,
+                            programa: element.nombre_programa,
+                            tipo: element.tipo_programa,
+                            id: element.id_carrera
+                        }));
+                        setProgramas(filteredData); 
+                    } catch (error) {
+                            showMessage({
+                            message: "Error",
+                            description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
+                            type: "danger",
+                            icon: "danger",
+                            titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+                            textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+                            duration: 3000,
+                            });
+                    }
+                };
 
-    obtenerProgramas();
-    
-  }, []);
-
-
-  const obtenerCortesIniciales = async (id_carrera) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/cortes-iniciales/${id_carrera}`);
-      const data = await response.json();
-      console.log(data)
-      if (Array.isArray(data)) {
-        setCortesIniciales(data);
-      } 
-    } catch (error) {
-      showMessage({
-        message: "Error",
-        description: "Error al obtener cortes iniciales. Por favor, revisa tu conexión e inténtalo de nuevo.",
-        type: "danger",
-        icon: "danger",
-        position: "top",
-        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
-        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
-        duration: 3000,
-      });
-     
-    }
-  };
-
-        useEffect(() => {
-          const cohorteTope = () => {
-              if (!selectedCorteInicial || typeof selectedCorteInicial !== 'string') return;
-
-              // Obtener año y periodo del corte inicial
-              const [anioInicial, periodoInicial] = selectedCorteInicial.split('-').map(Number);
-              
-              // Determinar la cantidad de semestres según el tipo de programa
-              let cantidadSemestres = 0;
-              if (tipoProgramaSeleccionado === "Profesional") {
-                  cantidadSemestres = 4; // 4 periodos (2 años) para programas profesionales
-              } else if (tipoProgramaSeleccionado === "Tecnologia") {
-                  cantidadSemestres = 6; // 6 periodos (3 años) para programas tecnológicos
-              } else {
-                  console.error("Tipo de programa no válido.");
-                  return;
-              }
-
-              // Generar los cortes finales según el tipo de programa
-              const cortesFinalesCalculados = generarcohorte(anioInicial, periodoInicial, cantidadSemestres);
-
-              // Agregar cortes iniciales posteriores al corte calculado
-              cortesIniciales.forEach((corte) => {
-                  if (corte.key > selectedCorteInicial) {
-                      cortesFinalesCalculados.push({ label: corte.key, key: corte.key });
-                  }
-              });
-
-              // Obtener solo el último corte
-              const ultimoCorteFinal = cortesFinalesCalculados.slice(-1)[0]?.key || null;
-              
+            obtenerProgramas();
+            
+        }, []);
 
 
-              // Actualizar estado con el último corte final generado
-              setCorteFinal(ultimoCorteFinal);
-          };
+        const obtenerPeriodos = async (id_carrera) => {
+            try {
+            const response = await fetch(`${API_BASE_URL}/api/periodos/${id_carrera}`);
+            const data = await response.json();
+            console.log(data)
+            if (Array.isArray(data)) {
+                setCortesIniciales(data);
+            } 
+            } catch (error) {
+            showMessage({
+                message: "Error",
+                description: "Error al obtener cortes iniciales. Por favor, revisa tu conexión e inténtalo de nuevo.",
+                type: "danger",
+                icon: "danger",
+                position: "top",
+                titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+                textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+                duration: 3000,
+            });
+            
+            }
+        };
 
-          cohorteTope();
-      }, [selectedCorteInicial, tipoProgramaSeleccionado, cortesIniciales]);
-
-      // Función para generar cortes finales
-      const generarcohorte = (anio, periodo, cantidadSemestres) => {
-        const cortes = [];
-        let anioActual = anio;
-        let periodoActual = periodo;
-
-        for (let i = 0; i < cantidadSemestres; i++) {
-          cortes.push({ label: `${anioActual}-${periodoActual}`, key: `${anioActual}-${periodoActual}` });
-
-          if (periodoActual === 1) {
-            periodoActual = 2;
-          } else {
-            periodoActual = 1;
-            anioActual += 1;
-          }
-        }
-
-        return cortes;
-      };
 
           const ProgramaSelect = (programa) => {
             setProgramaSeleccionado(programa.programa);
-            setTipoProgramaSeleccionado(programa.tipo);
             setIdSeleccionado(programa.id);
-            obtenerCortesIniciales(programa.id);
+            obtenerPeriodos(programa.id);
             setModalProgramaVisible(false);
           };
 
@@ -213,9 +151,7 @@ const Estadisticas = () => {
       const timeout = setTimeout(() => {
         setLoading(false);
         navigation.navigate('GraficarCohorte', {
-          fromScreen: 'Estadis_Cohorte',
           selectedCorteInicial,
-          corteFinal,
           programaSeleccionado,
           datosBackend: {
             totalEstudiantes: datosBackend.totalEstudiantes,
@@ -232,11 +168,19 @@ const Estadisticas = () => {
     }
   }, [datosBackend]);
   
+  
+
+  
+ 
+ 
+
+
+
   return (
     <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
     <View style={styles.container}>
-      <Text style={styles.title}>Estadísticas de cohorte inicial</Text>
-      <Text style={styles.subtitle}>Seleccione el programa académico y el periodo de inicio:</Text>
+      <Text style={styles.title}>Estadísticas por matricula</Text>
+      <Text style={styles.subtitle}>Seleccione el programa académico y el periodo de matricula:</Text>
       
       <TouchableOpacity style={styles.button} onPress={() => setModalProgramaVisible(true)}>
         <Text style={styles.buttonText}>
@@ -246,7 +190,7 @@ const Estadisticas = () => {
 
       <TouchableOpacity style={styles.buttonCorte} onPress={() => setModalCorteInicialVisible(true)}>
         <Text style={styles.buttonTextCortes}>
-          {selectedCorteInicial ? `Corte inicial: ${selectedCorteInicial}` : 'Seleccionar Cohorte Inicial'}
+          {selectedCorteInicial ? `Corte inicial: ${selectedCorteInicial}` : 'Seleccionar Periodo Matricula'}
         </Text>
       </TouchableOpacity>
 
@@ -292,7 +236,7 @@ const Estadisticas = () => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Seleccione un periodo inicial</Text>
+            <Text style={styles.modalTitle}>Seleccione un periodo de matricula</Text>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 {cortesIniciales.map((corte, index) => (
                   <TouchableOpacity
