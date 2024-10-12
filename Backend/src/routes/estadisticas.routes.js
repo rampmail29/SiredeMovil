@@ -9,7 +9,8 @@ import {
     obtenerDetalles,
     procesarEstadisticasPdf,
     cargarEstudiantes,
-    cargarGraduados
+    cargarGraduados,
+    obtenerEstudiantesPorMatricula
  } from '../controllers/estadisticas.controller.js';
 
 const router = Router();
@@ -21,6 +22,7 @@ router.get('/estudiantes', buscarEstudiantes);
 router.get('/obtener/:id', obtenerDetalles);
 router.post('/estudiantes/:documento', obtenerDetallesEstudiante);
 router.post('/estudiantes-por-corte', obtenerEstudiantesPorCorte);
+router.post('/estudiantes-por-matricula', obtenerEstudiantesPorMatricula);
 router.post('/estadisticasPdf', procesarEstadisticasPdf);
 router.post('/cargageneral', cargarEstudiantes);
 router.post('/cargagraduados', cargarGraduados);

@@ -8,21 +8,17 @@ const Estadisticas = () => {
   const navigation = useNavigation();
   const [programas, setProgramas] = useState([]);
   const [cortesIniciales, setCortesIniciales] = useState([]);
+  const [cortesFinales, setCortesFinales] = useState([]);
   const [programaSeleccionado, setProgramaSeleccionado] = useState('');
   const [idSeleccionado, setIdSeleccionado] = useState('');
-  const [selectedCorteInicial, setSelectedCorteInicial] = useState('');
+  const [selectedCorteInicial, setSelectedCorteInicial] = useState(''); 
+  const [selectedCorteFinal, setSelectedCorteFinal] = useState('');
   const [modalProgramaVisible, setModalProgramaVisible] = useState(false);
   const [modalCorteInicialVisible, setModalCorteInicialVisible] = useState(false);
+  const [modalCorteFinalVisible, setModalCorteFinalVisible] = useState(false);
   const [loading, setLoading] = useState(false); 
-  const [datosBackend, setDatosBackend] = useState({
-    totalEstudiantes: [],
-    graduados: [],
-    retenidos: [],
-    desertados: [],
-    activos: [],
-    inactivos: [],
-    
-  });
+  const [datosBackend, setDatosBackend] = useState({});
+
 
       const capitalizeFirstLetter = (string) => {
         return string
@@ -85,6 +81,11 @@ const Estadisticas = () => {
             }
         };
 
+        const obtenerCortesFinales = (cortes, corteInicial) => {
+            return cortes.filter(corte => corte > corteInicial);
+          };
+          
+
 
           const ProgramaSelect = (programa) => {
             setProgramaSeleccionado(programa.programa);
@@ -95,12 +96,22 @@ const Estadisticas = () => {
 
           const cohorteInicialSelect = (corteInicial) => {
             setSelectedCorteInicial(corteInicial);
+
+            const cortesFiltrados = obtenerCortesFinales(cortesIniciales, corteInicial);
+            setCortesFinales(cortesFiltrados);
             setModalCorteInicialVisible(false);
+          };
+
+          
+          const cohorteFinalSelect = (corteFinal) => {
+            setSelectedCorteFinal(corteFinal);
+            setModalCorteFinalVisible(false);
           };
 
           const cancelarModal = () => {
             setModalProgramaVisible(false);
             setModalCorteInicialVisible(false);
+            setModalCorteFinalVisible(false);
           };
 
   const evaluarClick = async () => {
@@ -118,7 +129,7 @@ const Estadisticas = () => {
         });
         return;
       }
-      const response = await fetch(`${API_BASE_URL}/api/estudiantes-por-corte`, {
+      const response = await fetch(`${API_BASE_URL}/api/estudiantes-por-matricula`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,11 +137,11 @@ const Estadisticas = () => {
         body: JSON.stringify({
           idCarrera: idSeleccionado,
           periodoInicial: selectedCorteInicial,
+          periodoFinal: selectedCorteFinal,
         }),
       });
 
       const data = await response.json();
-      console.log(data);
       setDatosBackend(data);
       setLoading(true); // Mostrar el modal de carga
       
@@ -140,27 +151,18 @@ const Estadisticas = () => {
   };
 
   useEffect(() => {
-    if (
-      datosBackend?.totalEstudiantes?.length > 0 || 
-      datosBackend?.graduados?.length > 0 || 
-      datosBackend?.retenidos?.length > 0 || 
-      datosBackend?.desertados?.length > 0 || 
-      datosBackend?.activos?.length > 0 || 
-      datosBackend?.inactivos?.length > 0
-    ) {
+    // Verificar si `datosBackend` tiene alguna propiedad con datos
+    const tieneDatos = datosBackend && Object.keys(datosBackend).length > 0;
+  
+    if (tieneDatos) {
       const timeout = setTimeout(() => {
         setLoading(false);
-        navigation.navigate('GraficarCohorte', {
+        navigation.navigate('GraficarMatriculas', {
+          fromScreen: 'Estadis_Matricula',
           selectedCorteInicial,
+          selectedCorteFinal,
           programaSeleccionado,
-          datosBackend: {
-            totalEstudiantes: datosBackend.totalEstudiantes,
-            graduados: datosBackend.graduados,
-            retenidos: datosBackend.retenidos,
-            desertados: datosBackend.desertados,
-            activos: datosBackend.activos,
-            inactivos: datosBackend.inactivos,
-          },
+          datosBackend,
         });
       }, 2500);
   
@@ -169,18 +171,14 @@ const Estadisticas = () => {
   }, [datosBackend]);
   
   
-
   
- 
- 
-
 
 
   return (
     <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
     <View style={styles.container}>
-      <Text style={styles.title}>Estadísticas por matricula</Text>
-      <Text style={styles.subtitle}>Seleccione el programa académico y el periodo de matricula:</Text>
+      <Text style={styles.title}>Estadísticas por matriculas</Text>
+      <Text style={styles.subtitle}>Seleccione el programa académico y el rango de matricula:</Text>
       
       <TouchableOpacity style={styles.button} onPress={() => setModalProgramaVisible(true)}>
         <Text style={styles.buttonText}>
@@ -190,7 +188,13 @@ const Estadisticas = () => {
 
       <TouchableOpacity style={styles.buttonCorte} onPress={() => setModalCorteInicialVisible(true)}>
         <Text style={styles.buttonTextCortes}>
-          {selectedCorteInicial ? `Corte inicial: ${selectedCorteInicial}` : 'Seleccionar Periodo Matricula'}
+          {selectedCorteInicial ? `Periodo inicial: ${selectedCorteInicial}` : 'Seleccionar Periodo Matricula'}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.buttonCorte} onPress={() => setModalCorteFinalVisible(true)}>
+        <Text style={styles.buttonTextCortes}>
+          {selectedCorteFinal ? `Periodo inicial: ${selectedCorteFinal}` : 'Seleccionar Periodo Matricula'}
         </Text>
       </TouchableOpacity>
 
@@ -243,6 +247,37 @@ const Estadisticas = () => {
                     key={index}
                     style={styles.modalItemContainer}
                     onPress={() => cohorteInicialSelect(corte)}
+                  >
+                    <Text style={styles.modalItemTextCorte}>{corte}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={cancelarModal}
+            >
+              <Text style={styles.cancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal para seleccionar Cohorte FINAL */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalCorteFinalVisible}
+        onRequestClose={() => setModalCorteFinalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Seleccione un periodo de matricula</Text>
+            <ScrollView contentContainerStyle={styles.scrollViewContent}>
+                {cortesFinales.map((corte, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.modalItemContainer}
+                    onPress={() => cohorteFinalSelect(corte)}
                   >
                     <Text style={styles.modalItemTextCorte}>{corte}</Text>
                   </TouchableOpacity>

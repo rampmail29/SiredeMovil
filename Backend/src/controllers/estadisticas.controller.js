@@ -959,6 +959,62 @@ export const obtenerEstudiantesPorCorte = async (req, res) => {
 };
 
 
+export const obtenerEstudiantesPorMatricula = async (req, res) => {
+  const { idCarrera, periodoInicial, periodoFinal } = req.body;
+
+  try {
+    // Realizar la consulta de cambios de estado
+    const [rows] = await pool.query(`
+      SELECT he.periodo_cambio, he.estado_anterior, he.estado_nuevo
+      FROM historico_estado he
+      JOIN estudiantes_carreras ec ON he.id_estudiante = ec.id_estudiante
+      WHERE ec.id_carrera = ? 
+      AND he.periodo_cambio BETWEEN ? AND ?
+      ORDER BY he.periodo_cambio ASC
+    `, [idCarrera, periodoInicial, periodoFinal]);
+
+    // Crear un array para almacenar el resumen por periodo
+    const resumenPorPeriodo = {};
+
+    rows.forEach((cambio) => {
+      // Inicializar el objeto del periodo si no existe
+      if (!resumenPorPeriodo[cambio.periodo_cambio]) {
+        resumenPorPeriodo[cambio.periodo_cambio] = {
+          Graduados: 0,
+          Retenidos: 0,
+          Inactivos: 0,
+          Desertores: 0
+        };
+      }
+
+      // Incrementar el conteo basado en el estado final
+      switch (cambio.estado_nuevo) {
+        case 'Graduado':
+          resumenPorPeriodo[cambio.periodo_cambio].Graduados += 1;
+          break;
+        case 'Retenido':
+          resumenPorPeriodo[cambio.periodo_cambio].Retenidos += 1;
+          break;
+        case 'Inactivo':
+          resumenPorPeriodo[cambio.periodo_cambio].Inactivos += 1;
+          break;
+        case 'Desertor':
+          resumenPorPeriodo[cambio.periodo_cambio].Desertores += 1;
+          break;
+        default:
+          break;
+      }
+    });
+
+    res.json(resumenPorPeriodo);
+    console.log(resumenPorPeriodo)
+  } catch (error) {
+    console.error('Error al obtener el resumen estadístico:', error);
+    res.status(500).json({ error: 'Error al obtener el resumen estadístico', details: error.message });
+  }
+};
+
+
 
   export const obtenerDetallesEstudiante = async (req, res) => {
     const { documento } = req.params;
