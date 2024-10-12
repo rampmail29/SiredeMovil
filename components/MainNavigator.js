@@ -191,6 +191,7 @@ const MainNavigator = () => {
   name="GraficarCohorte" 
   component={GraficarCohorte}
   options={{
+    unmountOnBlur: true,
     tabBarButton: () => null,
     tabBarVisible:false,
     headerShown: false 
@@ -200,6 +201,7 @@ const MainNavigator = () => {
   name="GraficarMatriculas" 
   component={GraficarMatriculas}
   options={{
+    unmountOnBlur: true,
     tabBarButton: () => null,
     tabBarVisible:false,
     headerShown: false 

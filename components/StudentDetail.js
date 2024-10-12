@@ -13,13 +13,33 @@ const StudentDetail = ({ route, navigation }) => {
   // Inicializa variables opcionales
   let selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend;
 
-  // Verifica de dónde proviene la navegación
+ // Verifica de dónde proviene la navegación
+ if (fromScreen === 'GraficarCohorte') {
+  selectedCorteInicial = route.params.selectedCorteInicial; // Asigna si proviene de GraficarCohorte
+  corteFinal = route.params.corteFinal;
+  programaSeleccionado = route.params.programaSeleccionado;
+  datosBackend = route.params.datosBackend;
+}
+
+// Función para manejar la navegación al presionar el botón de "Volver"
+const volverNavigation = () => {
   if (fromScreen === 'GraficarCohorte') {
-    selectedCorteInicial = route.params.selectedCorteInicial; // Asigna si proviene de GraficarCohorte
-    corteFinal = route.params.corteFinal;
-    programaSeleccionado = route.params.programaSeleccionado;
-    datosBackend = route.params.datosBackend;
+    // Regresa a GraficarCohorte y pasa los datos
+    navigation.navigate('GraficarCohorte', {
+      fromScreen:'Estadis_Cohorte',
+      selectedCorteInicial, 
+      corteFinal, 
+      programaSeleccionado, 
+      datosBackend 
+    });
+  } else if (fromScreen === 'InformeEstudiante') {
+    // Solo regresa a InformeEstudiante
+    navigation.navigate('InformeEstudiante');
+  } else {
+    navigation.goBack(); // Regresa a la pantalla anterior si no coincide
   }
+};
+
 
 
   
@@ -342,28 +362,13 @@ const StudentDetail = ({ route, navigation }) => {
 
                                                                         
                                     
-                    <TouchableOpacity 
-                            style={styles.button} 
-                            onPress={() => {
-                              if (fromScreen === 'GraficarCohorte') {
-                                // Regresa a GraficarCohorte y pasa los datos
-                                navigation.navigate(fromScreen, { 
-                                  selectedCorteInicial, 
-                                  corteFinal, 
-                                  programaSeleccionado, 
-                                  datosBackend 
-                                });
-                              } else if (fromScreen === 'InformeEstudiante') {
-                                // Solo regresa a InformeEstudiante
-                                navigation.navigate(fromScreen); // O solo navigation.goBack();
-                              } else {
-                                navigation.goBack(); // Regresa a la pantalla anterior si no coincide
-                              }
-                            }}
-                          >
-                          <Text style={styles.buttonText}>Volver</Text>
-                        </TouchableOpacity>
-                   
+                     <TouchableOpacity 
+                        style={styles.button} 
+                        onPress={volverNavigation}
+                      >
+                        <Text style={styles.buttonText}>Volver</Text>
+                      </TouchableOpacity>
+                                    
                   
 
                   </ImageBackground>
