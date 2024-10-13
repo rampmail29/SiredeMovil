@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, ScrollView, Alert, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { FontAwesome } from '@expo/vector-icons';
@@ -45,7 +45,8 @@ const volverNavigation = () => {
   
   const [student, setStudent] = useState(null);
   const [imageUri, setImageUri] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loadCount, setLoadCount] = useState(0); // Contador para rastrear la carga de efectos
   console.log(`El id del estudiante es`, id)
 
   useEffect(() => {
@@ -58,7 +59,9 @@ const volverNavigation = () => {
       } catch (error) {
         console.error('Error al obtener detalles del estudiante:', error);
       } finally {
-        setLoading(false); // Esto asegura que loading se establezca en false incluso si hay un error
+        setTimeout(() => {
+          setLoading(false);
+      }, 1000); // Espera 3 segundos antes de ocultar el modal
       }
     };
   
