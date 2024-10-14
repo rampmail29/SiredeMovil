@@ -7,114 +7,118 @@ import { API_BASE_URL } from './Config';
 const CortesAcademicos = ({ selectedProgram, onNext }) => {
   const navigation = useNavigation();
   const [cortesIniciales, setCortesIniciales] = useState([]);
-  const [cortesFinales, setCortesFinales] = useState([]);
+  const [corteFinal, setCorteFinal] = useState([]);
   const [selectedCorteInicial, setSelectedCorteInicial] = useState('');
-  const [selectedCorteFinal, setSelectedCorteFinal] = useState('');
   const [modalCorteInicialVisible, setModalCorteInicialVisible] = useState(false);
-  const [modalCorteFinalVisible, setModalCorteFinalVisible] = useState(false);
   const [datosBackend, setDatosBackend] = useState({
     graduados: [],
     retenidos: [],
     desertores: []
   });
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const obtenerCortesIniciales = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/cortes-iniciales`);
-        const data = await response.json();
-        console.log(data)
-        if (Array.isArray(data)) {
-          setCortesIniciales(data);
-        } 
-      } catch (error) {
-       
-      }
-    };
-
-    obtenerCortesIniciales();
-  }, []);
- // Función para generar cortes finales
- const generarCortes = (anio, periodo, cantidadSemestres) => {
-  const cortes = [];
-  let anioActual = anio;
-  let periodoActual = periodo;
-
-  for (let i = 0; i < cantidadSemestres; i++) {
-    cortes.push({ label: `${anioActual}-${periodoActual}`, key: `${anioActual}-${periodoActual}` });
-
-    if (periodoActual === 1) {
-      periodoActual = 2;
-    } else {
-      periodoActual = 1;
-      anioActual += 1;
+  
+  // Obtener los cortes iniciales basados en el ID del programa
+  const obtenerCortesIniciales = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/cortes-iniciales/${selectedProgram.id}`);
+      const data = await response.json();
+      Array.isArray(data) && setCortesIniciales(data);  // Si es un array, actualiza cortesIniciales
+    } catch (error) {
+      showMessage({
+        message: "Error",
+        description: "Error al obtener cortes iniciales. Revisa tu conexión e inténtalo de nuevo.",
+        type: "danger",
+        icon: "danger",
+        position: "top",
+        titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' },
+        textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' },
+        duration: 3000,
+      });
     }
-  }
+  };
 
-  return cortes;
-};
+  // Generar cortes finales (cohortes) basados en el año y periodo inicial
+  const generarCohorte = (anio, periodo, cantidadSemestres) => {
+    const cortes = [];
+    let anioActual = anio;
+    let periodoActual = periodo;
 
-useEffect(() => {
-  const cargarCortesFinales = () => {
-      if (!selectedCorteInicial || typeof selectedCorteInicial !== 'string' || !selectedProgram.cod_snies) return;
+    for (let i = 0; i < cantidadSemestres; i++) {
+      cortes.push({ label: `${anioActual}-${periodoActual}`, key: `${anioActual}-${periodoActual}` });
 
+      if (periodoActual === 1) {
+        periodoActual = 2;
+      } else {
+        periodoActual = 1;
+        anioActual += 1;
+      }
+    }
+
+    return cortes;
+  };
+
+  // Lógica para calcular el corte tope (corte final) basado en el corte inicial y el tipo de programa
+  useEffect(() => {
+    const cohorteTope = () => {
+      if (!selectedCorteInicial || typeof selectedCorteInicial !== 'string' || !selectedProgram || !selectedProgram.tipo) {
+        return; // Salir si selectedProgram o su tipo no están definidos
+      }
+  
       // Obtener año y periodo del corte inicial
       const [anioInicial, periodoInicial] = selectedCorteInicial.split('-').map(Number);
-      
-     
-      const programaSeleccionadoData = selectedProgram; 
-
+  
+      // Determinar la cantidad de semestres según el tipo de programa
       let cantidadSemestres = 0;
-
-      if (programaSeleccionadoData) {
-          if (programaSeleccionadoData.tipo === "Profesional") {
-              cantidadSemestres = 4; // 4 periodos (2 años) para programas profesionales
-          } else if (programaSeleccionadoData.tipo === "Tecnologia") {
-              cantidadSemestres = 6; // 6 periodos (3 años) para programas tecnológicos
-          }
+      if (selectedProgram.tipo === "Profesional") {
+        cantidadSemestres = 4; // 4 periodos (2 años) para programas profesionales
+      } else if (selectedProgram.tipo === "Tecnologia") {
+        cantidadSemestres = 6; // 6 periodos (3 años) para programas tecnológicos
       } else {
-          console.error("Programa seleccionado no encontrado.");
-          return; // Salimos si el programa no se encuentra
+        console.error("Tipo de programa no válido.");
+        return;
       }
-
+  
       // Generar los cortes finales según el tipo de programa
-      const cortesFinalesCalculados = generarCortes(anioInicial, periodoInicial, cantidadSemestres);
-
+      const cortesFinalesCalculados = generarCohorte(anioInicial, periodoInicial, cantidadSemestres);
+  
       // Agregar cortes iniciales posteriores al corte calculado
       cortesIniciales.forEach((corte) => {
-          if (corte.key > selectedCorteInicial) {
-              cortesFinalesCalculados.push({ label: corte.key, key: corte.key });
-          }
+        if (corte.key > selectedCorteInicial) {
+          cortesFinalesCalculados.push({ label: corte.key, key: corte.key });
+        }
       });
-    
-  // Obtener solo el último corte
-     const ultimoCorteFinal = [];
-     ultimoCorteFinal.push(cortesFinalesCalculados[cortesFinalesCalculados.length - 1])
+  
+      // Obtener solo el último corte final
+      const ultimoCorteFinal = cortesFinalesCalculados.slice(-1)[0]?.key || null;
+  
+      // Actualizar estado con el último corte final generado
+      setCorteFinal(ultimoCorteFinal);
+    };
+  
+    cohorteTope();
+  }, [selectedCorteInicial, selectedProgram, cortesIniciales]);
+  
+  // UseEffect separado para imprimir el valor actualizado de corteFinal
+useEffect(() => {
+  if (corteFinal) {
+    console.log('Corte Final:', corteFinal);
+  }
+}, [corteFinal]);
 
+  // Ejecutar cuando el programa seleccionado cambie
+  useEffect(() => {
+    if (!selectedProgram?.id) return;
+    obtenerCortesIniciales();
+  }, [selectedProgram]);
 
-      // Actualizar estado con los cortes finales generados
-      setCortesFinales(ultimoCorteFinal);
-  };
-
-  cargarCortesFinales();
-}, [selectedCorteInicial, cortesIniciales]);
-
-
+  // Seleccionar corte inicial
   const corteInicialSelect = (corteInicial) => {
     setSelectedCorteInicial(corteInicial);
-    setSelectedCorteFinal('');
     setModalCorteInicialVisible(false);
-  };
-
-  const corteFinalSelect = (corteFinal) => {
-    setSelectedCorteFinal(corteFinal);
-    setModalCorteFinalVisible(false);
   };
 
   const cancelarModal = () => {
     setModalCorteInicialVisible(false);
-    setModalCorteFinalVisible(false);
   };
 
   const capitalizeFirstLetter = (string) => {
@@ -127,7 +131,7 @@ useEffect(() => {
 
   const evaluarClick = async () => {
     try {
-      if (!selectedProgram || !selectedCorteInicial || !selectedCorteFinal) {
+      if (!selectedProgram || !selectedCorteInicial) {
         showMessage({
           message: "Error",
           description: "Por favor seleccione todos los datos necesarios",
@@ -139,20 +143,19 @@ useEffect(() => {
         });
         return;
       }
-      const response = await fetch(`${API_BASE_URL}/api/estadisticasPdf`, {
+      const response = await fetch(`${API_BASE_URL}/api/estudiantes-por-corte`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          programa: selectedProgram.cod_snies,
-          corteInicial: selectedCorteInicial,
-          corteFinal: selectedCorteFinal,
+          idCarrera: selectedProgram.id,
+          periodoInicial: selectedCorteInicial,
         }),
       });
 
       const data = await response.json();
-      //console.log('Datos recibidos del backend:', data);
+      console.log('Datos recibidos del backend:', data);
       setDatosBackend(data);
       data.carrera=selectedProgram;
       
@@ -160,7 +163,7 @@ useEffect(() => {
         onNext({
           data,
           selectedCorteInicial,
-          selectedCorteFinal
+          corteFinal
         });
       } else {
         console.warn('onNext no está definida como una función.');
@@ -198,11 +201,7 @@ useEffect(() => {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.buttonCorte} onPress={() => setModalCorteFinalVisible(true)}>
-        <Text style={styles.buttonTextCortes}>
-          {selectedCorteFinal ? `Corte final: ${selectedCorteFinal}` : 'Seleccionar Corte Final'}
-        </Text>
-      </TouchableOpacity>
+      
 
       {/* Modal para seleccionar Corte Inicial */}
       <Modal
@@ -225,35 +224,6 @@ useEffect(() => {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={cancelarModal}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal para seleccionar Corte Final */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalCorteFinalVisible}
-        onRequestClose={() => setModalCorteFinalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Seleccione un corte final</Text>
-            {cortesFinales.map((corte, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.modalButton}
-                onPress={() => corteFinalSelect(corte.label)}
-              >
-                <Text style={styles.modalItemTextCorte}>{corte.label}</Text>
-              </TouchableOpacity>
-            ))}
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={cancelarModal}

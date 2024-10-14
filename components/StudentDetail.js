@@ -20,6 +20,11 @@ const StudentDetail = ({ route, navigation }) => {
   programaSeleccionado = route.params.programaSeleccionado;
   datosBackend = route.params.datosBackend;
 }
+ // Verifica de dónde proviene la navegación
+ if (fromScreen === 'GraficarPdf') {
+  tipoInforme = route.params.tipoInforme;
+  datos = route.params.datos;
+}
 
 // Función para manejar la navegación al presionar el botón de "Volver"
 const volverNavigation = () => {
@@ -35,6 +40,12 @@ const volverNavigation = () => {
   } else if (fromScreen === 'InformeEstudiante') {
     // Solo regresa a InformeEstudiante
     navigation.navigate('InformeEstudiante');
+  } else  if (fromScreen === 'GraficarPdf') {
+    // Solo regresa a InformeEstudiante
+    navigation.navigate('GraficarPdf',{
+    tipoInforme,
+    datos,
+    });
   } else {
     navigation.goBack(); // Regresa a la pantalla anterior si no coincide
   }
@@ -46,7 +57,7 @@ const volverNavigation = () => {
   const [student, setStudent] = useState(null);
   const [imageUri, setImageUri] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [loadCount, setLoadCount] = useState(0); // Contador para rastrear la carga de efectos
+
   console.log(`El id del estudiante es`, id)
 
   useEffect(() => {

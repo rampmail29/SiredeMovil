@@ -8,7 +8,8 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleNavigation = (tipoInforme, datos) => {
+
+  const navigationInforme = (tipoInforme, datos) => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -25,7 +26,7 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
   const generarInformeGraduados = () => {
     if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       console.log('Generando informe de Graduados');
-      handleNavigation('graduados', { graduados: academicData.graduados });
+      navigationInforme('graduados', { graduados: academicData.graduados });
     } else {
       showMessage({
         message: "Error",
@@ -42,7 +43,7 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
   const generarInformeRetenidos = () => {
     if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       console.log('Generando informe de Retenidos');
-      handleNavigation('retenidos', { retenidos: academicData.retenidos });
+      navigationInforme('retenidos', { retenidos: academicData.retenidos });
     } else {
       showMessage({
         message: "Error",
@@ -59,7 +60,7 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
   const generarInformeDesertados = () => {
     if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       console.log('Generando informe de Desertados');
-      handleNavigation('desertados', { desertados: academicData.desertores });
+      navigationInforme('desertados', { desertados: academicData.desertados});
     } else {
       showMessage({
         message: "Error",
@@ -76,7 +77,7 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
   const generarInformeTodos = () => {
     if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
       console.log('Generando informe de Todos los estudiantes');
-      handleNavigation('general', { general: academicData.todos });
+      navigationInforme('general', { general: academicData.todosEstudiantes });
     } else {
       showMessage({
         message: "Error",

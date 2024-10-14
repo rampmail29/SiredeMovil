@@ -23,6 +23,7 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/programas`);
         const data = await response.json();   
+        console.log(data)
         const groupedPrograms = [
           {
             title: 'Facultad de Ciencias Naturales e Ingenierías',
@@ -119,6 +120,7 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
         cod_snies: programa.codigo_programa,
         programa: programa.nombre_programa,
         tipo: programa.tipo_programa,
+        id: programa.id_carrera
       });
     }
   };

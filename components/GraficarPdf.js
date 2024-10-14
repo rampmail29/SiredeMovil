@@ -9,16 +9,14 @@ import { generatePDF } from './Generate';
 
 const GraficarPdf = ({ route, navigation }) => {
   const { tipoInforme, datos, programa, corteInicial, corteFinal } = route.params;
-  const dataArray = datos[tipoInforme];
+  const dataArray = datos[tipoInforme] || []; // Evitar undefined si no hay datos
   const [imageUrls, setImageUrls] = useState({});
   const [showModal, setShowModal] = useState(false);
-  
   const fetchImages = async () => {
     const extensions = ['png', 'jpg', 'jpeg'];
 
     for (let student of dataArray) {
-      const documento = student.documento;
-
+      const documento = student.numero_documento;
       for (let ext of extensions) {
         try {
           const imageRef = ref(storage, `estudiantes/${documento}.${ext}`);
@@ -93,8 +91,9 @@ const GraficarPdf = ({ route, navigation }) => {
           <Text style={styles.title}>
             {tipoInforme.toLowerCase() === 'general' 
               ? `Informe de Estudiantes` 
-              : `Informe de ${tipoInforme.charAt(0).toUpperCase() + tipoInforme.slice(1)}`}
+              : `Informe de ${capitalizeFirstLetter(tipoInforme)}`}
           </Text>
+
           <Animated.View style={animatedStyle}>
             <TouchableOpacity 
               style={styles.buttonPdf}
@@ -113,21 +112,24 @@ const GraficarPdf = ({ route, navigation }) => {
                 <View key={index} style={styles.datoContainer}>
                   <View style={styles.infoContainer}>
                     <View style={styles.imageContainer}>
-                      {imageUrls[dato.documento] ? (
-                        <Image source={{ uri: imageUrls[dato.documento] }} style={styles.image} />
+                      {imageUrls[dato.numero_documento] ? (
+                        <Image source={{ uri: imageUrls[dato.numero_documento] }} style={styles.image} />
                       ) : (
                         <FontAwesome name="user" size={40} color="#575756" />
                       )}
                     </View>
                     <View style={styles.textContainer}>
-                      <Text style={styles.datoNombre}>{capitalizeFirstLetter(dato.nombres)} {capitalizeFirstLetter(dato.apellidos)}</Text>
-                      <Text style={styles.datoDocumento}>Documento: {dato.documento}</Text>
+                      <Text style={styles.datoNombre}>{capitalizeFirstLetter(dato.nombre)} </Text>
+                      <Text style={styles.datoNombre}>{capitalizeFirstLetter(dato.apellido)}</Text>
+                      <Text style={styles.datoDocumento}>Documento: {dato.numero_documento}</Text>
                     </View>
                     <TouchableOpacity 
                       style={styles.infoIcon}
-                      onPress={() => navigation.navigate('StudentDetail2', { 
-                        documento: dato.documento, 
-                        corteFinal: corteFinal     
+                      onPress={() => navigation.navigate('StudentDetail', { 
+                        id: dato.id_estudiante, 
+                        fromScreen:'GraficarPdf',
+                        tipoInforme: tipoInforme, 
+                        datos:datos,   
                       })}
                     >
                       <FontAwesome name="info-circle" size={30} color="#6D100A" />

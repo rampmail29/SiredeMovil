@@ -28,11 +28,11 @@ const InformeCarrera = () => {
     scrollViewRef.current.scrollTo({ x: windowWidth, animated: true });
   };
 
-  const onNext = ({ data, selectedCorteInicial, selectedCorteFinal }) => {
+  const onNext = ({ data, selectedCorteInicial, corteFinal }) => {
     // Puedes usar data, selectedCorteInicial y selectedCorteFinal como necesites
     setAcademicData(data);
     setSelectedCorteInicial(selectedCorteInicial); 
-    setSelectedCorteFinal(selectedCorteFinal); 
+    setSelectedCorteFinal(corteFinal); 
   
     scrollViewRef.current.scrollTo({ x: windowWidth * 2, animated: true });
   };
@@ -169,13 +169,13 @@ const styles = StyleSheet.create({
   scrollContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 90,
+    marginTop: 110,
   },
   normalDots: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginHorizontal: 4,
+    marginHorizontal: 2,
   },
   textAreaContainer: {
     width: '100%',

@@ -13,6 +13,14 @@ import { Platform } from 'react-native';
       return `${day}_${month}_${year}`;
     };
 
+    const capitalizeFirstLetter = (string) => {
+      return string
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+
        // Función para limpiar el nombre del programa eliminando prefijos, acentos y unificando palabras
       const cleanProgramName = (nombre_programa) => {
         let prefijos = ["tecnología en ", "ingeniería en ", "ingeniería de ", "ingeniería "];
@@ -44,6 +52,7 @@ import { Platform } from 'react-native';
 // Función para generar el PDF
 export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial, corteFinal) => {
   const { cod_snies, programa: nombre_programa } = programa;
+  console.log(dataArray)
 
       // Títulos según el tipo de informe
       const informeTitulo = {
@@ -55,11 +64,11 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
 
         // Nota según el tipo de informe
         const notaTexto = {
-          graduados: `Este Informe contiene los estudiantes <strong>GRADUADOS</strong> del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
-          desertados: `Este Informe contiene los estudiantes <strong>DESERTADOS</strong> del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
-          retenidos: `Este Informe contiene los estudiantes <strong>RETENIDOS</strong> del programa académico <strong>${nombre_programa}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
-          general: `Este Informe contiene <strong>TODOS</strong> los estudiantes del programa académico <strong>${nombre_programa}</strong>, incluyendo los graduados, desertados y retenidos desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`
-        }[tipoInforme] || `Este Informe contiene los estudiantes del programa académico <strong>${nombre_programa}</strong>.`;
+          graduados: `Este Informe contiene los estudiantes <strong>GRADUADOS</strong> del programa académico <strong>${capitalizeFirstLetter(nombre_programa)}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          desertados: `Este Informe contiene los estudiantes <strong>DESERTADOS</strong> del programa académico <strong>${capitalizeFirstLetter(nombre_programa)}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          retenidos: `Este Informe contiene los estudiantes <strong>RETENIDOS</strong> del programa académico <strong>${capitalizeFirstLetter(nombre_programa)}</strong> desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`,
+          general: `Este Informe contiene <strong>TODOS</strong> los estudiantes del programa académico <strong>${capitalizeFirstLetter(nombre_programa)}</strong>, incluyendo los graduados, desertados y retenidos desde el corte inicial de <strong>${corteInicial}</strong> hasta el corte final <strong>${corteFinal}</strong>.`
+        }[tipoInforme] || `Este Informe contiene los estudiantes del programa académico <strong>${capitalizeFirstLetter(nombre_programa)}</strong>.`;
 
 
 
@@ -144,7 +153,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
               <td><h2> Unidades Tecnológicas de Santander - UTS </h2></td>
             </tr>
             <tr class="info-head">
-              <td><h3>${cod_snies} - ${nombre_programa}</h3></td>
+              <td><h3>${cod_snies} - ${capitalizeFirstLetter(nombre_programa)}</h3></td>
             </tr>
           </table>
         </div>
@@ -160,15 +169,18 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
                 <th>Nombres</th>
               </tr>
             </thead>
+           
             <tbody>
               ${dataArray.map(dato => `
                 <tr>
-                  <td>${dato.documento}</td>
-                  <td>${dato.apellidos}</td>
-                  <td>${dato.nombres}</td>
+                  <td>${dato.numero_documento ? dato.numero_documento : 'N/A'}</td>
+                  <td>${dato.apellido ? dato.apellido : 'N/A'}</td>
+                  <td>${dato.nombre ? dato.nombre : 'N/A'}</td>
                 </tr>
               `).join('')}
             </tbody>
+
+
           </table>
           <table class="summary-table ${tipoInforme}">
             <tr>
@@ -274,7 +286,7 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
         <td><h2> Unidades Tecnológicas de Santander - UTS </h2></td>
       </tr>
       <tr class="info-head">
-        <td><h3>${cod_snies} - ${nombre_programa}</h3></td>
+        <td><h3>${cod_snies} - ${capitalizeFirstLetter(nombre_programa)}</h3></td>
       </tr>
     </table>
   </div>
@@ -293,14 +305,14 @@ export const generatePDF = async (dataArray, programa, tipoInforme, corteInicial
         </tr>
       </thead>
       <tbody>
-        ${dataArray.map(dato => `
-          <tr>
-            <td>${dato.documento}</td>
-            <td>${dato.apellidos}</td>
-            <td>${dato.nombres}</td>
-          </tr>
-        `).join('')}
-      </tbody>
+              ${dataArray.map(dato => `
+                <tr>
+                  <td>${dato.numero_documento ? dato.numero_documento : 'N/A'}</td>
+                  <td>${dato.apellido ? dato.apellido : 'N/A'}</td>
+                  <td>${dato.nombre ? dato.nombre : 'N/A'}</td>
+                </tr>
+              `).join('')}
+            </tbody>.
     </table>
     <table class="summary-table ${tipoInforme}">
       <tr>
