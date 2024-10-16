@@ -1,7 +1,7 @@
 import { pool } from '../db.js';
 
 export const cargarEstudiantes = async (req, res) => {
-  const estudiantesData = req.body; // Obtenemos los datos del CSV
+  const estudiantesData = req.body; // Obtenemos los datos del CSV pero en formato  J SON
 
   // Verificar que hay datos para procesar
   if (!estudiantesData || estudiantesData.length === 0) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, ScrollView, ImageBackground, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, ImageBackground, TouchableOpacity, AppState } from "react-native";
 import { DrawerItemList } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import { FontAwesome } from '@expo/vector-icons';
@@ -10,7 +10,6 @@ import { useDrawerStatus } from '@react-navigation/drawer';
 import { storage } from '../firebaseConfig'; // Ajusta la ruta según tu estructura de archivos
 
 const SideBar = (props) => {
-  
   const [imageUri, setImageUri] = useState(null);
   const [nombre, setNombre] = useState('');
   const [profesion, setProfesion] = useState('');
@@ -18,7 +17,6 @@ const SideBar = (props) => {
   const [uid, setUid] = useState('');
   const isDrawerOpen = useDrawerStatus() === 'open';
 
-  // Función para obtener la imagen del estudiante
   const obtenerImagenEstudiante = useCallback(async () => {
     if (!uid) return;
 
@@ -32,9 +30,7 @@ const SideBar = (props) => {
           const url = await getDownloadURL(imageRef);
           imageUrl = url;
           break;
-        } catch (error) {
-    
-        }
+        } catch (error) {}
       }
 
       if (imageUrl) {
@@ -47,7 +43,6 @@ const SideBar = (props) => {
     }
   }, [uid]);
 
-  // Función para cargar los datos del usuario
   const loadUserData = useCallback(async () => {
     const auth = getAuth();
     const db = getFirestore();
@@ -55,14 +50,14 @@ const SideBar = (props) => {
     try {
       const user = auth.currentUser;
       if (user) {
-        setUid(user.uid);  // Establece el UID
+        setUid(user.uid);
         const userRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setNombre(userData.nombre || '');
           setProfesion(userData.profesion || '');
-          setRol(userData.rol || '');     
+          setRol(userData.rol || '');
         } else {
           console.log('El documento del usuario no existe.');
         }
@@ -75,41 +70,53 @@ const SideBar = (props) => {
   }, []);
 
   useEffect(() => {
-    // Cargar datos del usuario y foto al montar el componente
     loadUserData();
     obtenerImagenEstudiante();
 
-    // Agregar un listener en tiempo real para los cambios en los datos del usuario
     const auth = getAuth();
     const db = getFirestore();
     const user = auth.currentUser;
+    let unsubscribe;
+
     if (user) {
       const userRef = doc(db, 'users', user.uid);
-      const unsubscribe = onSnapshot(userRef, (userDoc) => {
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setNombre(userData.nombre || '');
-          setProfesion(userData.profesion || '');
-          setRol(userData.rol || '');
-          // La foto se actualiza sólo si es necesario
+      
+      const appStateChange = (nextAppState) => {
+        if (nextAppState === 'active') {
           obtenerImagenEstudiante();
-        } else {
-          console.log('El documento del usuario no existe.');
+          unsubscribe = onSnapshot(userRef, (userDoc) => {
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              setNombre(userData.nombre || '');
+              setProfesion(userData.profesion || '');
+              setRol(userData.rol || '');
+              obtenerImagenEstudiante();
+            }
+          });
+        } else if (nextAppState === 'background') {
+          if (unsubscribe) {
+            unsubscribe();
+          }
         }
-      });
+      };
 
-      // Cleanup listener on unmount
-      return () => unsubscribe();
+      const subscription = AppState.addEventListener('change', appStateChange);
+      
+      // Cleanup de la suscripción
+      return () => {
+        subscription.remove();
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
     }
   }, [loadUserData, obtenerImagenEstudiante]);
 
-      useEffect(() => {
-        if (isDrawerOpen) {
-          obtenerImagenEstudiante();
-        }
-      }, [isDrawerOpen, obtenerImagenEstudiante]);
-
-
+  useEffect(() => {
+    if (isDrawerOpen) {
+      obtenerImagenEstudiante();
+    }
+  }, [isDrawerOpen, obtenerImagenEstudiante]);
   return (
     <View style={{ flex: 1 }}>
       <ImageBackground

@@ -12,7 +12,7 @@ const CargarCSV = () => {
 
   const pickDocument = async () => {
     try {
-      const res = await DocumentPicker.getDocumentAsync({
+      const res = await DocumentPicker.getDocumentAsync({  //seleccion de archivo en el explorador
         type: 'text/csv', // formato aceptado =)
       });
   
@@ -27,7 +27,7 @@ const CargarCSV = () => {
         const response = await fetch(fileUri);
         const csvContent = await response.text();
   
-        // Parsear el CSV con PapaParse
+        // Parsear el CSV con PapaParse se pasa a formato JSON
         Papa.parse(csvContent, {
           header: true,
           complete: (results) => {

@@ -97,7 +97,7 @@ const GraficarMatriculas = ({ route }) => {
 
                     {/* Gráfico de Deserción */}
                     <View style={styles.chartContainer}>
-                        <Text style={styles.chartTitleD}>Frecuencia de Deserción</Text>
+                        <Text style={styles.chartTitleD}>Histograma de Deserción</Text>
                         <VictoryChart
                             theme={VictoryTheme.material}
                             domainPadding={{ x: dataDesercion.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
@@ -156,7 +156,7 @@ const GraficarMatriculas = ({ route }) => {
 
                     {/* Gráfico de Graduados */}
                     <View style={styles.chartContainer}>
-                        <Text style={styles.chartTitleG}>Frecuencia de Graduados</Text>
+                        <Text style={styles.chartTitleG}>Histograma de Graduados</Text>
                         <VictoryChart
                             theme={VictoryTheme.material}
                             domainPadding={{ x: dataGraduados.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
@@ -212,7 +212,7 @@ const GraficarMatriculas = ({ route }) => {
 
                     {/* Gráfico de Retenidos */}
                     <View style={styles.chartContainer}>
-                        <Text style={styles.chartTitleR}>Frecuencia de Retenidos</Text>
+                        <Text style={styles.chartTitleR}>Histograma de Retenidos</Text>
                         <VictoryChart
                             theme={VictoryTheme.material}
                             domainPadding={{ x: dataRetenidos.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
@@ -268,7 +268,7 @@ const GraficarMatriculas = ({ route }) => {
 
                     {/* Gráfico de Inactivos */}
                     <View style={styles.chartContainer}>
-                        <Text style={styles.chartTitleI}>Frecuencia de Inactivos</Text>
+                        <Text style={styles.chartTitleI}>Histograma de Inactivos</Text>
                         <VictoryChart
                             theme={VictoryTheme.material}
                             domainPadding={{ x: dataInactivos.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
