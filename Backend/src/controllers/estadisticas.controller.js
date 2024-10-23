@@ -1,10 +1,10 @@
 import { pool } from '../db.js';
 
 export const cargarEstudiantes = async (req, res) => {
-  const estudiantesData = req.body; // Obtenemos los datos del CSV pero en formato  J SON
+  const { csvData, selectedOption } = req.body; // Obtenemos los datos del CSV y el selectedOption
 
   // Verificar que hay datos para procesar
-  if (!estudiantesData || estudiantesData.length === 0) {
+  if (!csvData || csvData.length === 0) {
       console.error('No se recibieron datos para procesar.');
       return res.status(400).json({ success: false, message: 'No se recibieron datos para procesar.' });
   }
@@ -79,7 +79,7 @@ export const cargarEstudiantes = async (req, res) => {
     let periodo_matricula = null; // Variable para el periodo actual
 
     // Recorrer los datos de estudiantes
-    for (const estudiante of estudiantesData) {
+    for (const estudiante of csvData) {
         const {
             PENG_PRIMERNOMBRE,
             PENG_SEGUNDONOMBRE,
@@ -98,7 +98,7 @@ export const cargarEstudiantes = async (req, res) => {
             PERIODO,
             MAAC_PROMEDIO,
             ESTP_PROMEDIOGENERAL,
-            TIPOPROGRAMA,
+            CATE_DESCRIPCION
         } = estudiante;
 
         const nombre = PENG_PRIMERNOMBRE + ' ' + PENG_SEGUNDONOMBRE;
@@ -114,7 +114,9 @@ export const cargarEstudiantes = async (req, res) => {
         const sede = UNID_NOMBRE;
         const nombre_programa = PROG_NOMBRE;
         const codigo_programa = PROG_CODIGOICFES;
-        const tipo_programa = TIPOPROGRAMA;
+        const tipo_programa = selectedOption;
+        const descripcion = CATE_DESCRIPCION;
+        const periodo_reingreso = PERIODO;
 
         if (!PERIODO) {
           console.error(`PERIODO no definido para estudiante ${numero_documento}`);
