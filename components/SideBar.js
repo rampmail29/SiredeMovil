@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, ImageBackground, TouchableOpacity, 
 import { DrawerItemList, DrawerItem } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import { FontAwesome } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { getAuth } from 'firebase/auth';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { getFirestore, doc, getDoc, onSnapshot } from 'firebase/firestore';
@@ -134,15 +135,23 @@ const SideBar = (props) => {
                       </View>
                     )}
 
-        <Text style={styles.name}>{nombre || 'Cargando...'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.name}>{nombre || 'Cargando...'}</Text>
+              {superRol === 'admin' && (             
+                  <MaterialIcons 
+                    name="verified" 
+                    size={20} 
+                    color="#34531F"
+                    style={{ marginLeft: 5 }}
+                  />              
+              )}
+            </View>
+
+
         <Text style={styles.rol}>{rol || 'Cargando...'}</Text>
         <View style={{ flexDirection: "row" }}>
           <Text style={styles.profesion}>{profesion || 'Cargando...'}</Text>
-          <Ionicons
-            name="analytics"
-            size={17}
-            color="#132F20"
-          />
+         
         </View>
       </ImageBackground>
 
@@ -238,7 +247,7 @@ const styles = StyleSheet.create({
   name: {
     color: "#C3D730",
     fontSize: 20,
-    fontFamily:'Montserrat-Bold'
+    fontFamily:'Montserrat-Bold',
   },
   rol: {
     color: "#132F20",
