@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, ImageBackground, TouchableOpacity, AppState } from "react-native";
-import { DrawerItemList } from "@react-navigation/drawer";
+import { DrawerItemList, DrawerItem } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import { FontAwesome } from '@expo/vector-icons';
 import { getAuth } from 'firebase/auth';
@@ -14,6 +14,7 @@ const SideBar = (props) => {
   const [nombre, setNombre] = useState('');
   const [profesion, setProfesion] = useState('');
   const [rol, setRol] = useState('');
+  const [superRol, setSuperRol] = useState('');
   const [uid, setUid] = useState('');
   const isDrawerOpen = useDrawerStatus() === 'open';
 
@@ -58,6 +59,7 @@ const SideBar = (props) => {
           setNombre(userData.nombre || '');
           setProfesion(userData.profesion || '');
           setRol(userData.rol || '');
+          setSuperRol(userData.superRol || ''); 
         } else {
           console.log('El documento del usuario no existe.');
         }
@@ -70,46 +72,39 @@ const SideBar = (props) => {
   }, []);
 
   useEffect(() => {
+    // Cargar los datos del usuario y su imagen inicialmente
     loadUserData();
     obtenerImagenEstudiante();
-
+  
     const auth = getAuth();
     const db = getFirestore();
     const user = auth.currentUser;
     let unsubscribe;
-
+  
     if (user) {
       const userRef = doc(db, 'users', user.uid);
       
-      const appStateChange = (nextAppState) => {
-        if (nextAppState === 'active') {
+      // Suscribirnos al listener de Firestore tan pronto se monte el componente
+      unsubscribe = onSnapshot(userRef, (userDoc) => {
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setNombre(userData.nombre || '');
+          setProfesion(userData.profesion || '');
+          setRol(userData.rol || '');
+          setSuperRol(userData.superRol || '');
+          
+          // También actualizar la imagen en tiempo real
           obtenerImagenEstudiante();
-          unsubscribe = onSnapshot(userRef, (userDoc) => {
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              setNombre(userData.nombre || '');
-              setProfesion(userData.profesion || '');
-              setRol(userData.rol || '');
-              obtenerImagenEstudiante();
-            }
-          });
-        } else if (nextAppState === 'background') {
-          if (unsubscribe) {
-            unsubscribe();
-          }
         }
-      };
-
-      const subscription = AppState.addEventListener('change', appStateChange);
-      
-      // Cleanup de la suscripción
-      return () => {
-        subscription.remove();
-        if (unsubscribe) {
-          unsubscribe();
-        }
-      };
+      });
     }
+  
+    // Cleanup para desuscribirse del listener cuando el componente se desmonte
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [loadUserData, obtenerImagenEstudiante]);
 
   useEffect(() => {
@@ -117,6 +112,8 @@ const SideBar = (props) => {
       obtenerImagenEstudiante();
     }
   }, [isDrawerOpen, obtenerImagenEstudiante]);
+
+
   return (
     <View style={{ flex: 1 }}>
       <ImageBackground
@@ -154,7 +151,56 @@ const SideBar = (props) => {
           style={styles.container}
           forceInset={{ top: "always", horizontal: "never" }}
         >
-          <DrawerItemList {...props} />
+        {superRol === 'admin' ? (
+            <DrawerItemList {...props} />
+          ) : (
+            <>
+          {props.state.routes.map((route) => {
+            if (route.name !== 'Cargar CSV') { // Excluye 'Cargar CSV'
+              return (
+                <DrawerItem
+                  key={route.name}
+                  label={route.name}
+                  onPress={() => props.navigation.navigate(route.name)}
+                  style={{
+                    ...props.drawerItemStyle, // Aplica los estilos de props
+                    backgroundColor: route.name === props.state.routeNames[props.state.index] ? '#C3D730' : '#F0FFF2', // Color de fondo según el estado activo/inactivo
+                    shadowColor: "#000", // Color de la sombra
+                    shadowOffset: {
+                      width: 0,
+                      height: 2,
+                    },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                    
+                  }}
+                  labelStyle={{
+                    fontSize: 16,
+                    fontFamily: 'Montserrat-Medium',
+                    color: route.name === props.state.routeNames[props.state.index] ? '#34531F' : '#B3B3B3', // Color del texto según el estado activo/inactivo
+                  }}
+                  icon={({ focused, color, size }) => {
+                    let iconName;
+                    if (route.name === 'Perfil') {
+                      iconName = focused ? 'person' : 'person-outline';
+                    } else if (route.name === 'SireBot') {
+                      iconName = focused ? 'chatbox-ellipses' : 'chatbox-ellipses-outline';
+                    } else if (route.name === 'Reporte') {
+                      iconName = focused ? 'clipboard' : 'clipboard-outline';
+                    } else if (route.name === 'Acerca de') {
+                      iconName = focused ? 'information-circle' : 'information-circle-outline';
+                    } else if (route.name === 'Cargar CSV') {
+                      iconName = focused ? 'cloud-upload' : 'cloud-upload-outline';
+                    }
+                    return <Ionicons name={iconName} size={size} color={color} />;
+                  }}
+                />
+              );
+            }
+            return null; // Si es 'Cargar CSV', no lo renderizamos
+          })}
+        </>
+          )}
         </View>
       </ScrollView>
       <TouchableOpacity

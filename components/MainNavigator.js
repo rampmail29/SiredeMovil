@@ -37,6 +37,7 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 
+
 const Drawer = createDrawerNavigator(); 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -44,7 +45,7 @@ const Stack = createNativeStackNavigator();
 
 const MainNavigator = () => {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-
+ 
   const loadFontsAsync = async () => {
     try {
       await Font.loadAsync({
@@ -353,12 +354,12 @@ const MainNavigator = () => {
                 name="Acerca de"
                 component={AcercaDe}
             />  
-             <Drawer.Screen
-                name="Cargar CSV"
-                component={Cargar}
-            />
-           
-        </Drawer.Navigator>  
+              <Drawer.Screen 
+              name="Cargar CSV" 
+              component={Cargar} 
+              />
+            
+    </Drawer.Navigator>
 	)};
   
   return fontsLoaded ? (
