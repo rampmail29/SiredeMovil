@@ -950,6 +950,7 @@ export const obtenerDetalles = async (req, res) => {
         codigo_matricula: row.codigo_matricula,
         fecha_ingreso: row.fecha_ingreso,
         periodo_inicio: row.periodo_inicio,
+        periodo_reingreso: row.periodo_reingreso,
         periodo_desercion: row.periodo_desercion,
         fecha_graduacion: row.fecha_graduacion,
         estado_academico: row.estado_academico,
