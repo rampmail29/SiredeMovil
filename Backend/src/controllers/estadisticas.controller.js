@@ -1,5 +1,6 @@
 import { pool } from '../db.js';
 
+
 export const cargarEstudiantes = async (req, res) => {
   const { csvData, selectedOption } = req.body; // Obtenemos los datos del CSV y el selectedOption
 
@@ -8,6 +9,30 @@ export const cargarEstudiantes = async (req, res) => {
       console.error('No se recibieron datos para procesar.');
       return res.status(400).json({ success: false, message: 'No se recibieron datos para procesar.' });
   }
+
+  
+      function obtenerPeriodoDesdeMatricula(codigoMatricula, fechaIngreso) {
+
+        // Patrón para verificar el formato 2018-01 o 2018-01-E
+       const matriculaPattern = /^[0-9]{4}-[0-9]{2}(?:-E)?$/;
+
+       if (matriculaPattern.test(codigoMatricula)) {
+          // Extraemos los primeros 4 caracteres para el año
+          const anio = codigoMatricula.substring(0, 4);
+          
+          // Extraemos el mes (últimos dos dígitos del formato YYYY-MM)
+          const mes = codigoMatricula.substring(5, 7);
+          
+          // Convertimos el mes en el formato esperado (quitamos el cero inicial si existe)
+          const semestre = mes === '01' ? '1' : '2';
+          
+          // Retornamos el formato deseado: YYYY-1 o YYYY-2
+          return `${anio}-${semestre}`;
+       }else {
+          // Si no coincide con el patrón, usamos el periodo basado en la fecha de ingreso
+          return obtenerPeriodo(fechaIngreso);
+        }
+      }
 
       function convertirFecha(fechaStr) {
         if (!fechaStr || typeof fechaStr !== 'string') {
@@ -98,7 +123,8 @@ export const cargarEstudiantes = async (req, res) => {
             PERIODO,
             MAAC_PROMEDIO,
             ESTP_PROMEDIOGENERAL,
-            CATE_DESCRIPCION
+            CATE_DESCRIPCION,
+            ESTP_CODIGOMATRICULA
         } = estudiante;
 
         const nombre = PENG_PRIMERNOMBRE + ' ' + PENG_SEGUNDONOMBRE;
@@ -108,7 +134,10 @@ export const cargarEstudiantes = async (req, res) => {
         const celular = PEGE_TELEFONOCELULAR || PEGE_TELEFONO;
         const codigo_matricula = ESTP_ID;
         const fecha_ingreso = convertirFecha(ESTP_FECHAINGRESO);
-        const periodo_inicio = obtenerPeriodo(ESTP_FECHAINGRESO);
+       
+      // Aquí usamos la nueva función para obtener el periodo de inicio
+         const periodo_inicio = obtenerPeriodoDesdeMatricula(ESTP_CODIGOMATRICULA, ESTP_FECHAINGRESO);
+
         const estado_academico = 'Activo';
         const jornada = FRAN_DESCRIPCION;
         const sede = UNID_NOMBRE;
@@ -146,7 +175,7 @@ export const cargarEstudiantes = async (req, res) => {
         const estudianteId = await insertarEstudiante(nombre, apellido, tipo_documento, numero_documento, fecha_nacimiento, sexo, correo_electronico, celular);
 
         // 3. Insertar en la tabla 'estudiante_carrera'
-        await insertarEstudianteCarrera(estudianteId, carreraId, codigo_matricula, fecha_ingreso, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede);
+        await insertarEstudianteCarrera(estudianteId, carreraId, codigo_matricula, fecha_ingreso, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede, descripcion, periodo_reingreso );
 
         // 4. Insertar el historial de matrícula del estudiante
         await insertarHistoricoMatricula(estudianteId, carreraId, periodo_matricula, promedio_semestral, promedio_general);
@@ -262,7 +291,7 @@ export const insertarEstudiante = async (nombre, apellido, tipo_documento, numer
   }
 };
 
-export const insertarEstudianteCarrera = async (id_estudiante, codigo_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede) => {
+export const insertarEstudianteCarrera = async (id_estudiante, codigo_carrera, codigo_matricula, fecha_ingreso, periodo_inicio, periodo_desercion, fecha_graduacion, estado_academico, jornada, sede, descripcion, periodo_reingreso) => {
   try {
       // Obtener el id_carrera a partir del codigo_carrera
       const [carrera] = await pool.query('SELECT id_carrera FROM carreras WHERE id_carrera = ?', [codigo_carrera]);
@@ -292,26 +321,46 @@ export const insertarEstudianteCarrera = async (id_estudiante, codigo_carrera, c
               estado_academico = 'Activo';
               console.log(`El estado académico es ${estadoActual}, será cambiado a Activo.`);
           }
-
-          // Actualizar los campos del estudiante en la carrera
+        // Lógica para "Nuevo Reingreso"
+        if (descripcion === 'NUEVO REINGRESO') {
+          // No actualizamos el periodo_inicio, solo actualizamos el periodo_reingreso
+          console.log(`El estudiante ${id_estudiante} es Nuevo Reingreso`);
           const updates = [
-              codigo_matricula,
-              fecha_ingreso,
-              periodo_inicio,
-              (periodo_desercion && periodo_desercion.trim() !== '') ? periodo_desercion : existing[0].periodo_desercion,
-              (fecha_graduacion && fecha_graduacion.trim() !== '') ? fecha_graduacion : existing[0].fecha_graduacion,
-              estado_academico, // Aplicamos la lógica de estado
-              jornada,
-              sede,
-              id_estudiante,
-              id_carrera
+            codigo_matricula,
+            (periodo_desercion && periodo_desercion.trim() !== '') ? periodo_desercion : existing[0].periodo_desercion,
+            (fecha_graduacion && fecha_graduacion.trim() !== '') ? fecha_graduacion : existing[0].fecha_graduacion,
+            estado_academico, // Aplicamos la lógica de estado
+            jornada,
+            sede,
+            periodo_reingreso, // Guardamos el nuevo periodo de reingreso
+            id_estudiante,
+            id_carrera
           ];
 
           await pool.query(
-              'UPDATE estudiantes_carreras SET codigo_matricula = ?, fecha_ingreso = ?, periodo_inicio = ?, periodo_desercion = ?, fecha_graduacion = ?, estado_academico = ?, jornada = ?, sede = ? WHERE id_estudiante = ? AND id_carrera = ?',
-              updates
+            'UPDATE estudiantes_carreras SET codigo_matricula = ?, periodo_desercion = ?, fecha_graduacion = ?, estado_academico = ?, jornada = ?, sede = ?, periodo_reingreso = ? WHERE id_estudiante = ? AND id_carrera = ?',
+            updates
           );
+        } else {
+          // Actualización normal sin reingreso
+          const updates = [
+            codigo_matricula,
+            fecha_ingreso,
+            periodo_inicio, // Actualizar normalmente el periodo de inicio
+            (periodo_desercion && periodo_desercion.trim() !== '') ? periodo_desercion : existing[0].periodo_desercion,
+            (fecha_graduacion && fecha_graduacion.trim() !== '') ? fecha_graduacion : existing[0].fecha_graduacion,
+            estado_academico, // Aplicamos la lógica de estado
+            jornada,
+            sede,
+            id_estudiante,
+            id_carrera
+          ];
 
+          await pool.query(
+            'UPDATE estudiantes_carreras SET codigo_matricula = ?, fecha_ingreso = ?, periodo_inicio = ?, periodo_desercion = ?, fecha_graduacion = ?, estado_academico = ?, jornada = ?, sede = ? WHERE id_estudiante = ? AND id_carrera = ?',
+            updates
+          );
+        }
       } else {
           // Insertar nueva relación
           console.log(`Insertando nueva relación entre estudiante ${id_estudiante} y carrera ${id_carrera}.`);

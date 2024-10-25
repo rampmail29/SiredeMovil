@@ -34,8 +34,20 @@ const AcercaDe = () => {
       <View style={styles.container}>
 
         <Text style={styles.titulo}>SIREDE Móvil</Text>
-        <Text style={styles.version}>Versión 1.0.0</Text>
-        <Text style={styles.subtext1}>¡Ayúdanos a mejorar!</Text>
+        <Text style={styles.version}>Versión 1.1.0</Text>
+        <Text style={styles.subtext2}>Esta aplicación es parte de un proyecto de grado del programa
+           de Ingeniería de Telecomunicaciones de las UTS. 
+           El propósito de esta app es facilitar la gestión de Retención y Deserción de todos los
+           estudiantes matriculados que se carguen por programa académico. </Text>
+
+           <View style={styles.logosContainer}>
+            <Image
+              style={styles.logosImage}
+              source={require("../assets/logosTelecoCuadrado3.png")} // Ruta de tu foto
+            />
+          </View>
+       
+              <Text style={styles.subtext1}>Ayúdanos a mejorar</Text>
         <Text style={styles.subtext2}>Si encuentra algún error o tiene algún problema,
               envíe un informe de error desde el Menú lateral, en la opcion 'Reporte'. </Text>
         <Text style={styles.subtext2}>Si hay una característica en particular que esté dentro del contexto
@@ -53,8 +65,8 @@ const AcercaDe = () => {
           <View style={styles.textContainer}>
             <Text style={styles.nameText}>Héctor Andrés Prada Vargas</Text>
             <Text style={styles.descriptionText}>Ingeniero de Telecomunicaciones</Text>
-            <Text style={styles.descriptionText}>Correo: haprada@uts.edu.co</Text>
-            <Text style={styles.descriptionText}>Cel: +57 318 491 2470</Text>
+            <Text style={styles.descriptionText}>haprada@uts.edu.co</Text>
+            <Text style={styles.descriptionText}>+57 318 491 2470</Text>
           </View>
         </View>
 
@@ -69,8 +81,8 @@ const AcercaDe = () => {
         <View style={styles.textContainer}>
           <Text style={styles.nameText}>Andrés Sebastian Mogollon Rubio</Text>
           <Text style={styles.descriptionText}>Ingeniero de Telecomunicaciones</Text>
-          <Text style={styles.descriptionText}>Correo: amogollon@uts.edu.co</Text>
-          <Text style={styles.descriptionText}>Cel: +57 317 653 1091</Text>
+          <Text style={styles.descriptionText}>amogollon@uts.edu.co</Text>
+          <Text style={styles.descriptionText}>+57 317 653 1091</Text>
         </View>
         </View>
         
@@ -94,13 +106,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 16,
+    padding: 30,
     //borderWidth: 2,          // Ancho del borde
     //borderColor: 'red',     // Color del borde
   },
   titulo:{
     fontFamily: 'Montserrat-Bold',
-    fontSize: 40,
+    fontSize: 45,
     marginBottom: 5,
     color: '#C3D730', // Color del texto
 
@@ -113,13 +125,13 @@ const styles = StyleSheet.create({
   },
   subtext1:{
     fontFamily: 'Montserrat-SemiBold',
-    fontSize: 25,
+    fontSize: 27,
     marginBottom: 8,
     color: '#34531F', // Color del texto
   },
   subtext2:{
     fontFamily: 'Montserrat-Medium',
-    fontSize: 15,
+    fontSize: 18,
     marginBottom: 5,
     textAlign: 'justify',
     color: '#132F20', // Color del texto
@@ -155,9 +167,20 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    //borderWidth: 3,  // Ancho del borde
-    //borderColor: '#C3D730',  // Reemplaza 'tu_color' con el color deseado
+  
   },
+  logosContainer: {
+    alignItems: 'center',
+    marginTop:15,
+  },
+  logosImage: {
+    width: '100%',
+    height: undefined,  // Dejar el height como undefined para que el aspectRatio controle la altura
+    aspectRatio: 1,     // Mantiene una proporción cuadrada
+    resizeMode: 'contain',  // La imagen se ajustará sin cortarse ni distorsionarse
+    alignSelf: 'center',  // Centra la imagen dentro del contenedor       
+  },
+  
   textContainer: {
     alignItems: 'center',
     marginBottom:10,
