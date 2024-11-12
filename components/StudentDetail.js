@@ -325,6 +325,16 @@ const volverNavigation = () => {
                                 </View>
                               </View>
 
+                              {carrera.periodo_reingreso && (
+                                <View style={styles.infoItem1}>
+                                  <FontAwesome name="calendar-plus-o" size={30} color="#6D100A" />
+                                  <View>
+                                    <Text style={styles.labell}>Nuevo Reingreso:</Text>
+                                    <Text style={styles.text}>{carrera.periodo_reingreso}</Text>
+                                  </View>
+                                </View>
+                              )}
+
                               <View style={styles.infoItem1}>
                                 <FontAwesome name="map-signs" size={30} color="#6D100A" />
                                 <View>

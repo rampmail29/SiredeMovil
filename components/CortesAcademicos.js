@@ -26,7 +26,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
     } catch (error) {
       showMessage({
         message: "Error",
-        description: "Error al obtener cortes iniciales. Revisa tu conexión e inténtalo de nuevo.",
+        description: "Error al obtener cohortes iniciales. Revisa tu conexión e inténtalo de nuevo.",
         type: "danger",
         icon: "danger",
         position: "top",
@@ -101,7 +101,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
   // UseEffect separado para imprimir el valor actualizado de corteFinal
 useEffect(() => {
   if (corteFinal) {
-    console.log('Corte Final:', corteFinal);
+    console.log('Cohorte Final:', corteFinal);
   }
 }, [corteFinal]);
 
@@ -197,13 +197,13 @@ useEffect(() => {
 
       <TouchableOpacity style={styles.buttonCorte} onPress={() => setModalCorteInicialVisible(true)}>
         <Text style={styles.buttonTextCortes}>
-          {selectedCorteInicial ? `Corte inicial: ${selectedCorteInicial}` : 'Seleccionar Corte Inicial'}
+          {selectedCorteInicial ? `Cohorte inicial: ${selectedCorteInicial}` : 'Seleccionar Cohorte Inicial'}
         </Text>
       </TouchableOpacity>
 
       
 
-      {/* Modal para seleccionar Corte Inicial */}
+      {/* Modal para seleccionar Cohorte Inicial */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -212,7 +212,7 @@ useEffect(() => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Seleccione un corte inicial</Text>
+            <Text style={styles.modalTitle}>Seleccione un cohorte</Text>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
               {cortesIniciales.map((corte, index) => (
                 <TouchableOpacity

@@ -7,7 +7,7 @@ import OpcionesInforme from './OpcionesInforme';
 
 const programasAcademicosData = [
   { id: 1, title: 'Seleccione el programa académico al cual quiere consultar:', color: '#132F20' },
-  { id: 2, title: 'Seleccione el rango de cortes académicos que desea:', color: '#132F20' },
+  { id: 2, title: 'Seleccione un cohorte para el informe:', color: '#132F20' },
   { id: 3, title: 'Seleccione alguna de las opciones dadas para generar el informe correspondiente:', color: '#132F20' },
 ];
 
@@ -39,7 +39,7 @@ const InformeCarrera = () => {
 
   // Modificar dinámicamente el título del segundo objeto en programasAcademicosData
   if (selectedProgram) {
-    programasAcademicosData[1].title = `Seleccione el rango de cortes del programa:`;
+    programasAcademicosData[1].title = `Seleccione un cohorte para el informe:`;
   }
 
   return (

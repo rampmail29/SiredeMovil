@@ -43,7 +43,7 @@ const AcercaDe = () => {
            <View style={styles.logosContainer}>
             <Image
               style={styles.logosImage}
-              source={require("../assets/logosTelecoCuadrado3.png")} // Ruta de tu foto
+              source={require("../assets/logosTelecoCuadrado4.png")} // Ruta de tu foto
             />
           </View>
        
