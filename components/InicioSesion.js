@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TextInput, Image, ActivityIndicator, TouchableOpacity, Modal } from 'react-native';
 import { signInWithEmailAndPassword, sendPasswordResetEmail, getAuth, fetchSignInMethodsForEmail } from 'firebase/auth';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -142,14 +143,23 @@ const InicioSesion = ({ navigation }) => {
     }
   };
 
+  
+  const videoSource = require('../assets/fondoInicio.mp4');
+  const player = useVideoPlayer(videoSource, (player) => {
+    player.loop = true;
+    player.play();
+  });
+
   return (
     <View style={estilos.container}>
-      <Video
-        source={require('../assets/fondoInicio.mp4')}
+      <VideoView
         style={StyleSheet.absoluteFill}
+        player={player}
         resizeMode="cover"
-        shouldPlay
-        isLooping
+        allowsFullscreen={false}
+        allowsPictureInPicture={false}
+        nativeControls={false}
+        contentFit="cover"
       />
 
       <View style={estilos.contenidoContainer}>

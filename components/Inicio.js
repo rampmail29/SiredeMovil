@@ -7,10 +7,10 @@ import {
   Text,
   Dimensions,
   TouchableOpacity,
-  Animated
+  Animated,
+  ImageBackground
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Video } from 'expo-av'; // Importa el componente Video
 import { ScrollView } from 'react-native-gesture-handler';
 import * as Font from 'expo-font';
 
@@ -69,23 +69,27 @@ const Inicio = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header1}>
-            <Video
-                source={require('../assets/inicio.mp4')} 
-                style={StyleSheet.absoluteFill}
-                resizeMode="cover"
-                shouldPlay
-                isLooping
-              />
+
+        <Image
+            source={require('../assets/fondoinicio.jpg')}
+            style={{ 
+              ...StyleSheet.absoluteFillObject, 
+              width: '100%', 
+              height: '100%' 
+            }}
+            resizeMode="cover"  // Usar contain si no quieres que se recorte
+          />
+           
             <View>
               <Image
-                source={require('../assets/siredelogoblanco.png')}
+                source={require('../assets/siredelogo.png')}
                 style={styles.backgroundLogo1}
                 resizeMode="contain"
               />
               </View>
               <TouchableOpacity onPress={handleArrowPress}>
                 <Image
-                  source={require('../assets/arrow.gif')}
+                  source={require('../assets/arrow1.gif')}
                   style={styles.arrowgif}
                 />
               </TouchableOpacity>
