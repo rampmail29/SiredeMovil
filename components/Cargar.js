@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   subtitlecheck: {
-    fontSize: '16%',
+    fontSize: 16,
     fontFamily: 'Montserrat-Medium',
     textAlign:'center',
     marginBottom:10,

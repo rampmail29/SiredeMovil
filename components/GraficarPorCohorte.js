@@ -109,51 +109,43 @@ const GraficarCohorte = ({ route }) => {
         { value: inactivos.length, color: '#878787', gradientCenterColor: 'black'},
       ];
 
+      // Estado del gráfico
       const [focusedValue, setFocusedValue] = useState(null);
       const [centerLabel, setCenterLabel] = useState({ value: '', label: '' });
+
       useEffect(() => {
-        // Resetear el estado cada vez que cambian los datos
-        setFocusedValue(null);
-        setCenterLabel({ value: '', label: '' });
-    
-        // Determina cuál es el enfoque por defecto
-        const maxValue = Math.max(
-          graduados.length,
-          desertados.length,
-          retenidos.length,
-          activos.length,
-          inactivos.length
-        );
-    
-    
-        // Establece el foco inicial basado en el valor máximo
-        const initialFocusedIndex = pieData.findIndex(item => item.value === maxValue);
-        setFocusedValue(initialFocusedIndex);
-    
-        // Establecer el texto del centro
-    updateCenterLabel(initialFocusedIndex);
-    }, [graduados, desertados, retenidos, activos, inactivos]); // Dependencias
+          // Calcula el índice con el valor máximo sólo cuando cambian los datos
+          const maxValue = Math.max(graduados.length, desertados.length, retenidos.length, activos.length, inactivos.length);
+          const initialFocusedIndex = pieData.findIndex(item => item.value === maxValue);
+
+          // Actualiza enfoque y etiqueta si los datos cambian
+          if (initialFocusedIndex !== focusedValue) {
+              setFocusedValue(initialFocusedIndex);
+              updateCenterLabel(initialFocusedIndex);
+          }
+      }, [graduados, desertados, retenidos, activos, inactivos]);
 
     
+      // Función de actualización del centro
       const updateCenterLabel = (index) => {
         switch (index) {
-          case 0:
-            setCenterLabel({ value: porcentajeGraduados, label: 'Graduados' });
-            break;
-          case 1:
-            setCenterLabel({ value: porcentajeDesertados, label: 'Desertados' });
-            break;
-          case 2:
-            setCenterLabel({ value: porcentajeRetenidos, label: 'Retenidos' });
-            break;
-          case 3:
-            setCenterLabel({ value: porcentajeActivos, label: 'Activos' });
-            break;
-          case 4:
-            setCenterLabel({ value: porcentajeInactivos, label: 'Inactivos' });
-            break;
-          default:
-            setCenterLabel({ value: '', label: '' });
+            case 0:
+                setCenterLabel({ value: porcentajeGraduados, label: 'Graduados' });
+                break;
+            case 1:
+                setCenterLabel({ value: porcentajeDesertados, label: 'Desertados' });
+                break;
+            case 2:
+                setCenterLabel({ value: porcentajeRetenidos, label: 'Retenidos' });
+                break;
+            case 3:
+                setCenterLabel({ value: porcentajeActivos, label: 'Activos' });
+                break;
+            case 4:
+                setCenterLabel({ value: porcentajeInactivos, label: 'Inactivos' });
+                break;
+            default:
+                setCenterLabel({ value: '', label: '' });
         }
       };
 
@@ -312,6 +304,15 @@ const GraficarCohorte = ({ route }) => {
    // Obtener mensaje basado en la comparación de los periodos
    const mensajePeriodo = compararPeriodos(corteFinal, periodoActual);
 
+   console.log('focusedValue:', focusedValue);
+   console.log('centerLabel:', centerLabel);
+
+   const pieData2 = [
+    {value: 54, color: '#177AD5'},
+    {value: 40, color: '#79D2DE'},
+    {value: 20, color: '#ED6665'},
+  ];
+
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
       <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
@@ -333,33 +334,35 @@ const GraficarCohorte = ({ route }) => {
           </Text>
           <View style={styles.pieChartContainer}>
           <PieChart
-              data={pieData.map((item, index) => ({
+            data={pieData.map((item, index) => ({
                 ...item,
-                focused: index === focusedValue,
-              }))}
-              donut
-              showGradient
-              focusOnPress
-              toggleFocusOnPress
-              radius={100}
-              innerRadius={70}
-              innerCircleColor={'#ffffff'}
-              onPress={(item, index) => {
-                setFocusedValue(index);
-                updateCenterLabel(index); // Cambia el texto en el centro cuando se presiona
-              }}
-              centerLabelComponent={() => (
+                focused: index === focusedValue, // Control manual de enfoque
+            }))}
+            donut
+            showGradient
+            radius={100}
+            innerRadius={70}
+            innerCircleColor={'#ffffff'}
+            onPress={(item, index) => {
+                console.log("Item pressed:", item);
+                console.log("Index pressed:", index);
+
+                setFocusedValue(index);  // Actualiza el valor seleccionado
+                updateCenterLabel(index); // Actualiza el centro
+            }}
+            centerLabelComponent={() => (
                 <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 22, color: '#132F20', fontWeight: 'bold', fontFamily: 'Montserrat-Medium' }}>
-                    {centerLabel.value}%
-                  </Text>
-                  <Text style={{ fontSize: 14, color: '#132F20', fontFamily: 'Montserrat-Medium' }}>
-                    {centerLabel.label}
-                  </Text>
+                    <Text style={{ fontSize: 22, color: '#132F20', fontWeight: 'bold', fontFamily: 'Montserrat-Medium' }}>
+                        {centerLabel.value}%
+                    </Text>
+                    <Text style={{ fontSize: 14, color: '#132F20', fontFamily: 'Montserrat-Medium' }}>
+                        {centerLabel.label}
+                    </Text>
                 </View>
-              )}
-            />
-            {renderLegendComponent()}
+            )}
+        />
+
+          {renderLegendComponent()}
           </View>
 
           <Text style={styles.resultadosText}>Total de Estudiantes: {totalCohorte}</Text>

@@ -235,7 +235,7 @@ const Estadisticas = () => {
   return (
     <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
     <View style={styles.container}>
-      <Text style={styles.title}>Estadísticas de cohorte inicial</Text>
+      <Text style={styles.title}>Estadísticas de Cohorte inicial</Text>
       <Text style={styles.subtitle}>Seleccione el programa académico y el periodo de inicio:</Text>
       
       <TouchableOpacity style={styles.button} onPress={() => setModalProgramaVisible(true)}>
