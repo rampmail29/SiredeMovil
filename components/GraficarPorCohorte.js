@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 const GraficarCohorte = ({ route }) => {
     const { fromScreen, selectedCorteInicial, corteFinal, programaSeleccionado,tipoProgramaSeleccionado, datosBackend } = route.params;
     const navigation = useNavigation();
+    console.log('Total Matriculados: '+ datosBackend.totalMatriculados)
  
     const obtenerPeriodoActual = () => {
       const hoy = new Date();
@@ -94,7 +95,6 @@ const GraficarCohorte = ({ route }) => {
       return `${año}-${periodo}`;
   }
    const maxGraduacionTec= periodoMaxGraduacionOportunaTec(corteFinal)
-    console.log(graduados);
     console.log('Periodo Tope para terminar materias: '+ corteFinal);
     console.log('Periodo maximo para graduarse oportanamete: '+ maxGraduacionTec);
 
@@ -407,8 +407,9 @@ const GraficarCohorte = ({ route }) => {
 
           {renderLegendComponent()}
           </View>
-
-          <Text style={styles.resultadosText}>Total de Estudiantes: {totalCohorte}</Text>
+          <Text style={styles.resultadosText}>Total estudiantes matriculados: {datosBackend.totalMatriculados}</Text>
+          <Text style={styles.resultadosText1}>Estudiantes nuevos: {totalCohorte}</Text>
+          
           <View style={styles.separator} />
 
           {mensajePeriodo === 'Periodo finalizado' && (
@@ -538,10 +539,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resultadosText: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Montserrat-Bold',
     marginTop:10,
-    marginBottom: 10,
+    color:'#132F20'
+  },
+  resultadosText1: {
+    fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
     color:'#132F20'
   },
   graduacionOportuna: {

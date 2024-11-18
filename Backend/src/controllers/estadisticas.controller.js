@@ -996,13 +996,23 @@ export const obtenerEstudiantesPorCorte = async (req, res) => {
     const activos = estudiantes.filter(est => est.estado_academico === 'Activo');
     const inactivos = estudiantes.filter(est => est.estado_academico === 'Inactivo');
 
+    // Nueva consulta para contar el total de matriculados en el periodoInicial y carrera en la tabla 'historico_matriculas'
+    const [[{ totalMatriculados }]] = await pool.query(`
+      SELECT COUNT(*) AS totalMatriculados
+      FROM historico_matriculas
+      WHERE id_carrera = ? AND periodo_matricula = ?
+    `, [idCarrera, periodoInicial]);
+
+    console.log('Total matriculados en periodo inicial:', totalMatriculados); // Depuración
+
     res.json({
       todosEstudiantes: estudiantes,
       graduados,
       desertados,
       retenidos,
       activos,
-      inactivos
+      inactivos,
+      totalMatriculados // Añadimos el total de matriculados en el periodo inicial a la respuesta
     });
   } catch (error) {
     console.error('Error al obtener los estudiantes:', error);

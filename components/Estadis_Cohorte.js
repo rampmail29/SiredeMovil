@@ -224,6 +224,7 @@ const Estadisticas = () => {
             desertados: datosBackend.desertados,
             activos: datosBackend.activos,
             inactivos: datosBackend.inactivos,
+            totalMatriculados: datosBackend.totalMatriculados
           },
         });
       }, 2500);
