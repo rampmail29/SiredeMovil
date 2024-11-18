@@ -162,6 +162,7 @@ const Estadisticas = () => {
           selectedCorteInicial,
           selectedCorteFinal,
           programaSeleccionado,
+          idSeleccionado,
           datosBackend,
         });
       }, 2500);

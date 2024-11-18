@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import { VictoryBar, VictoryChart, VictoryAxis, VictoryTheme, VictoryLabel } from 'victory-native';
+import { API_BASE_URL } from './Config';
 import { useNavigation } from '@react-navigation/native';
 
 const GraficarMatriculas = ({ route }) => {
-    const { fromScreen, selectedCorteInicial, selectedCorteFinal, programaSeleccionado, datosBackend } = route.params;
+    const { fromScreen, selectedCorteInicial, selectedCorteFinal, programaSeleccionado, idSeleccionado, datosBackend } = route.params;
+    const [resultadosTransformados, setResultadosTransformados] = useState([]);
     const navigation = useNavigation();
 
     // Función para transformar los datos del backend en un formato adecuado para los gráficos
@@ -27,7 +29,44 @@ const GraficarMatriculas = ({ route }) => {
     };
 
     const { dataDesercion, dataGraduados, dataRetenidos, dataInactivos } = transformarDatos(datosBackend);
+ 
+        // Función para obtener el segundo periodo anterior
+        function obtenerSegundoPeriodoAnterior(periodo) {
+            const [anio, semestre] = periodo.split('-'); // Separamos el año y el semestre
+            let anioAnterior = parseInt(anio);
+            let semestreAnterior = parseInt(semestre);
+        
+            // Restamos dos periodos completos
+            semestreAnterior -= 2;
+        
+            if (semestreAnterior <= 0) {
+            semestreAnterior += 2; // Regresamos a semestre 2
+            anioAnterior -= 1; // Restamos un año
+            }
+        
+            return `${anioAnterior}-${semestreAnterior}`; // Retorna el periodo dos periodos antes
+        }
+        
+        // Función para procesar todos los periodos y obtener el segundo periodo anterior
+        function procesarPeriodos(dataDesercion) {
+            const resultados = dataDesercion.map(item => {
+            const segundoPeriodoAnterior = obtenerSegundoPeriodoAnterior(item.periodo);
+            return {
+                periodo: item.periodo,
+                desertores: item.desertores,
+                segundoPeriodoAnterior
+            };
+            });
+        
+            return resultados;
+        }
+        
+        // Usamos la función para procesar los periodos
+       
 
+        const periodosFinales = procesarPeriodos(dataDesercion);
+
+                
     const capitalizeFirstLetter = (string) => {
         return string
           .toLowerCase()
@@ -55,8 +94,7 @@ const GraficarMatriculas = ({ route }) => {
 
         const rango = maxEstado - minEstado;
         const umbralSimilitud = 1;
-        const nombreCarrera = capitalizeFirstLetter(programaSeleccionado);
-
+ 
         if (rango <= umbralSimilitud) {
             tendencia = `los ${nombreEstado} han permanecido bastante constante, con un mínimo de ${minEstado} en el periodo ${periodoMin} y un máximo de ${maxEstado} ${nombreEstado} en el periodo ${periodoMax}.`;
         } else if (incremento === data.length - 1) {
@@ -79,6 +117,54 @@ const GraficarMatriculas = ({ route }) => {
     const mensajeTendenciaRetenidos = analizarTendencias(dataRetenidos, 'retenidos');
     const mensajeTendenciaInactivos = analizarTendencias(dataInactivos, 'inactivos');
 
+    
+    useEffect(() => {
+        const obtenerMatriculadosPorPeriodos = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/matriculados-por-periodos`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  idSeleccionado,
+                  periodosFinales,
+                }),
+              });
+
+              const data = await response.json();
+              const resultadosTransformados = data.map(item => {
+                const porcentajeDesertores = item.matriculados > 0
+                  ? (item.desertores / item.matriculados) * 100
+                  : 0;
+    
+                return {
+                  desertores: parseFloat(porcentajeDesertores.toFixed(1)), // Para convertir a porcentaje
+                  periodo: item.periodo,
+                };
+              });
+
+            setResultadosTransformados(resultadosTransformados); 
+            console.log(resultadosTransformados)
+        } catch (error) {
+                showMessage({
+                message: "Error",
+                description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
+                type: "danger",
+                icon: "danger",
+                titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+                textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+                duration: 3000,
+                });
+        }
+    };
+
+    obtenerMatriculadosPorPeriodos();
+
+}, []);
+console.log(dataDesercion)
+
+    
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
             <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
@@ -97,7 +183,7 @@ const GraficarMatriculas = ({ route }) => {
 
                     {/* Gráfico de Deserción */}
                     <View style={styles.chartContainer}>
-                        <Text style={styles.chartTitleD}>Histograma de Deserción</Text>
+                        <Text style={styles.chartTitleD}>Tasa de Deserción Anual</Text>
                         <VictoryChart
                             theme={VictoryTheme.material}
                             domainPadding={{ x: dataDesercion.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
@@ -106,7 +192,7 @@ const GraficarMatriculas = ({ route }) => {
                                 tickFormat={dataDesercion.map(d => d.periodo)} // Muestra los periodos en el eje X
                                 style={{
                                     tickLabels: {
-                                        fontSize: dataDesercion.length > 5 ? 9 : (dataDesercion.length > 4 ? 10 : 15), // Ajusta el tamaño del texto
+                                        fontSize: resultadosTransformados.length > 5 ? 9 : (resultadosTransformados.length > 4 ? 10 : 15), // Ajusta el tamaño del texto
                                         fill: '#132F20',
                                         fontFamily: 'Montserrat-Bold'
                                     },
@@ -120,7 +206,7 @@ const GraficarMatriculas = ({ route }) => {
                                 }}
                             />
                             <VictoryBar
-                                data={dataDesercion}
+                                data={resultadosTransformados}
                                 x="periodo"
                                 y="desertores"
                                 cornerRadius={{ topLeft: 15 }}

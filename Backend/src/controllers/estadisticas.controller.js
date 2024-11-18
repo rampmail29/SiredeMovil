@@ -1066,6 +1066,41 @@ export const obtenerEstudiantesPorMatricula = async (req, res) => {
   }
 };
 
+export const obtenerMatriculadosPorPeriodos = async (req, res) => {
+  const { idSeleccionado, periodosFinales } = req.body;
+  console.log(idSeleccionado)
+
+  try {
+    const resultados = [];
+
+    for (const periodoData of periodosFinales) {
+      const { periodo, desertores, segundoPeriodoAnterior } = periodoData;
+
+      // Consulta utilizando `segundoPeriodoAnterior` para obtener el conteo de matriculados
+      const [rows] = await pool.query(`
+        SELECT COUNT(*) AS matriculados
+        FROM historico_matriculas
+        WHERE id_carrera = ? AND periodo_matricula = ?
+      `, [idSeleccionado, segundoPeriodoAnterior]);
+
+      const totalMatriculados = rows[0].matriculados;
+
+      // Agregar el resultado incluyendo desertores y periodo actual
+      resultados.push({
+        periodo, // Este es el periodo actual del objeto
+        segundoPeriodoAnterior, // El periodo anterior usado en la consulta
+        matriculados: totalMatriculados,
+        desertores
+      });
+    }
+
+    // Enviar el array de resultados con todos los datos necesarios
+    res.json(resultados);
+  } catch (error) {
+    console.error("Error al obtener los matriculados por periodos:", error);
+    res.status(500).json({ error: "Error al obtener los matriculados por periodos" });
+  }
+};
 
 
   export const obtenerDetallesEstudiante = async (req, res) => {
