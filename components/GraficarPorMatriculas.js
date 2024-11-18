@@ -9,6 +9,8 @@ const GraficarMatriculas = ({ route }) => {
     const [resultadosTransformados, setResultadosTransformados] = useState([]);
     const navigation = useNavigation();
 
+    console.log(datosBackend);
+
     // Función para transformar los datos del backend en un formato adecuado para los gráficos
     const transformarDatos = (datosBackend) => {
         const dataDesercion = [];
@@ -16,66 +18,63 @@ const GraficarMatriculas = ({ route }) => {
         const dataRetenidos = [];
         const dataInactivos = [];
 
-        Object.keys(datosBackend).forEach(periodo => {
-            const { Desertores, Graduados, Retenidos, Inactivos } = datosBackend[periodo];
+        if (!datosBackend) return { dataDesercion, dataGraduados, dataRetenidos, dataInactivos };
 
-            dataDesercion.push({ periodo, desertores: Desertores });
-            dataGraduados.push({ periodo, graduados: Graduados });
-            dataRetenidos.push({ periodo, retenidos: Retenidos });
-            dataInactivos.push({ periodo, inactivos: Inactivos });
+        Object.keys(datosBackend).forEach(periodo => {
+            const { Desertores, Graduados, Retenidos, Inactivos } = datosBackend[periodo] || {};
+
+            // Asegurarse de que los valores no son undefined antes de agregarlos
+            if (Desertores !== undefined) dataDesercion.push({ periodo, desertores: Desertores });
+            if (Graduados !== undefined) dataGraduados.push({ periodo, graduados: Graduados });
+            if (Retenidos !== undefined) dataRetenidos.push({ periodo, retenidos: Retenidos });
+            if (Inactivos !== undefined) dataInactivos.push({ periodo, inactivos: Inactivos });
         });
 
         return { dataDesercion, dataGraduados, dataRetenidos, dataInactivos };
     };
 
-    const { dataDesercion, dataGraduados, dataRetenidos, dataInactivos } = transformarDatos(datosBackend);
- 
-        // Función para obtener el segundo periodo anterior
-        function obtenerSegundoPeriodoAnterior(periodo) {
-            const [anio, semestre] = periodo.split('-'); // Separamos el año y el semestre
-            let anioAnterior = parseInt(anio);
-            let semestreAnterior = parseInt(semestre);
-        
-            // Restamos dos periodos completos
-            semestreAnterior -= 2;
-        
-            if (semestreAnterior <= 0) {
-            semestreAnterior += 2; // Regresamos a semestre 2
-            anioAnterior -= 1; // Restamos un año
-            }
-        
-            return `${anioAnterior}-${semestreAnterior}`; // Retorna el periodo dos periodos antes
+    // Llama a transformarDatos solo si datosBackend no es undefined
+    const { dataDesercion = [], dataGraduados = [], dataRetenidos = [], dataInactivos = [] } = transformarDatos(datosBackend);
+
+    // Función para obtener el segundo periodo anterior
+    function obtenerSegundoPeriodoAnterior(periodo) {
+        const [anio, semestre] = periodo.split('-');
+        let anioAnterior = parseInt(anio);
+        let semestreAnterior = parseInt(semestre);
+
+        semestreAnterior -= 2;
+
+        if (semestreAnterior <= 0) {
+            semestreAnterior += 2;
+            anioAnterior -= 1;
         }
-        
-        // Función para procesar todos los periodos y obtener el segundo periodo anterior
-        function procesarPeriodos(dataDesercion) {
-            const resultados = dataDesercion.map(item => {
+
+        return `${anioAnterior}-${semestreAnterior}`;
+    }
+
+    // Procesa periodos y verifica que dataDesercion esté definido
+    function procesarPeriodos(dataDesercion) {
+        if (!dataDesercion) return [];
+
+        const resultados = dataDesercion.map(item => {
+            if (!item || !item.periodo) return {}; // Verificación adicional
             const segundoPeriodoAnterior = obtenerSegundoPeriodoAnterior(item.periodo);
             return {
                 periodo: item.periodo,
                 desertores: item.desertores,
                 segundoPeriodoAnterior
             };
-            });
-        
-            return resultados;
-        }
-        
-        // Usamos la función para procesar los periodos
-       
+        });
 
-        const periodosFinales = procesarPeriodos(dataDesercion);
+        return resultados;
+    }
 
-                
-    const capitalizeFirstLetter = (string) => {
-        return string
-          .toLowerCase()
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-    };
+    const periodosFinales = procesarPeriodos(dataDesercion);
 
+    // Resto del código, incluyendo analizarTendencias
     const analizarTendencias = (data, nombreEstado) => {
+        if (!data || data.length === 0) return ''; // Verificación adicional para evitar errores
+
         let tendencia = '';
         let incremento = 0;
 
@@ -89,82 +88,85 @@ const GraficarMatriculas = ({ route }) => {
 
         const maxEstado = Math.max(...data.map(d => d[nombreEstado]));
         const minEstado = Math.min(...data.map(d => d[nombreEstado]));
-        const periodoMax = data.find(d => d[nombreEstado] === maxEstado).periodo;
-        const periodoMin = data.find(d => d[nombreEstado] === minEstado).periodo;
+        const periodoMax = data.find(d => d[nombreEstado] === maxEstado)?.periodo || 'Desconocido';
+        const periodoMin = data.find(d => d[nombreEstado] === minEstado)?.periodo || 'Desconocido';
 
         const rango = maxEstado - minEstado;
         const umbralSimilitud = 1;
- 
+
+        const minValue = nombreEstado === "desertores" ? `${minEstado}%` : minEstado;
+        const maxValue = nombreEstado === "desertores" ? `${maxEstado}%` : maxEstado;
+
         if (rango <= umbralSimilitud) {
-            tendencia = `los ${nombreEstado} han permanecido bastante constante, con un mínimo de ${minEstado} en el periodo ${periodoMin} y un máximo de ${maxEstado} ${nombreEstado} en el periodo ${periodoMax}.`;
+            tendencia = `Los ${nombreEstado} han permanecido bastante constantes, con un mínimo de ${minValue} en el periodo ${periodoMin} y un máximo de ${maxValue} en el periodo ${periodoMax}.`;
         } else if (incremento === data.length - 1) {
-            tendencia = `los ${nombreEstado} han ido en aumento constante, alcanzando un máximo de ${maxEstado} ${nombreEstado} en el periodo ${periodoMax}.`;
+            tendencia = `Los ${nombreEstado} han ido en aumento constante, alcanzando un máximo de ${maxValue} en el periodo ${periodoMax}.`;
         } else if (incremento === -(data.length - 1)) {
-            tendencia = `los ${nombreEstado} han ido en disminución constante, con un mínimo de ${minEstado} ${nombreEstado} en el periodo ${periodoMin}.`;
+            tendencia = `Los ${nombreEstado} han ido en disminución constante, con un mínimo de ${minValue} en el periodo ${periodoMin}.`;
         } else if (incremento > 0) {
-            tendencia = `los ${nombreEstado} han tenido un aumento general, con un máximo de ${maxEstado} ${nombreEstado} en el periodo ${periodoMax} y en este caso un minimo de ${minEstado} ${nombreEstado} en el periodo ${periodoMin}, aunque con algunas fluctuaciones adicionales.`;
+            tendencia = `Los ${nombreEstado} han tenido un aumento general, con un máximo de ${maxValue} en el periodo ${periodoMax} y un mínimo de ${minValue} en el periodo ${periodoMin}, aunque con algunas fluctuaciones adicionales.`;
         } else if (incremento < 0) {
-            tendencia = `los ${nombreEstado} han mostrado una tendencia a la baja, alcanzando un mínimo de ${minEstado} en el periodo ${periodoMin}, con algunas subidas en ciertos periodos.`;
+            tendencia = `Los ${nombreEstado} han mostrado una tendencia a la baja, alcanzando un mínimo de ${minValue} en el periodo ${periodoMin}, con algunas subidas en ciertos periodos.`;
         } else {
-            tendencia = `los datos muestran una gran variabilidad en los ${nombreEstado}, con picos y caídas en diferentes periodos, alcanzando un máximo de ${maxEstado} ${nombreEstado} en el periodo ${periodoMax} y un mínimo de ${minEstado} ${nombreEstado} en el periodo ${periodoMin}.`;
+            tendencia = `Los datos muestran una gran variabilidad en los ${nombreEstado}, con picos y caídas en diferentes periodos, alcanzando un máximo de ${maxValue} en el periodo ${periodoMax} y un mínimo de ${minValue} en el periodo ${periodoMin}.`;
         }
 
         return tendencia;
     };
 
-    const mensajeTendenciaDesercion = analizarTendencias(dataDesercion, 'desertores');
-    const mensajeTendenciaGraduados = analizarTendencias(dataGraduados, 'graduados');
-    const mensajeTendenciaRetenidos = analizarTendencias(dataRetenidos, 'retenidos');
-    const mensajeTendenciaInactivos = analizarTendencias(dataInactivos, 'inactivos');
-
+    // Llama a analizarTendencias solo si resultadosTransformados no está vacío
+    const mensajeTendenciaDesercion = resultadosTransformados.length > 0 ? analizarTendencias(resultadosTransformados, 'desertores') : '';
+    const mensajeTendenciaGraduados = dataGraduados.length > 0 ? analizarTendencias(dataGraduados, 'graduados') : '';
+    const mensajeTendenciaRetenidos = dataRetenidos.length > 0 ? analizarTendencias(dataRetenidos, 'retenidos') : '';
+    const mensajeTendenciaInactivos = dataInactivos.length > 0 ? analizarTendencias(dataInactivos, 'inactivos') : '';
     
     useEffect(() => {
         const obtenerMatriculadosPorPeriodos = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/matriculados-por-periodos`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  idSeleccionado,
-                  periodosFinales,
-                }),
-              });
-
-              const data = await response.json();
-              const resultadosTransformados = data.map(item => {
-                const porcentajeDesertores = item.matriculados > 0
-                  ? (item.desertores / item.matriculados) * 100
-                  : 0;
-    
-                return {
-                  desertores: parseFloat(porcentajeDesertores.toFixed(1)), // Para convertir a porcentaje
-                  periodo: item.periodo,
-                };
-              });
-
-            setResultadosTransformados(resultadosTransformados); 
-            console.log(resultadosTransformados)
-        } catch (error) {
-                showMessage({
-                message: "Error",
-                description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
-                type: "danger",
-                icon: "danger",
-                titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
-                textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
-                duration: 3000,
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/matriculados-por-periodos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idSeleccionado, periodosFinales }),
                 });
-        }
+
+                const data = await response.json();
+                const resultadosTransformados = data.map(item => {
+                    const porcentajeDesertores = item.matriculados > 0
+                        ? (item.desertores / item.matriculados) * 100
+                        : 0;
+
+                    return {
+                        desertores: parseFloat(porcentajeDesertores.toFixed(1)),
+                        periodo: item.periodo,
+                    };
+                });
+
+                setResultadosTransformados(resultadosTransformados); 
+                console.log(resultadosTransformados);
+            } catch (error) {
+                showMessage({
+                    message: "Error",
+                    description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
+                    type: "danger",
+                    icon: "danger",
+                    titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' },
+                    textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' },
+                    duration: 3000,
+                });
+            }
+        };
+
+        obtenerMatriculadosPorPeriodos();
+    }, []); 
+
+    const capitalizeFirstLetter = (string) => {
+        return string
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
     };
 
-    obtenerMatriculadosPorPeriodos();
-
-}, []);
-console.log(dataDesercion)
-
-    
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
             <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
