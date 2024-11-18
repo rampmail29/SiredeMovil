@@ -980,7 +980,7 @@ export const obtenerEstudiantesPorCorte = async (req, res) => {
 
   try {
     const [rows] = await pool.query(`
-      SELECT e.id_estudiante, e.nombre, e.apellido, e.numero_documento, ec.estado_academico
+      SELECT e.id_estudiante, e.nombre, e.apellido, e.numero_documento, ec.estado_academico, ec.periodo_graduacion
       FROM estudiantes e
       JOIN estudiantes_carreras ec ON e.id_estudiante = ec.id_estudiante
       WHERE ec.id_carrera = ? AND ec.periodo_inicio = ?

@@ -6,9 +6,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const GraficarCohorte = ({ route }) => {
-    const { fromScreen, selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend } = route.params;
+    const { fromScreen, selectedCorteInicial, corteFinal, programaSeleccionado,tipoProgramaSeleccionado, datosBackend } = route.params;
     const navigation = useNavigation();
-
+ 
     const obtenerPeriodoActual = () => {
       const hoy = new Date();
       const año = hoy.getFullYear();
@@ -77,10 +77,65 @@ const GraficarCohorte = ({ route }) => {
     const desertados = datosBackend.desertados || [];
     const activos = datosBackend.activos || [];
     const inactivos = datosBackend.inactivos || [];
-    
-    // Corrige el uso de la propiedad .length
+
+    function periodoMaxGraduacionOportunaTec(corteFinal) {
+      let [año, periodo] = corteFinal.split('-').map(Number);
+  
+      // Sumar dos periodos
+      for (let i = 0; i < 2; i++) {
+          if (periodo === 1) {
+              periodo = 2;
+          } else {
+              año += 1;
+              periodo = 1;
+          }
+      }
+  
+      return `${año}-${periodo}`;
+  }
+   const maxGraduacionTec= periodoMaxGraduacionOportunaTec(corteFinal)
+    console.log(graduados);
+    console.log('Periodo Tope para terminar materias: '+ corteFinal);
+    console.log('Periodo maximo para graduarse oportanamete: '+ maxGraduacionTec);
+
+    // La función que compara periodos académicos
+      function esMenorOIgualPeriodo(periodo1, periodo2) {
+        const [año1, periodo1Num] = periodo1.split('-').map(Number);
+        const [año2, periodo2Num] = periodo2.split('-').map(Number);
+
+        // Compara primero los años
+        if (año1 < año2) return true;
+        if (año1 > año2) return false;
+
+        // Si los años son iguales, compara el periodo
+        return periodo1Num <= periodo2Num;
+      }
+
+      // Función para obtener los graduados oportunos
+      function obtenerGraduadosOportunos(graduados, maxGraduacionTec) {
+        return graduados.filter(estudiante => 
+            esMenorOIgualPeriodo(estudiante.periodo_graduacion, maxGraduacionTec)
+        );
+      }
+
+      const graduadosOportunos = obtenerGraduadosOportunos(graduados, maxGraduacionTec);
+      console.log('Estudiantes Graduados Oportunamente: '+ graduadosOportunos.length);
+        
+    // Numero total de estuidantes en el cohorte
     const totalCohorte = graduados.length + retenidos.length + desertados.length + activos.length + inactivos.length;
-    
+
+    console.log('Total estudiantes en la cohorte: '+ totalCohorte)
+
+    function calcularTasaGraduacionOportuna(totalCohorte, graduadosOportunos) {
+      const tasaGraduacionOportuna = (graduadosOportunos.length / totalCohorte) * 100;
+      return tasaGraduacionOportuna.toFixed(2); // Redondea a dos decimales
+  }
+  const graduacionOportuna= calcularTasaGraduacionOportuna(totalCohorte, graduadosOportunos);
+  
+
+   console.log(`Tasa de Graduación Oportuna: ${graduacionOportuna}%`);
+  
+
     // Calcula los porcentajes solo si totalCohorte no es 0 para evitar divisiones por 0
     const formatearPorcentaje = (valor) => {
       return Number.isInteger(valor) ? valor : valor.toFixed(1);
@@ -304,15 +359,6 @@ const GraficarCohorte = ({ route }) => {
    // Obtener mensaje basado en la comparación de los periodos
    const mensajePeriodo = compararPeriodos(corteFinal, periodoActual);
 
-   console.log('focusedValue:', focusedValue);
-   console.log('centerLabel:', centerLabel);
-
-   const pieData2 = [
-    {value: 54, color: '#177AD5'},
-    {value: 40, color: '#79D2DE'},
-    {value: 20, color: '#ED6665'},
-  ];
-
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
       <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
@@ -344,9 +390,6 @@ const GraficarCohorte = ({ route }) => {
             innerRadius={70}
             innerCircleColor={'#ffffff'}
             onPress={(item, index) => {
-                console.log("Item pressed:", item);
-                console.log("Index pressed:", index);
-
                 setFocusedValue(index);  // Actualiza el valor seleccionado
                 updateCenterLabel(index); // Actualiza el centro
             }}
@@ -367,6 +410,22 @@ const GraficarCohorte = ({ route }) => {
 
           <Text style={styles.resultadosText}>Total de Estudiantes: {totalCohorte}</Text>
           <View style={styles.separator} />
+
+          {mensajePeriodo === 'Periodo finalizado' && (
+          <View style={styles.pieChartContainer2}>
+            {parseFloat(graduacionOportuna) === 0 ? (
+              <Text style={styles.graduacionOportuna}>
+                <Text style={{ fontFamily:'Montserrat-Bold', color:'red'}}>*</Text> Desafortunadamente, ningún estudiante de esta cohorte logro graduarse oportunamente.
+              </Text>
+            ) : (
+              <Text style={styles.graduacionOportuna}>
+                <Text style={{ fontFamily:'Montserrat-Bold', color:'red'}}>*</Text> La tasa de <Text style={{ fontFamily:'Montserrat-Bold'}}>graduación oportuna</Text> para esta cohorte fue de
+                <Text style={{ fontFamily:'Montserrat-Bold'}}> {graduacionOportuna}%</Text> con un total de {graduadosOportunos.length} graduados.
+              </Text>
+            )}
+          </View>
+        )}
+
 
           <Text style={styles.analisisText}>{generarTextoDinamico()}</Text>
 
@@ -425,9 +484,7 @@ const styles = StyleSheet.create({
   pieChartContainer: {
     margin: 10,
     padding: 10,
-    borderRadius: 10,
     backgroundColor: '#F0FFF2',
-    borderColor:"#34531F",
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -440,6 +497,23 @@ const styles = StyleSheet.create({
     borderRadius:20,
     borderWidth: 3,          // Ancho del borde
     borderColor: '#34531F',     // Color del borde 
+    justifyContent:"center"
+  },
+  pieChartContainer2: {
+    width:"100%",
+    margin: 10,
+    padding: 15,
+    backgroundColor: '#F0FFF2',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 10,
+    borderRadius:10,
     justifyContent:"center"
   },
   legendGeneral: {
@@ -469,6 +543,13 @@ const styles = StyleSheet.create({
     marginTop:10,
     marginBottom: 10,
     color:'#132F20'
+  },
+  graduacionOportuna: {
+    padding:10,
+    fontSize: 18,
+    fontFamily: 'Montserrat-Medium',
+    color:'#132F20',
+    textAlign:'justify'
   },
   analisisText: {
     fontSize: 19,

@@ -192,7 +192,6 @@ const Estadisticas = () => {
       });
 
       const data = await response.json();
-      console.log(data);
       setDatosBackend(data);
       setLoading(true); // Mostrar el modal de carga
       
@@ -217,6 +216,7 @@ const Estadisticas = () => {
           selectedCorteInicial,
           corteFinal,
           programaSeleccionado,
+          tipoProgramaSeleccionado,
           datosBackend: {
             totalEstudiantes: datosBackend.totalEstudiantes,
             graduados: datosBackend.graduados,
