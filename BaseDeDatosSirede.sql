@@ -69,6 +69,21 @@ CREATE TABLE historico_matriculas (
     FOREIGN KEY (id_carrera) REFERENCES carreras(id_carrera)
 );
 
+-- Crear la tabla de relaciones_carreras
+CREATE TABLE relaciones_carreras (
+    id_relacion INT PRIMARY KEY AUTO_INCREMENT,
+    id_carrera1 INT NOT NULL,
+    id_carrera2 INT NOT NULL,
+    combinacion_ids VARCHAR(50) GENERATED ALWAYS AS (
+        CONCAT(LEAST(id_carrera1, id_carrera2), '-', GREATEST(id_carrera1, id_carrera2))
+    ) STORED, -- Columna generada y almacenada
+    CONSTRAINT fk_carrera1 FOREIGN KEY (id_carrera1) REFERENCES carreras(id_carrera),
+    CONSTRAINT fk_carrera2 FOREIGN KEY (id_carrera2) REFERENCES carreras(id_carrera),
+    CONSTRAINT unq_combinacion UNIQUE (combinacion_ids) -- Restricción de unicidad
+);
+
+
+
 -- Índices para mejorar la eficiencia de las consultas en las tablas grandes
 CREATE INDEX idx_estudiantes_carrera_estudiante ON estudiantes_carreras (id_estudiante);
 CREATE INDEX idx_estudiantes_carrera_carrera ON estudiantes_carreras (id_carrera);
