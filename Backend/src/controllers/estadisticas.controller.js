@@ -2,8 +2,8 @@ import { pool } from '../db.js';
 
 
 export const cargarEstudiantes = async (req, res) => {
-  const { csvData, selectedOption } = req.body; // Obtenemos los datos del CSV y el selectedOption
-
+  const { csvData, selectedOption, selectedCareers } = req.body; // Obtenemos los datos del CSV y el selectedOption
+console.log( 'Ids recibidos en el backend:', selectedCareers)
   // Verificar que hay datos para procesar
   if (!csvData || csvData.length === 0) {
       console.error('No se recibieron datos para procesar.');
@@ -183,18 +183,16 @@ export const cargarEstudiantes = async (req, res) => {
       console.log(carreraId)
       console.log(periodo_matricula)
 
-    // Fase 2: Cambiar estado académico si existe un periodo anterior
-
-    
-
+    // Fase 2: Procesar relaciones de carreras
     if (carreraId && periodo_matricula) {
-        
-        await cambiarEstadoAcademicoSegunMatriculas(carreraId, periodo_matricula);
+      await cambiarEstadoAcademicoSegunMatriculas(carreraId, periodo_matricula);
+      await procesarCambioEstadoRetenido(carreraId, periodo_matricula);
 
-        await procesarCambioEstadoRetenido(carreraId, periodo_matricula)
+      if (selectedCareers && selectedCareers.length > 0) {
+        await procesarRelacionesCarreras(carreraId, selectedCareers);
+      }
     }
-
-    
+        
 
     return res.status(200).json({ success: true, message: 'Todos los datos han sido procesados correctamente y los estados académicos han sido actualizados.' });
 } catch (error) {
@@ -641,6 +639,44 @@ async function procesarCambioEstadoRetenido() {
     throw error; // Lanza el error para que se maneje más arriba
   }
 }
+
+async function procesarRelacionesCarreras(carreraId, selectedCareers) {
+  try {
+    if (!carreraId || !Array.isArray(selectedCareers) || selectedCareers.length === 0) {
+      console.warn('Datos inválidos para procesar relaciones de carreras.');
+      return;
+    }
+
+    console.log(`Procesando relaciones para la carrera ID: ${carreraId}`);
+    console.log(`Carreras relacionadas: ${selectedCareers.join(', ')}`);
+
+    // Paso 1: Iterar sobre los IDs de las carreras relacionadas
+    for (const idCarrera2 of selectedCareers) {
+      // Asegurarse de que no se está intentando relacionar la carrera consigo misma
+      if (carreraId === idCarrera2) {
+        console.warn(`Se omitió la relación entre la misma carrera (ID: ${carreraId}).`);
+        continue;
+      }
+
+      console.log(`Insertando relación: ${carreraId} - ${idCarrera2}`);
+
+      // Paso 2: Intentar insertar la relación
+      await pool.query(
+        `INSERT INTO relaciones_carreras (id_carrera1, id_carrera2)
+         VALUES (?, ?)
+         ON DUPLICATE KEY UPDATE id_carrera1 = id_carrera1;`, // Evita duplicados sin errores
+        [carreraId, idCarrera2]
+      );
+    }
+
+    console.log('Relaciones de carreras procesadas exitosamente.');
+  } catch (error) {
+    console.error('Error al procesar relaciones de carreras:', error);
+    throw error; // Lanza el error para que el controlador principal lo maneje
+  }
+}
+
+
 
 export const cargarGraduados = async (req, res) => {
   try {

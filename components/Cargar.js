@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Modal, ScrollView } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import Papa from 'papaparse';
 import { showMessage } from "react-native-flash-message";
@@ -15,8 +15,48 @@ const CargarCSV = () => {
   const [parsedProgram, setParsedProgram] = useState('');  // Programa obtenido del CSV
   const [isGraduadosFormat, setIsGraduadosFormat] = useState(false); // Estado para el formato de graduados
   const [isNormalFormat, setIsNormalFormat] = useState(false); // Estado para el formato normal
+  const [programas, setProgramas] = useState([]);
+  const [selectedCareers, setSelectedCareers] = useState([]); // Para almacenar IDs seleccionados
+  const [showSelection, setShowSelection] = useState(null); // Estado inicial como null
+  const [isOptionSelected, setIsOptionSelected] = useState(false); // Nuevo estado para controlar la visualización del mensaje
 
+    const handleSelection = (response) => {
+      console.log(showSelection)
+      setShowSelection(response); // Cambiar el estado de mostrar/ocultar selección
+      if (!response) {
+        setSelectedCareers([]); // Limpiar las selecciones si elige "No"
+      }
+    };
 
+        useEffect(() => {
+          const obtenerProgramas = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/programas`);
+                const data = await response.json();
+                const filteredData = data.map(element => ({
+                    cod_snies: element.codigo_programa,
+                    programa: element.nombre_programa,
+                    tipo: element.tipo_programa,
+                    id: element.id_carrera
+                }));
+                setProgramas(filteredData); 
+            } catch (error) {
+                  showMessage({
+                    message: "Error",
+                    description: "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
+                    type: "danger",
+                    icon: "danger",
+                    titleStyle: { fontSize: 18, fontFamily: 'Montserrat-Bold' }, // Estilo del título
+                    textStyle: { fontSize: 18, fontFamily: 'Montserrat-Regular' }, // Estilo del texto
+                    duration: 3000,
+                  });
+            }
+        };
+
+        if (isNormalFormat) {
+          obtenerProgramas(); // Obtener carreras solo si es formato normal
+        }
+      }, [isNormalFormat]);
 
   const options = [
     { label: 'Tecnología', value: 'Tecnologia' },
@@ -135,7 +175,7 @@ const CargarCSV = () => {
 
         // Crear el objeto que vamos a enviar en el body
         let dataToSend = isNormalFormat 
-        ? { csvData, selectedOption } // Enviar ambos csvData y selectedOption si es formato normal
+        ? { csvData, selectedOption, selectedCareers } // Enviar ambos csvData y selectedOption si es formato normal
         : csvData; // Solo enviar csvData si es formato de graduados
 
       try {
@@ -190,10 +230,33 @@ const CargarCSV = () => {
 
   const  checkboxChange = (value) => {
     setSelectedOption(value); // Actualizar estado de checkbox
+    console.log(selectedOption)
+    setIsOptionSelected(true); // Cuando se seleccione una opción, cambia el estado para mostrar el mensaje
   };
+
+  const handleBackToOptions = () => {
+    setIsOptionSelected(false); // Vuelve a mostrar el selector
+  };
+
+  const checkboxChange1 = (careerId) => {
+    console.log('Career clicked:', careerId);
+    if (selectedCareers.includes(careerId)) {
+      // Si ya está seleccionada, la quitamos
+      const updatedCareers = selectedCareers.filter(id => id !== careerId);
+      console.log('Deselected:', updatedCareers)
+      setSelectedCareers(selectedCareers.filter((id) => id !== careerId));
+    } else {
+      // Si no está seleccionada, la agregamos
+      const updatedCareers = [...selectedCareers, careerId];
+      console.log('Selected:', updatedCareers);
+      setSelectedCareers([...selectedCareers, careerId]);
+    }
+  };
+console.log('Aqui quedan almacenados los id relacionados:',selectedCareers)
+
   return (
     <ImageBackground source={require('../assets/fondoinicio.jpg')} style={styles.backgroundImage}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <Text style={styles.title}>Carga de datos</Text>
         <Text style={styles.subtitle}>Por favor, cargue el archivo CSV con los datos correctos y en el formato adecuado.</Text>
 
@@ -216,30 +279,111 @@ const CargarCSV = () => {
        {/* Checkboxes usando react-native-elements */}
         {fileName && isNormalFormat && (
           <View style={styles.checkboxContainer}>
-            <Text style={styles.subtitlecheck}>
-              Selecciona el tipo de programa al que pertenece la carrera de {capitalizeFirstLetter(parsedProgram)}.
-            </Text>
-            {options.map((option) => (
-              <CheckBox
-                key={option.value}
-                title={option.label}   
-                checkedColor="#C3D730"              
-                checked={selectedOption === option.value} // Selecciona solo uno a la vez
-                onPress={() => checkboxChange(option.value)}
-                textStyle={{ 
-                  fontSize: 16,  // Tamaño de fuente
-                  color: '#132F20',  // Color de texto
-                  fontFamily: 'Montserrat-Bold',  // Tipo de letra
-                }}
-                containerStyle={{
-                  backgroundColor: 'transparent',  // Sin fondo
-                  margin: -5,
-                }}
-              />
-            ))}
-          </View>
+          {!isOptionSelected ? (
+            <View >
+              <Text style={styles.subtitlecheck}>
+                Selecciona el tipo de programa al que pertenece la carrera.
+              </Text>
+              {options.map((option) => (
+                 <CheckBox
+                    key={option.value}
+                    title={option.label}   
+                    checkedColor="#C3D730"              
+                    checked={selectedOption === option.value} // Selecciona solo uno a la vez
+                    onPress={() => checkboxChange(option.value)}
+                    textStyle={{ 
+                      fontSize: 16,  // Tamaño de fuente
+                      color: '#132F20',  // Color de texto
+                      fontFamily: 'Montserrat-Bold',  // Tipo de letra
+                    }}
+                    containerStyle={{
+                      backgroundColor: 'transparent',  // Sin fondo
+                      margin: -5,
+                    }}
+                  />          ))}
+            </View>
+          ) : (
+            // Si se ha seleccionado una opción, muestra el mensaje y el botón de "Cambiar"
+            <View style={{ padding:5 }}>
+              <Text style={styles.subtitlecheck}>
+                El programa es de tipo {selectedOption === 'Profesional' ? 'Profesional.' : 'Tecnología.'}
+              </Text>
+              <TouchableOpacity
+                style={{alignItems: 'center', }}
+                onPress={handleBackToOptions}
+              >
+                <Text style={{ fontSize: 16, color: '#C3D730', fontFamily: 'Montserrat-Bold' }}>
+                  Cambiar
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
         )}
 
+
+
+      {/* Pregunta condicional y selección */}
+      {fileName && isNormalFormat && (showSelection === null || showSelection === true) && (
+        <View style={styles.scroll}>
+          {showSelection === null && (
+            <>
+             <View style={styles.checkboxContainer1}>
+                  <Text style={styles.subtitlecheck}>
+                    ¿Esta carrera tiene relación con otro programa académico?
+                  </Text>
+
+                  <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={[styles.buttonSelection]}
+                        onPress={() => handleSelection(true)}
+                      >
+                        <View style={styles.buttonContainer} > 
+                          <FontAwesome5 name="check" size={24} color="#C3D730" />
+                          <Text style={styles.buttonText}>  Sí</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.buttonSelection]}
+                        onPress={() => handleSelection(false)}
+                      >
+                        <View style={styles.buttonContainer} > 
+                          <FontAwesome5 name="times" size={24} color="#6D100A" />
+                          <Text style={styles.buttonText}>  No</Text>
+                        </View>
+                      </TouchableOpacity>
+                  </View>
+              </View>
+            </>
+          )}
+
+          {showSelection && (
+            <View style={styles.checkboxContainer1}>
+              <Text style={styles.subtitlecheck}>
+                Selecciona las carreras relacionadas.
+              </Text>
+              {programas.map((career) => (
+                 <CheckBox
+                 key={career.id}
+                 title={capitalizeFirstLetter(career.programa)}
+                 checkedColor="#C3D730"
+                 checked={selectedCareers.includes(career.id)} // Verifica si la carrera está en el arreglo
+                 onPress={() => checkboxChange1(career.id)} // Llama a la función para agregar o quitar la carrera
+                 textStyle={{
+                   fontSize: 16,
+                   color: "#132F20",
+                   fontFamily: "Montserrat-Bold",
+                 }}
+                 containerStyle={{
+                   backgroundColor: "transparent",
+                   margin: -5,
+                 }}
+               />
+              ))}
+          </View>
+          )}
+        </View>
+      )}
               
         {fileName && (selectedOption || isGraduadosFormat) && (
           <TouchableOpacity style={styles.button1} onPress={mostrarModal}>
@@ -269,7 +413,7 @@ const CargarCSV = () => {
             </TouchableOpacity>
           </View>
         </Modal>
-      </View>
+      </ScrollView>
     </ImageBackground>
   );
 };
@@ -280,8 +424,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
     padding: 30,
   },
   title: {
@@ -331,14 +473,17 @@ const styles = StyleSheet.create({
   button1: {
     backgroundColor: 'white',
     padding: 5,
-    marginBottom: 20,
+    marginBottom: 50,
+    width: '60%',
     marginTop: 15,
-    alignItems: 'center',
+    alignItems: 'center', 
+    alignSelf: 'center', 
     borderRadius: 10,
     borderWidth: 3,
     borderColor: '#132F20',
-    justifyContent: "center"
+    justifyContent: "center",
   },
+  
   buttonText1: {
     color: '#132F20',
     fontSize: 20,
@@ -374,6 +519,25 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 10,
   },
+  scroll:{
+    padding:10,
+  },
+  checkboxContainer1: {
+    width: '100%',
+    padding:15,
+    backgroundColor:'white', 
+    borderRadius:30,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 10,
+    marginTop:10,
+    maxHeight: 'auto', // Limitar el alto de la lista de carreras
+  },
   modalContent: {
     flex:1,
     backgroundColor: 'white',
@@ -403,6 +567,25 @@ const styles = StyleSheet.create({
   buttonTextCancel: {
     color: 'white',
     fontFamily: 'Montserrat-Bold',
+  },
+  relatedCareersContainer: {
+    maxHeight: 'auto', // Limitar el alto de la lista de carreras
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#C3D730',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    backgroundColor: '#f9f9f9',
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  buttonSelection: {
+    padding: 10,
+    borderRadius: 5,
+    width: "49%",
+    alignItems: "center",  
   },
 });
 
