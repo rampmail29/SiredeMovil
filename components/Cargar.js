@@ -18,6 +18,7 @@ const CargarCSV = () => {
   const [programas, setProgramas] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]); // Para almacenar IDs seleccionados
   const [showSelection, setShowSelection] = useState(null); // Estado inicial como null
+  const [showwSelection, setShowwSelection] = useState(null); // Estado inicial como null
   const [isOptionSelected, setIsOptionSelected] = useState(false); // Nuevo estado para controlar la visualización del mensaje
 
     const handleSelection = (response) => {
@@ -57,6 +58,25 @@ const CargarCSV = () => {
           obtenerProgramas(); // Obtener carreras solo si es formato normal
         }
       }, [isNormalFormat]);
+
+      useEffect(() => {
+        const verificarCarrera = () => {
+          const programaEncontrado = programas.find(programa => programa.programa === parsedProgram);
+      
+          if (programaEncontrado) {
+            // Si encontramos el programa, asignamos el tipo automáticamente
+            setSelectedOption(programaEncontrado.tipo); // Asignamos el tipo de programa (Tecnología/Profesional)
+            setShowwSelection(false); // No necesitamos mostrar la selección del tipo de programa
+          } else {
+            setShowwSelection(true); // Si no se encuentra, mostramos la opción de selección
+          }
+        };
+      
+        if (parsedProgram) {
+          verificarCarrera(); // Verificamos el programa si ya tenemos el nombre del programa (parsedProgram)
+        }
+      }, [parsedProgram, programas]);  // Dependemos de parsedProgram y programas para que se ejecute cuando cambien
+      
 
   const options = [
     { label: 'Tecnología', value: 'Tecnologia' },
@@ -277,7 +297,7 @@ console.log('Aqui quedan almacenados los id relacionados:',selectedCareers)
         </TouchableOpacity>
 
        {/* Checkboxes usando react-native-elements */}
-        {fileName && isNormalFormat && (
+       {fileName && isNormalFormat && showwSelection && (
           <View style={styles.checkboxContainer}>
           {!isOptionSelected ? (
             <View >
