@@ -107,6 +107,7 @@ const CargarCSV = () => {
           setProgramas([]); // Limpia la lista de programas
           setProgramasFiltrados([]); // Limpia la lista de programas filtrados
           setSelectedCareers([]); // Limpia las carreras seleccionadas
+          setShowSelection(null); // Reinicia el estado de selección
           setShowwSelection(null); // Reinicia el estado de selección adicional
           setIsOptionSelected(false); // Reinicia la selección de opción
           setLoadingVerification(true); // Reinicia el estado de carga de verificación
