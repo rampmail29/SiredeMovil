@@ -16,10 +16,12 @@ const CargarCSV = () => {
   const [isGraduadosFormat, setIsGraduadosFormat] = useState(false); // Estado para el formato de graduados
   const [isNormalFormat, setIsNormalFormat] = useState(false); // Estado para el formato normal
   const [programas, setProgramas] = useState([]);
+  const [programasFiltrados, setProgramasFiltrados] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]); // Para almacenar IDs seleccionados
   const [showSelection, setShowSelection] = useState(null); // Estado inicial como null
   const [showwSelection, setShowwSelection] = useState(null); // Estado inicial como null
   const [isOptionSelected, setIsOptionSelected] = useState(false); // Nuevo estado para controlar la visualización del mensaje
+  const [loadingVerification, setLoadingVerification] = useState(true);
 
     const handleSelection = (response) => {
       console.log(showSelection)
@@ -41,6 +43,16 @@ const CargarCSV = () => {
                     id: element.id_carrera
                 }));
                 setProgramas(filteredData); 
+
+
+              // Filtrar inmediatamente después de guardar
+              const programasFiltrados = filteredData.filter(
+                programa => programa.programa !== parsedProgram
+              );
+
+              setProgramasFiltrados(programasFiltrados)
+
+
             } catch (error) {
                   showMessage({
                     message: "Error",
@@ -70,12 +82,37 @@ const CargarCSV = () => {
           } else {
             setShowwSelection(true); // Si no se encuentra, mostramos la opción de selección
           }
+      
+          // Finalizamos la verificación
+          setLoadingVerification(false);
         };
       
         if (parsedProgram) {
           verificarCarrera(); // Verificamos el programa si ya tenemos el nombre del programa (parsedProgram)
+        } else {
+          // Si parsedProgram no está disponible, también finalizamos la verificación
+          setLoadingVerification(false);
         }
-      }, [parsedProgram, programas]);  // Dependemos de parsedProgram y programas para que se ejecute cuando cambien
+      }, [parsedProgram, programas]); // Dependemos de parsedProgram y programas para que se ejecute cuando cambien
+
+      useEffect(() => {
+        if (fileName) {
+          // Resetear estados al cargar un nuevo archivo CSV
+          setCsvData(null); // Limpia los datos del CSV
+          setSelectedOption(''); // Reinicia la opción seleccionada
+          setModalVisible(false); // Asegúrate de que el modal esté cerrado
+          setParsedProgram(''); // Reinicia el programa parseado
+          setIsGraduadosFormat(false); // Reinicia el estado del formato de graduados
+          setIsNormalFormat(false); // Reinicia el estado del formato normal
+          setProgramas([]); // Limpia la lista de programas
+          setProgramasFiltrados([]); // Limpia la lista de programas filtrados
+          setSelectedCareers([]); // Limpia las carreras seleccionadas
+          setShowwSelection(null); // Reinicia el estado de selección adicional
+          setIsOptionSelected(false); // Reinicia la selección de opción
+          setLoadingVerification(true); // Reinicia el estado de carga de verificación
+        }
+      }, [fileName]);
+      
       
 
   const options = [
@@ -297,7 +334,7 @@ console.log('Aqui quedan almacenados los id relacionados:',selectedCareers)
         </TouchableOpacity>
 
        {/* Checkboxes usando react-native-elements */}
-       {fileName && isNormalFormat && showwSelection && (
+       {fileName && isNormalFormat && !loadingVerification &&  showwSelection && (
           <View style={styles.checkboxContainer}>
           {!isOptionSelected ? (
             <View >
@@ -379,27 +416,38 @@ console.log('Aqui quedan almacenados los id relacionados:',selectedCareers)
 
           {showSelection && (
             <View style={styles.checkboxContainer1}>
-              <Text style={styles.subtitlecheck}>
-                Selecciona las carreras relacionadas.
-              </Text>
-              {programas.map((career) => (
-                 <CheckBox
-                 key={career.id}
-                 title={capitalizeFirstLetter(career.programa)}
-                 checkedColor="#C3D730"
-                 checked={selectedCareers.includes(career.id)} // Verifica si la carrera está en el arreglo
-                 onPress={() => checkboxChange1(career.id)} // Llama a la función para agregar o quitar la carrera
-                 textStyle={{
-                   fontSize: 16,
-                   color: "#132F20",
-                   fontFamily: "Montserrat-Bold",
-                 }}
-                 containerStyle={{
-                   backgroundColor: "transparent",
-                   margin: -5,
-                 }}
-               />
-              ))}
+             {programasFiltrados.length === 0 ? (
+                // Mostrar mensaje si no hay programas disponibles
+                <Text style={styles.subtitlecheck}>
+                  No hay carreras disponibles en este momento.
+                </Text>
+              ) : (
+                // Mostrar lista de carreras si hay programas disponibles
+                <>
+                  <Text style={styles.subtitlecheck}>
+                    Selecciona las carreras relacionadas.
+                  </Text>
+                  {programasFiltrados.map((career) => (
+                    <CheckBox
+                      key={career.id}
+                      title={capitalizeFirstLetter(career.programa)}
+                      checkedColor="#C3D730"
+                      checked={selectedCareers.includes(career.id)} // Verifica si la carrera está en el arreglo
+                      onPress={() => checkboxChange1(career.id)} // Llama a la función para agregar o quitar la carrera
+                      textStyle={{
+                        fontSize: 16,
+                        color: "#132F20",
+                        fontFamily: "Montserrat-Bold",
+                      }}
+                      containerStyle={{
+                        backgroundColor: "transparent",
+                        margin: -5,
+                      }}
+                    />
+                  ))}
+                </>
+              )}
+
           </View>
           )}
         </View>
