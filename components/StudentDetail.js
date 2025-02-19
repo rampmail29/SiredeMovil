@@ -11,7 +11,7 @@ const StudentDetail = ({ route, navigation }) => {
   const { id, fromScreen } = route.params || {};
   
   // Inicializa variables opcionales
-  let selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend;
+  let selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend, graduacionOportunaLocal, graduadosOportunosLocal;
 
  // Verifica de dónde proviene la navegación
  if (fromScreen === 'GraficarCohorte') {
@@ -19,6 +19,8 @@ const StudentDetail = ({ route, navigation }) => {
   corteFinal = route.params.corteFinal;
   programaSeleccionado = route.params.programaSeleccionado;
   datosBackend = route.params.datosBackend;
+  graduacionOportunaLocal = route.params.graduacionOportunaLocal;
+  graduadosOportunosLocal - route.params.graduadosOportunosLocal;
 }
  // Verifica de dónde proviene la navegación
  if (fromScreen === 'GraficarPdf') {
@@ -35,7 +37,9 @@ const volverNavigation = () => {
       selectedCorteInicial, 
       corteFinal, 
       programaSeleccionado, 
-      datosBackend 
+      datosBackend,
+      graduacionOportunaLocal,
+      graduadosOportunosLocal 
     });
   } else if (fromScreen === 'InformeEstudiante') {
     // Solo regresa a InformeEstudiante
@@ -51,9 +55,6 @@ const volverNavigation = () => {
   }
 };
 
-
-
-  
   const [student, setStudent] = useState(null);
   const [imageUri, setImageUri] = useState(null);
   const [loading, setLoading] = useState(false);

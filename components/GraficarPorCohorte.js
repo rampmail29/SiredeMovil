@@ -4,85 +4,123 @@ import { PieChart } from "react-native-gifted-charts";
 import Collapsible from 'react-native-collapsible';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { API_BASE_URL } from './Config';
 
 const GraficarCohorte = ({ route }) => {
-    const { fromScreen, selectedCorteInicial, corteFinal, programaSeleccionado,tipoProgramaSeleccionado, datosBackend } = route.params;
-    const navigation = useNavigation();
-    console.log('Total Matriculados: '+ datosBackend.totalMatriculados)
- 
-    const obtenerPeriodoActual = () => {
-      const hoy = new Date();
-      const año = hoy.getFullYear();
-      const mes = hoy.getMonth() + 1; // getMonth() retorna 0-11, así que sumamos 1 para obtener el mes correcto
-  
-      // Determinar el semestre
-      const semestre = mes <= 6 ? 1 : 2;
-  
-      return `${año}-${semestre}`;
-  };
-  
-  // Ejemplo de uso
-  const periodoActual = obtenerPeriodoActual();
- 
-  const compararPeriodos = (corteFinal, periodoActual) => {
-    // Extraer año y semestre del periodo final
-    const [añoFinal, semestreFinal] = corteFinal.split('-').map(Number);
+    // Parámetros recibidos
+    const { fromScreen, selectedCorteInicial, corteFinal, programaSeleccionado, tipoProgramaSeleccionado, idSeleccionado, datosBackend } = route.params;
 
-    // Extraer año y semestre del periodo actual
-    const [añoActual, semestreActual] = periodoActual.split('-').map(Number);
+     // Hooks y navegación
+     const navigation = useNavigation();
+     const [graduacionOportuna, setGraduacionOportuna] = useState('');
+     const [graduadosOportunos, setGraduadosOportunos] = useState([]);
+     const [carrerasRelacionadas, setCarrerasRelacionadas] = useState([]);
+     const [isCarrerasLoaded, setIsCarrerasLoaded] = useState(false);
+     const [isGraduadosCollapsed, setGraduadosCollapsed] = useState(true);
+     const [isDesertadosCollapsed, setDesertadosCollapsed] = useState(true);
+     const [isRetenidosCollapsed, setRetenidosCollapsed] = useState(true);
+     const [isActivosCollapsed, setActivosCollapsed] = useState(true);
+     const [isInactivosCollapsed, setInactivosCollapsed] = useState(true);
+     console.log('Id Seleccionado: '+ idSeleccionado)
 
-    // Comparar años
-    if (añoFinal > añoActual || (añoFinal === añoActual && semestreFinal > semestreActual)) {
-          return "Periodo en curso";
-    } else if (añoFinal === añoActual && semestreFinal === semestreActual) {
-          return "Periodo en curso";
-    } else {
-      return "Periodo finalizado";
-    }
-};
-
-   compararPeriodos(corteFinal, periodoActual);
-    const [isGraduadosCollapsed, setGraduadosCollapsed] = useState(true);
-    const [isDesertadosCollapsed, setDesertadosCollapsed] = useState(true);
-    const [isRetenidosCollapsed, setRetenidosCollapsed] = useState(true);
-    const [isActivosCollapsed, setActivosCollapsed] = useState(true);
-    const [isInactivosCollapsed, setInactivosCollapsed] = useState(true);
-
-
-    // Animaciones de rotación
-    const rotationGraduados = useRef(new Animated.Value(0)).current; // Para el acordeón de graduados
+    // Referencias para animación
+    const rotationGraduados = useRef(new Animated.Value(0)).current;
     const rotationDesertados = useRef(new Animated.Value(0)).current;
     const rotationRetenidos = useRef(new Animated.Value(0)).current;
     const rotationActivos = useRef(new Animated.Value(0)).current;
     const rotationInactivos = useRef(new Animated.Value(0)).current;
+  
+    // Métodos para obtener información
+    const obtenerPeriodoActual = () => {
+      const hoy = new Date();
+      const año = hoy.getFullYear();
+      const mes = hoy.getMonth() + 1;
+      const semestre = mes <= 6 ? 1 : 2;
+      return `${año}-${semestre}`;
+  };
 
-    const toggleAccordion = (isCollapsed, setCollapsed, rotation) => {
-        Animated.timing(rotation, {
-            toValue: isCollapsed ? 1 : 0, // 1 si está colapsado, 0 si está abierto
-            duration: 300,
-            useNativeDriver: true,
-        }).start();
-        setCollapsed(!isCollapsed);
+  useEffect(() => {
+    const obtenerCarrerasRelacionadas = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/carreras-relacionadas/${idSeleccionado}`);
+        const data = await response.json();
+        console.log('Carreras relacionadas:', data); // Array con IDs de carreras relacionadas
+        setCarrerasRelacionadas(data);
+        setIsCarrerasLoaded(true); // Marcar que los datos están cargados
+      } catch (error) {
+        console.error('Error al obtener carreras relacionadas:', error);
+      }
+    };
+  
+    obtenerCarrerasRelacionadas();
+  }, [idSeleccionado]);
+  
+  useEffect(() => {
+    const obtenerDetallesGraduadosRelacionados = async () => {
+      if (isCarrerasLoaded) { // Solo ejecutamos si las carreras están cargadas
+        try {
+          // Llamada al backend enviando todos los ids de estudiantes graduados y el idSeleccionado
+          const response = await fetch(`${API_BASE_URL}/api/detalles-graduados-relacionados`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              carreraId: idSeleccionado,  // ID actual de la carrera
+              estudiantesIds: idsEstudiantesGraduados,  // Array con los IDs de los graduados
+              carrerasRelacionadas: carrerasRelacionadas,  // Array con los IDs de las carreras relacionadas
+            }),
+          });
+  
+          const data = await response.json();
+          console.log('Detalles de graduados relacionados:', data);
+          // Aquí puedes manejar los datos recibidos del backend como prefieras
+        } catch (error) {
+          console.error('Error al obtener detalles de los graduados relacionados:', error);
+        }
+      }
+    };
+  
+    if (idSeleccionado && isCarrerasLoaded) {
+      obtenerDetallesGraduadosRelacionados();
+    }
+  }, [idSeleccionado, carrerasRelacionadas, idsEstudiantesGraduados, isCarrerasLoaded]);  // Dependencias
+  
+
+
+
+    const compararPeriodos = (corteFinal, periodoActual) => {
+      const [añoFinal, semestreFinal] = corteFinal.split('-').map(Number);
+      const [añoActual, semestreActual] = periodoActual.split('-').map(Number);
+
+      if (añoFinal > añoActual || (añoFinal === añoActual && semestreFinal > semestreActual)) {
+          return "Periodo en curso";
+      } else if (añoFinal === añoActual && semestreFinal === semestreActual) {
+          return "Periodo en curso";
+      } else {
+          return "Periodo finalizado";
+      }
     };
 
-    const getRotation = (rotation) => {
-        return rotation.interpolate({
-            inputRange: [0, 1],
-            outputRange: ['0deg', '90deg'], // Cambia de 0 a 90 grados
-        });
-    };
-    
-    // Asegúrate de que los arrays estén definidos
+    const periodoActual = obtenerPeriodoActual();
+    const mensajePeriodo = compararPeriodos(corteFinal, periodoActual);
+
+    // Datos del backend
     const graduados = datosBackend.graduados || [];
     const retenidos = datosBackend.retenidos || [];
     const desertados = datosBackend.desertados || [];
     const activos = datosBackend.activos || [];
     const inactivos = datosBackend.inactivos || [];
+    const totalCohorte = graduados.length + retenidos.length + desertados.length + activos.length + inactivos.length;
 
-    function periodoMaxGraduacionOportunaTec(corteFinal) {
+    const idsEstudiantesGraduados = graduados.map(estudiante => estudiante.id_estudiante);
+
+    console.log(idsEstudiantesGraduados);
+    
+
+     // Funciones relacionadas con programas
+     const periodoMaxGraduacionOportunaTec = (corteFinal) => {
       let [año, periodo] = corteFinal.split('-').map(Number);
-  
-      // Sumar dos periodos
       for (let i = 0; i < 2; i++) {
           if (periodo === 1) {
               periodo = 2;
@@ -91,62 +129,137 @@ const GraficarCohorte = ({ route }) => {
               periodo = 1;
           }
       }
-  
       return `${año}-${periodo}`;
-  }
-   const maxGraduacionTec= periodoMaxGraduacionOportunaTec(corteFinal)
-    console.log('Periodo Tope para terminar materias: '+ corteFinal);
-    console.log('Periodo maximo para graduarse oportanamete: '+ maxGraduacionTec);
+  };
 
-    // La función que compara periodos académicos
-      function esMenorOIgualPeriodo(periodo1, periodo2) {
+    const esMenorOIgualPeriodo = (periodo1, periodo2) => {
         const [año1, periodo1Num] = periodo1.split('-').map(Number);
         const [año2, periodo2Num] = periodo2.split('-').map(Number);
-
-        // Compara primero los años
         if (año1 < año2) return true;
         if (año1 > año2) return false;
-
-        // Si los años son iguales, compara el periodo
         return periodo1Num <= periodo2Num;
-      }
+    };
 
-      // Función para obtener los graduados oportunos
-      function obtenerGraduadosOportunos(graduados, maxGraduacionTec) {
-        return graduados.filter(estudiante => 
+    const obtenerGraduadosOportunos = (graduados, maxGraduacionTec) => {
+        return graduados.filter(estudiante =>
             esMenorOIgualPeriodo(estudiante.periodo_graduacion, maxGraduacionTec)
         );
-      }
-
-      const graduadosOportunos = obtenerGraduadosOportunos(graduados, maxGraduacionTec);
-      console.log('Estudiantes Graduados Oportunamente: '+ graduadosOportunos.length);
-        
-    // Numero total de estuidantes en el cohorte
-    const totalCohorte = graduados.length + retenidos.length + desertados.length + activos.length + inactivos.length;
-
-    console.log('Total estudiantes en la cohorte: '+ totalCohorte)
-
-    function calcularTasaGraduacionOportuna(totalCohorte, graduadosOportunos) {
-      const tasaGraduacionOportuna = (graduadosOportunos.length / totalCohorte) * 100;
-      return tasaGraduacionOportuna.toFixed(2); // Redondea a dos decimales
-  }
-  const graduacionOportuna= calcularTasaGraduacionOportuna(totalCohorte, graduadosOportunos);
-  
-
-   console.log(`Tasa de Graduación Oportuna: ${graduacionOportuna}%`);
-  
-
-    // Calcula los porcentajes solo si totalCohorte no es 0 para evitar divisiones por 0
-    const formatearPorcentaje = (valor) => {
-      return Number.isInteger(valor) ? valor : valor.toFixed(1);
     };
+
+    const calcularTasaGraduacionOportuna = (totalCohorte, graduadosOportunos) => {
+        const tasaGraduacionOportuna = (graduadosOportunos.length / totalCohorte) * 100;
+        return tasaGraduacionOportuna.toFixed(2);
+    };
+
+      useEffect(() => {
+        if (tipoProgramaSeleccionado === 'Tecnologia') {
+            const maxGraduacionTec = periodoMaxGraduacionOportunaTec(corteFinal);
+            const estudiantesOportunos = obtenerGraduadosOportunos(graduados, maxGraduacionTec);
+            setGraduadosOportunos(estudiantesOportunos);
+            setGraduacionOportuna(calcularTasaGraduacionOportuna(totalCohorte, estudiantesOportunos));
+        } else if (tipoProgramaSeleccionado === 'Profesional') {
+           // const maxGraduacionPro = periodoMaxGraduacionOportunaPro(corteFinal);
+           /// const estudiantesOportunos = obtenerGraduadosOportunos(graduados, maxGraduacionPro);
+           // setGraduadosOportunos(estudiantesOportunos);
+           // setGraduacionOportuna(calcularTasaGraduacionOportuna(totalCohorte, estudiantesOportunos));
+        }
+    }, [tipoProgramaSeleccionado, corteFinal, graduados, totalCohorte]);
+
+    useEffect(() => {
+      console.log(`Graduado Oportunos: ${JSON.stringify(graduadosOportunos, null, 2)}`);
+      console.log(`Tasa de Graduacion Oportuna: ${graduacionOportuna}`);
+  }, [graduadosOportunos, graduacionOportuna]);
+  
     
-    const porcentajeGraduados = totalCohorte > 0 ? formatearPorcentaje((graduados.length * 100) / totalCohorte) : 0;
-    const porcentajeDesertados = totalCohorte > 0 ? formatearPorcentaje((desertados.length * 100) / totalCohorte) : 0;
-    const porcentajeRetenidos = totalCohorte > 0 ? formatearPorcentaje((retenidos.length * 100) / totalCohorte) : 0;
-    const porcentajeActivos = totalCohorte > 0 ? formatearPorcentaje((activos.length * 100) / totalCohorte) : 0;
-    const porcentajeInactivos = totalCohorte > 0 ? formatearPorcentaje((inactivos.length * 100) / totalCohorte) : 0;
+
+      // Porcentajes
+      const formatearPorcentaje = (valor) => Number.isInteger(valor) ? valor : valor.toFixed(1);
+      const porcentajeGraduados = totalCohorte > 0 ? formatearPorcentaje((graduados.length * 100) / totalCohorte) : 0;
+      const porcentajeDesertados = totalCohorte > 0 ? formatearPorcentaje((desertados.length * 100) / totalCohorte) : 0;
+      const porcentajeRetenidos = totalCohorte > 0 ? formatearPorcentaje((retenidos.length * 100) / totalCohorte) : 0;
+      const porcentajeActivos = totalCohorte > 0 ? formatearPorcentaje((activos.length * 100) / totalCohorte) : 0;
+      const porcentajeInactivos = totalCohorte > 0 ? formatearPorcentaje((inactivos.length * 100) / totalCohorte) : 0;
+
+      // Funciones para componentes
+      const toggleAccordion = (isCollapsed, setCollapsed, rotation) => {
+          Animated.timing(rotation, {
+              toValue: isCollapsed ? 1 : 0,
+              duration: 300,
+              useNativeDriver: true,
+          }).start();
+          setCollapsed(!isCollapsed);
+      };
+
+        const getRotation = (rotation) => {
+          return rotation.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['0deg', '90deg'],
+          });
+      };
+
+      const renderDot = (color) => (
+          <View style={{ height: 10, width: 10, borderRadius: 10, backgroundColor: color, marginRight: 10 }} />
+      );
+
+  
+      const renderLegendComponent = () => {
+        return (
+          <>
+          <View  style={styles.legendGeneral}> 
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                {renderDot('#C3D730')}
+                <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Graduados: {graduados.length}</Text>
+              </View>
+              <View style={styles.legendItem}>
+                {renderDot('#FF9F33')}
+                <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Retenidos: {retenidos.length}</Text>
+              </View>
+            </View>
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                {renderDot('#6D100A')}
+                <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Desertados: {desertados.length}</Text>
+              </View>
+              <View style={styles.legendItem}>
+                {renderDot('#6998fd')}
+                <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Activos: {activos.length}</Text>
+              </View>
+              
+            </View>
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                {renderDot('#878787')}
+                <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Inactivos: {inactivos.length}</Text>
+              </View>
+            
+            </View>
+          </View>
+          </>
+        );
+      };
+
+      const renderAccordion = (title, estudiantes, isCollapsed, toggleCollapse, rotation) => {
+        // Solo mostrar si hay estudiantes
+        if (estudiantes.length === 0) return null;
     
+        return (
+            <View style={styles.accordionContainer}>
+                <TouchableOpacity onPress={toggleCollapse} style={styles.accordionHeader}>
+                    <View style={styles.headerContent}>
+                    <Text style={styles.accordionTitle}>{`${title} (${estudiantes.length})`}</Text>
+                        <Animated.View style={{ transform: [{ rotate: getRotation(rotation) }] }}>
+                            <FontAwesome name="caret-right" size={24} color="#F0FFF2" />
+                        </Animated.View>
+                    </View>
+                </TouchableOpacity>
+                <Collapsible collapsed={isCollapsed}>
+                    {renderEstudiantes(estudiantes)}
+                </Collapsible>
+            </View>
+        );
+    };
+
     const capitalizeFirstLetter = (string) => {
         return string
           .toLowerCase()
@@ -233,78 +346,6 @@ const GraficarCohorte = ({ route }) => {
         ));
       };
             
-      const renderAccordion = (title, estudiantes, isCollapsed, toggleCollapse, rotation) => {
-        // Solo mostrar si hay estudiantes
-        if (estudiantes.length === 0) return null;
-    
-        return (
-            <View style={styles.accordionContainer}>
-                <TouchableOpacity onPress={toggleCollapse} style={styles.accordionHeader}>
-                    <View style={styles.headerContent}>
-                    <Text style={styles.accordionTitle}>{`${title} (${estudiantes.length})`}</Text>
-                        <Animated.View style={{ transform: [{ rotate: getRotation(rotation) }] }}>
-                            <FontAwesome name="caret-right" size={24} color="#F0FFF2" />
-                        </Animated.View>
-                    </View>
-                </TouchableOpacity>
-                <Collapsible collapsed={isCollapsed}>
-                    {renderEstudiantes(estudiantes)}
-                </Collapsible>
-            </View>
-        );
-    };
-
-  const renderDot = color => {
-    return (
-      <View
-        style={{
-          height: 10,
-          width: 10,
-          borderRadius: 10,
-          backgroundColor: color,
-          marginRight: 10,
-        }}
-      />
-    );
-  };
-
-  const renderLegendComponent = () => {
-    return (
-      <>
-      <View  style={styles.legendGeneral}> 
-        <View style={styles.legendRow}>
-          <View style={styles.legendItem}>
-            {renderDot('#C3D730')}
-            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Graduados: {graduados.length}</Text>
-          </View>
-          <View style={styles.legendItem}>
-            {renderDot('#FF9F33')}
-            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Retenidos: {retenidos.length}</Text>
-          </View>
-        </View>
-        <View style={styles.legendRow}>
-          <View style={styles.legendItem}>
-            {renderDot('#6D100A')}
-            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Desertados: {desertados.length}</Text>
-          </View>
-          <View style={styles.legendItem}>
-            {renderDot('#6998fd')}
-            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Activos: {activos.length}</Text>
-          </View>
-          
-        </View>
-        <View style={styles.legendRow}>
-          <View style={styles.legendItem}>
-            {renderDot('#878787')}
-            <Text style={{ color: '#34531F', fontFamily: 'Montserrat-Medium', }}>Inactivos: {inactivos.length}</Text>
-          </View>
-        
-        </View>
-      </View>
-      </>
-    );
-  };
-
   const generarTextoDinamico = () => {
     const hayGraduados = graduados.length > 0;
     const hayDesertados = desertados.length > 0;
@@ -356,8 +397,6 @@ const GraficarCohorte = ({ route }) => {
   
     return "No hay suficientes datos para generar un análisis significativo.";
   };
-   // Obtener mensaje basado en la comparación de los periodos
-   const mensajePeriodo = compararPeriodos(corteFinal, periodoActual);
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -412,20 +451,19 @@ const GraficarCohorte = ({ route }) => {
           
           <View style={styles.separator} />
 
-          {mensajePeriodo === 'Periodo finalizado' && (
-          <View style={styles.pieChartContainer2}>
-            {parseFloat(graduacionOportuna) === 0 ? (
-              <Text style={styles.graduacionOportuna}>
-                <Text style={{ fontFamily:'Montserrat-Bold', color:'red'}}>*</Text> Desafortunadamente, ningún estudiante de esta cohorte logro graduarse oportunamente.
-              </Text>
-            ) : (
-              <Text style={styles.graduacionOportuna}>
-                <Text style={{ fontFamily:'Montserrat-Bold', color:'red'}}>*</Text> La tasa de <Text style={{ fontFamily:'Montserrat-Bold'}}>graduación oportuna</Text> para esta cohorte fue de
-                <Text style={{ fontFamily:'Montserrat-Bold'}}> {graduacionOportuna}%</Text> con un total de {graduadosOportunos.length} graduados.
-              </Text>
+          {tipoProgramaSeleccionado === "Tecnologia" && (
+              <View >
+                  {/* Mensaje con la tasa y el total de graduados */}
+                  <Text style={styles.analisisText2}>
+                    La tasa de graduación oportuna fue de{" "}
+                    <Text style={styles.bold}>{graduacionOportuna}%</Text>,  
+                    esto significa que <Text style={styles.bold}>{`${graduadosOportunos.length} estudiantes `}</Text>lograron culminar satisfactoriamente sus estudios dentro del tiempo esperado.
+                  </Text>
+            
+              </View>
             )}
-          </View>
-        )}
+
+       
 
 
           <Text style={styles.analisisText}>{generarTextoDinamico()}</Text>
@@ -560,6 +598,16 @@ const styles = StyleSheet.create({
     fontSize: 19,
     textAlign: 'justify',
     fontFamily: 'Montserrat-Medium',
+  },
+  analisisText2: {
+    fontSize: 19,
+    textAlign: 'justify',
+    fontFamily: 'Montserrat-Bold',
+    marginBottom:10
+  },
+  bold: {
+    fontFamily: 'Montserrat-Black',
+    color: "#6D100A", 
   },
   notaText1: {
     fontSize: 18,

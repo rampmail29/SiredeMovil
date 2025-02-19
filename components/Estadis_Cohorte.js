@@ -217,6 +217,7 @@ const Estadisticas = () => {
           corteFinal,
           programaSeleccionado,
           tipoProgramaSeleccionado,
+          idSeleccionado,
           datosBackend: {
             totalEstudiantes: datosBackend.totalEstudiantes,
             graduados: datosBackend.graduados,

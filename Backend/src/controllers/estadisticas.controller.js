@@ -989,6 +989,7 @@ export const obtenerDetalles = async (req, res) => {
         periodo_reingreso: row.periodo_reingreso,
         periodo_desercion: row.periodo_desercion,
         fecha_graduacion: row.fecha_graduacion,
+        periodo_graduacion: row.periodo_graduacion,
         estado_academico: row.estado_academico,
         jornada: row.jornada,
         sede: row.sede,
@@ -1006,6 +1007,96 @@ export const obtenerDetalles = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener detalles del estudiante' });
   }
 };
+
+export const obtenerCarrerasRelacionadas = async (req, res) => {
+  const { idSeleccionado } = req.params; // ID de la carrera base
+
+  try {
+      // Consulta SQL para obtener carreras relacionadas
+      const sql = `
+          SELECT 
+              CASE 
+                  WHEN id_carrera1 = ? THEN id_carrera2
+                  ELSE id_carrera1
+              END AS carrera_relacionada
+          FROM 
+              relaciones_carreras
+          WHERE 
+              id_carrera1 = ? OR id_carrera2 = ?;
+      `;
+
+      const [resultados] = await pool.query(sql, [idSeleccionado, idSeleccionado, idSeleccionado]); // Ejecutar consulta
+
+      // Mapear los resultados para obtener un array plano de IDs
+      const carrerasRelacionadas = resultados.map(row => row.carrera_relacionada);
+
+      res.json(carrerasRelacionadas); // Enviar el array con los IDs de carreras relacionadas
+  } catch (error) {
+      console.error('Error al obtener carreras relacionadas:', error);
+      res.status(500).json({ error: 'Error al obtener carreras relacionadas' });
+  }
+};
+
+
+export const obtenerDetallesGraduadosRelacionados = async (req, res) => {
+  const { carreraId, estudiantesIds, carrerasRelacionadas } = req.body;
+  console.log(estudiantesIds)
+
+  if (!carrerasRelacionadas || carrerasRelacionadas.length === 0) {
+    return res.status(400).json({ error: 'El array de carreras relacionadas está vacío.' });
+  }
+
+  try {
+    const detallesGraduados = [];
+
+    // Expandir el array de carrerasRelacionadas para manejarlo adecuadamente en SQL
+    const carrerasRelacionadasStr = carrerasRelacionadas.join(',');
+
+    for (let id_estudiante of estudiantesIds) {
+      // Obtener el periodo_graduacion de la carrera relacionada
+      const sqlRelacionada = `
+        SELECT ec.periodo_graduacion
+        FROM estudiantes_carreras ec
+        WHERE ec.id_estudiante = ? 
+        AND ec.id_carrera IN (${carrerasRelacionadasStr});`;
+
+      const [resultadoRelacionada] = await pool.query(sqlRelacionada, [id_estudiante]);
+
+      // Obtener el periodo_graduacion de la carrera actual
+      const sqlActual = `
+        SELECT ec.periodo_graduacion
+        FROM estudiantes_carreras ec
+        WHERE ec.id_estudiante = ? 
+        AND ec.id_carrera = ?`;
+
+      const [resultadoActual] = await pool.query(sqlActual, [id_estudiante, carreraId]);
+
+      // Agregar el estudiante solo si se tienen resultados tanto para la carrera relacionada como para la actual
+      if (resultadoRelacionada.length > 0 && resultadoActual.length > 0) {
+        detallesGraduados.push({
+          id_estudiante: id_estudiante,
+          periodo_graduacion_relacionado: resultadoRelacionada[0].periodo_graduacion,
+          periodo_graduacion_actual: resultadoActual[0].periodo_graduacion,
+        });
+      }
+    }
+
+    // Verificar si se encontraron detalles
+    if (detallesGraduados.length > 0) {
+      res.json(detallesGraduados);  // Devolver los detalles
+    } else {
+      res.status(404).json({ message: 'No se encontraron detalles para los graduados relacionados' });
+    }
+
+  } catch (error) {
+    console.error('Error al obtener detalles de los graduados relacionados:', error);
+    res.status(500).json({ error: 'Error al obtener detalles de los graduados relacionados' });
+  }
+};
+
+
+
+
 
 
 // Controlador para obtener los estudiantes por periodo inicial y carrera

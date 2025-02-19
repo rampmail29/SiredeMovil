@@ -11,7 +11,9 @@ import {
     cargarEstudiantes,
     cargarGraduados,
     obtenerEstudiantesPorMatricula,
-    obtenerMatriculadosPorPeriodos
+    obtenerMatriculadosPorPeriodos,
+    obtenerCarrerasRelacionadas,
+    obtenerDetallesGraduadosRelacionados
  } from '../controllers/estadisticas.controller.js';
 
 const router = Router();
@@ -21,6 +23,8 @@ router.get('/cortes-iniciales/:id_carrera', traerCortesIniciales);
 router.get('/periodos/:id_carrera', traerPeriodosMatriculas);
 router.get('/estudiantes', buscarEstudiantes);
 router.get('/obtener/:id', obtenerDetalles);
+router.get('/carreras-relacionadas/:idSeleccionado', obtenerCarrerasRelacionadas);
+router.post('/detalles-graduados-relacionados', obtenerDetallesGraduadosRelacionados);
 router.post('/estudiantes/:documento', obtenerDetallesEstudiante);
 router.post('/estudiantes-por-corte', obtenerEstudiantesPorCorte);
 router.post('/estudiantes-por-matricula', obtenerEstudiantesPorMatricula);
