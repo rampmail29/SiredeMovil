@@ -21,6 +21,7 @@ const GraficarCohorte = ({ route }) => {
      const [isRetenidosCollapsed, setRetenidosCollapsed] = useState(true);
      const [isActivosCollapsed, setActivosCollapsed] = useState(true);
      const [isInactivosCollapsed, setInactivosCollapsed] = useState(true);
+     const [isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed] = useState(true);
      console.log('Id Seleccionado: '+ idSeleccionado)
 
     // Referencias para animación
@@ -29,6 +30,7 @@ const GraficarCohorte = ({ route }) => {
     const rotationRetenidos = useRef(new Animated.Value(0)).current;
     const rotationActivos = useRef(new Animated.Value(0)).current;
     const rotationInactivos = useRef(new Animated.Value(0)).current;
+    const rotationGraduadosOportunos = useRef(new Animated.Value(0)).current;
   
     // Métodos para obtener información
     const obtenerPeriodoActual = () => {
@@ -242,12 +244,14 @@ const GraficarCohorte = ({ route }) => {
       const renderAccordion = (title, estudiantes, isCollapsed, toggleCollapse, rotation) => {
         // Solo mostrar si hay estudiantes
         if (estudiantes.length === 0) return null;
+        const backgroundColor = title === "Graduados Oportunos" ? "#C3D730" : "#132F20"; 
+        const color = title === "Graduados Oportunos" ? "#132F20" : "white"; 
     
         return (
-            <View style={styles.accordionContainer}>
-                <TouchableOpacity onPress={toggleCollapse} style={styles.accordionHeader}>
+            <View style={[styles.accordionContainer, { backgroundColor }]}>
+                <TouchableOpacity  onPress={toggleCollapse} >
                     <View style={styles.headerContent}>
-                    <Text style={styles.accordionTitle}>{`${title} (${estudiantes.length})`}</Text>
+                    <Text style={[styles.accordionTitle,{color}]}>{`${title} (${estudiantes.length})`}</Text>
                         <Animated.View style={{ transform: [{ rotate: getRotation(rotation) }] }}>
                             <FontAwesome name="caret-right" size={24} color="#F0FFF2" />
                         </Animated.View>
@@ -328,7 +332,10 @@ const GraficarCohorte = ({ route }) => {
                 selectedCorteInicial, // Asegúrate de que estas variables existan
                 corteFinal,
                 programaSeleccionado,
-                datosBackend
+                datosBackend,
+                graduacionOportuna,
+                graduadosOportunos,
+                tipoProgramaSeleccionado
               })}
           >
             <View style={styles.headerContent}>
@@ -463,9 +470,9 @@ const GraficarCohorte = ({ route }) => {
               </View>
             )}
 
-       
+         {renderAccordion("Graduados Oportunos", graduadosOportunos, isGraduadosOportunosCollapsed, () => toggleAccordion(isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed, rotationGraduadosOportunos),rotationGraduadosOportunos)}
 
-
+    
           <Text style={styles.analisisText}>{generarTextoDinamico()}</Text>
 
                            
@@ -598,12 +605,12 @@ const styles = StyleSheet.create({
     fontSize: 19,
     textAlign: 'justify',
     fontFamily: 'Montserrat-Medium',
+    marginTop:10
   },
   analisisText2: {
     fontSize: 19,
     textAlign: 'justify',
     fontFamily: 'Montserrat-Bold',
-    marginBottom:10
   },
   bold: {
     fontFamily: 'Montserrat-Black',
@@ -677,7 +684,6 @@ const styles = StyleSheet.create({
   accordionContainer: {
     marginTop: 10,
     width: '100%',
-    backgroundColor: '#132F20',
     padding: 20,
     borderRadius: 10,
   },

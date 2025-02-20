@@ -11,7 +11,7 @@ const StudentDetail = ({ route, navigation }) => {
   const { id, fromScreen } = route.params || {};
   
   // Inicializa variables opcionales
-  let selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend, graduacionOportunaLocal, graduadosOportunosLocal;
+  let selectedCorteInicial, corteFinal, programaSeleccionado, datosBackend, graduacionOportuna, graduadosOportunos, tipoProgramaSeleccionado;
 
  // Verifica de dónde proviene la navegación
  if (fromScreen === 'GraficarCohorte') {
@@ -19,8 +19,9 @@ const StudentDetail = ({ route, navigation }) => {
   corteFinal = route.params.corteFinal;
   programaSeleccionado = route.params.programaSeleccionado;
   datosBackend = route.params.datosBackend;
-  graduacionOportunaLocal = route.params.graduacionOportunaLocal;
-  graduadosOportunosLocal - route.params.graduadosOportunosLocal;
+  graduacionOportuna = route.params.graduacionOportuna;
+  graduadosOportunos = route.params.graduadosOportunos;
+  tipoProgramaSeleccionado = route. params.tipoProgramaSeleccionado;
 }
  // Verifica de dónde proviene la navegación
  if (fromScreen === 'GraficarPdf') {
@@ -38,8 +39,9 @@ const volverNavigation = () => {
       corteFinal, 
       programaSeleccionado, 
       datosBackend,
-      graduacionOportunaLocal,
-      graduadosOportunosLocal 
+      graduacionOportuna,
+      graduadosOportunos,
+      tipoProgramaSeleccionado 
     });
   } else if (fromScreen === 'InformeEstudiante') {
     // Solo regresa a InformeEstudiante
