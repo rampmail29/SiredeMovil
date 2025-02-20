@@ -366,7 +366,7 @@ const GraficarCohorte = ({ route }) => {
   
     if (hayGraduados && hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
       const comparacion = graduados.length > desertados.length  ? "un mayor" : graduados.length < desertados.length  ? "un menor"  : "igual";
-      return `En esta cohorte, ${graduados.length} estudiantes lograron graduarse, lo cual es un gran éxito. Sin embargo, también se observa que ${desertados.length} han desertado, con ${comparacion} número de graduados que de desertados. Podremos ver mas detalles de estos estudiantes a continuación:`;
+      return `En esta cohorte, ${graduados.length} estudiantes lograron graduarse con éxito. Sin embargo, también se observa que ${desertados.length} han desertado, con ${comparacion} número de graduados que de desertados. Podremos ver mas detalles de estos estudiantes a continuación:`;
     }
   
     if (hayGraduados && !hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
@@ -459,16 +459,20 @@ const GraficarCohorte = ({ route }) => {
           <View style={styles.separator} />
 
           {tipoProgramaSeleccionado === "Tecnologia" && (
-              <View >
-                  {/* Mensaje con la tasa y el total de graduados */}
-                  <Text style={styles.analisisText2}>
+          <View>
+            <Text style={styles.analisisText2}>
+              {graduadosOportunos.length === 0 
+                ? "No hubo estudiantes que lograran culminar sus estudios dentro del tiempo esperado en esta cohorte."
+                : <>
                     La tasa de graduación oportuna fue de{" "}
                     <Text style={styles.bold}>{graduacionOportuna}%</Text>,  
-                    esto significa que <Text style={styles.bold}>{`${graduadosOportunos.length} estudiantes `}</Text>lograron culminar satisfactoriamente sus estudios dentro del tiempo esperado.
-                  </Text>
-            
-              </View>
-            )}
+                    esto significa que <Text style={styles.bold}>{`${graduadosOportunos.length} estudiantes `}</Text>
+                    lograron culminar satisfactoriamente sus estudios dentro del tiempo esperado.
+                  </>
+              }
+            </Text>
+          </View>
+        )}
 
          {renderAccordion("Graduados Oportunos", graduadosOportunos, isGraduadosOportunosCollapsed, () => toggleAccordion(isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed, rotationGraduadosOportunos),rotationGraduadosOportunos)}
 
