@@ -1040,7 +1040,7 @@ export const obtenerCarrerasRelacionadas = async (req, res) => {
 
 export const obtenerDetallesGraduadosRelacionados = async (req, res) => {
   const { carreraId, estudiantesIds, carrerasRelacionadas } = req.body;
-  console.log(estudiantesIds)
+  console.log(estudiantesIds);
 
   if (!carrerasRelacionadas || carrerasRelacionadas.length === 0) {
     return res.status(400).json({ error: 'El array de carreras relacionadas está vacío.' });
@@ -1049,22 +1049,23 @@ export const obtenerDetallesGraduadosRelacionados = async (req, res) => {
   try {
     const detallesGraduados = [];
 
-    // Expandir el array de carrerasRelacionadas para manejarlo adecuadamente en SQL
+    // Convertir el array de carrerasRelacionadas en una cadena para la consulta SQL
     const carrerasRelacionadasStr = carrerasRelacionadas.join(',');
 
     for (let id_estudiante of estudiantesIds) {
-      // Obtener el periodo_graduacion de la carrera relacionada
+      // Obtener periodo_inicio y periodo_graduacion de la carrera relacionada (Tecnología)
       const sqlRelacionada = `
-        SELECT ec.periodo_graduacion
+        SELECT ec.periodo_inicio, ec.periodo_graduacion
         FROM estudiantes_carreras ec
         WHERE ec.id_estudiante = ? 
-        AND ec.id_carrera IN (${carrerasRelacionadasStr});`;
+        AND ec.id_carrera IN (${carrerasRelacionadasStr})
+        LIMIT 1;`;
 
       const [resultadoRelacionada] = await pool.query(sqlRelacionada, [id_estudiante]);
 
-      // Obtener el periodo_graduacion de la carrera actual
+      // Obtener periodo_inicio y periodo_graduacion de la carrera actual (Ingeniería)
       const sqlActual = `
-        SELECT ec.periodo_graduacion
+        SELECT ec.periodo_inicio, ec.periodo_graduacion
         FROM estudiantes_carreras ec
         WHERE ec.id_estudiante = ? 
         AND ec.id_carrera = ?`;
@@ -1075,8 +1076,10 @@ export const obtenerDetallesGraduadosRelacionados = async (req, res) => {
       if (resultadoRelacionada.length > 0 && resultadoActual.length > 0) {
         detallesGraduados.push({
           id_estudiante: id_estudiante,
-          periodo_graduacion_relacionado: resultadoRelacionada[0].periodo_graduacion,
-          periodo_graduacion_actual: resultadoActual[0].periodo_graduacion,
+          inicioTenologia: resultadoRelacionada[0].periodo_inicio,
+          graduacionTecnologia: resultadoRelacionada[0].periodo_graduacion,
+          inicioIngenieria: resultadoActual[0].periodo_inicio,
+          graduacionIngenieria: resultadoActual[0].periodo_graduacion,
         });
       }
     }
@@ -1093,10 +1096,6 @@ export const obtenerDetallesGraduadosRelacionados = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener detalles de los graduados relacionados' });
   }
 };
-
-
-
-
 
 
 // Controlador para obtener los estudiantes por periodo inicial y carrera

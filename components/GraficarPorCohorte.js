@@ -12,9 +12,12 @@ const GraficarCohorte = ({ route }) => {
 
      // Hooks y navegación
      const navigation = useNavigation();
-     const [graduacionOportuna, setGraduacionOportuna] = useState('');
-     const [graduadosOportunos, setGraduadosOportunos] = useState([]);
+     const [graduacionOportunaTec, setGraduacionOportunaTec] = useState('');
+     const [graduadosOportunosTec, setGraduadosOportunosTec] = useState([]);
+     const [graduacionOportunaPro, setGraduacionOportunaPro] = useState('');
+     const [graduadosOportunosPro, setGraduadosOportunosPro] = useState([]);
      const [carrerasRelacionadas, setCarrerasRelacionadas] = useState([]);
+     const [graduadosOportunosTotal, setgraduadosOportunosTotal] = useState([]);
      const [isCarrerasLoaded, setIsCarrerasLoaded] = useState(false);
      const [isGraduadosCollapsed, setGraduadosCollapsed] = useState(true);
      const [isDesertadosCollapsed, setDesertadosCollapsed] = useState(true);
@@ -22,7 +25,9 @@ const GraficarCohorte = ({ route }) => {
      const [isActivosCollapsed, setActivosCollapsed] = useState(true);
      const [isInactivosCollapsed, setInactivosCollapsed] = useState(true);
      const [isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed] = useState(true);
-     console.log('Id Seleccionado: '+ idSeleccionado)
+     console.log(`SEPARADOR-----------------------------`)
+     console.log(`Corte Inicial: ${selectedCorteInicial}`)
+     console.log(`Corte Final: ${corteFinal}`)
 
     // Referencias para animación
     const rotationGraduados = useRef(new Animated.Value(0)).current;
@@ -40,26 +45,27 @@ const GraficarCohorte = ({ route }) => {
       const semestre = mes <= 6 ? 1 : 2;
       return `${año}-${semestre}`;
   };
-
   useEffect(() => {
-    const obtenerCarrerasRelacionadas = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/carreras-relacionadas/${idSeleccionado}`);
-        const data = await response.json();
-        console.log('Carreras relacionadas:', data); // Array con IDs de carreras relacionadas
-        setCarrerasRelacionadas(data);
-        setIsCarrerasLoaded(true); // Marcar que los datos están cargados
-      } catch (error) {
-        console.error('Error al obtener carreras relacionadas:', error);
-      }
-    };
+    if (tipoProgramaSeleccionado === "Profesional") {
+      const obtenerCarrerasRelacionadas = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/carreras-relacionadas/${idSeleccionado}`);
+          const data = await response.json();
+          console.log('Carreras relacionadas:', data); // Array con IDs de carreras relacionadas
+          setCarrerasRelacionadas(data);
+          setIsCarrerasLoaded(true); // Marcar que los datos están cargados
+        } catch (error) {
+          console.error('Error al obtener carreras relacionadas:', error);
+        }
+      };
   
-    obtenerCarrerasRelacionadas();
-  }, [idSeleccionado]);
+      obtenerCarrerasRelacionadas();
+    }
+  }, [idSeleccionado, tipoProgramaSeleccionado]); // Agrega tipoProgramaSeleccionado como dependencia
   
   useEffect(() => {
-    const obtenerDetallesGraduadosRelacionados = async () => {
-      if (isCarrerasLoaded) { // Solo ejecutamos si las carreras están cargadas
+    if (tipoProgramaSeleccionado === "Profesional" && idSeleccionado && isCarrerasLoaded) {
+      const obtenerDetallesGraduadosRelacionados = async () => {
         try {
           // Llamada al backend enviando todos los ids de estudiantes graduados y el idSeleccionado
           const response = await fetch(`${API_BASE_URL}/api/detalles-graduados-relacionados`, {
@@ -76,20 +82,17 @@ const GraficarCohorte = ({ route }) => {
   
           const data = await response.json();
           console.log('Detalles de graduados relacionados:', data);
+          setgraduadosOportunosTotal(data)
           // Aquí puedes manejar los datos recibidos del backend como prefieras
         } catch (error) {
           console.error('Error al obtener detalles de los graduados relacionados:', error);
         }
-      }
-    };
+      };
   
-    if (idSeleccionado && isCarrerasLoaded) {
       obtenerDetallesGraduadosRelacionados();
     }
-  }, [idSeleccionado, carrerasRelacionadas, idsEstudiantesGraduados, isCarrerasLoaded]);  // Dependencias
+  }, [idSeleccionado, carrerasRelacionadas, idsEstudiantesGraduados, isCarrerasLoaded, tipoProgramaSeleccionado]); // Agrega tipoProgramaSeleccionado como dependencia
   
-
-
 
     const compararPeriodos = (corteFinal, periodoActual) => {
       const [añoFinal, semestreFinal] = corteFinal.split('-').map(Number);
@@ -117,7 +120,7 @@ const GraficarCohorte = ({ route }) => {
 
     const idsEstudiantesGraduados = graduados.map(estudiante => estudiante.id_estudiante);
 
-    console.log(idsEstudiantesGraduados);
+    console.log(`Ids de estudiantes graduados = ${idsEstudiantesGraduados}`);
     
 
      // Funciones relacionadas con programas
@@ -148,32 +151,98 @@ const GraficarCohorte = ({ route }) => {
         );
     };
 
+    const filtrarGraduadosOportunosProfesionales = (totalSemestresEstudiantes) => {
+      return totalSemestresEstudiantes.filter(estudiante => estudiante.totalSemestres <= 12);
+  };
+
     const calcularTasaGraduacionOportuna = (totalCohorte, graduadosOportunos) => {
         const tasaGraduacionOportuna = (graduadosOportunos.length / totalCohorte) * 100;
         return tasaGraduacionOportuna.toFixed(2);
     };
+    const procesarGraduadosTecnologia = () => {
+      const maxGraduacionTec = periodoMaxGraduacionOportunaTec(corteFinal);
+      const estudiantesOportunos = obtenerGraduadosOportunos(graduados, maxGraduacionTec);
+      setGraduadosOportunosTec(estudiantesOportunos);
+      setGraduacionOportunaTec(calcularTasaGraduacionOportuna(totalCohorte, estudiantesOportunos));
+  };
+  
+  // Llamamos a la función después de calcular los detalles de los estudiantes
+const procesarGraduadosProfesionales = () => {
+  if (graduadosOportunosTotal.length > 0) {
+      const resultado = calcularDuracionEstudios(graduadosOportunosTotal);
+      console.log("Detalles completos:", resultado.detallesEstudiantes);
+      console.log("Total de semestres por estudiante:", resultado.totalSemestresEstudiantes);
 
-      useEffect(() => {
-        if (tipoProgramaSeleccionado === 'Tecnologia') {
-            const maxGraduacionTec = periodoMaxGraduacionOportunaTec(corteFinal);
-            const estudiantesOportunos = obtenerGraduadosOportunos(graduados, maxGraduacionTec);
-            setGraduadosOportunos(estudiantesOportunos);
-            setGraduacionOportuna(calcularTasaGraduacionOportuna(totalCohorte, estudiantesOportunos));
-        } else if (tipoProgramaSeleccionado === 'Profesional') {
-           // const maxGraduacionPro = periodoMaxGraduacionOportunaPro(corteFinal);
-           /// const estudiantesOportunos = obtenerGraduadosOportunos(graduados, maxGraduacionPro);
-           // setGraduadosOportunos(estudiantesOportunos);
-           // setGraduacionOportuna(calcularTasaGraduacionOportuna(totalCohorte, estudiantesOportunos));
-        }
-    }, [tipoProgramaSeleccionado, corteFinal, graduados, totalCohorte]);
+      // Filtrar estudiantes con ≤12 semestres
+      const graduadosOportunosProfesionales = filtrarGraduadosOportunosProfesionales(resultado.totalSemestresEstudiantes);
+      console.log("Graduados Oportunos Profesionales (≤12 semestres):", graduadosOportunosProfesionales.length);
+
+      setGraduadosOportunosPro(graduadosOportunosProfesionales.length)
+      setGraduacionOportunaPro(calcularTasaGraduacionOportuna(totalCohorte, graduadosOportunosProfesionales))
+  }
+  
+};
+  
+  // useEffect más limpio y reutilizable
+  useEffect(() => {
+      if (tipoProgramaSeleccionado === 'Tecnologia') {
+          procesarGraduadosTecnologia();
+      } else if (tipoProgramaSeleccionado === 'Profesional') {
+          procesarGraduadosProfesionales();
+      }
+  }, [tipoProgramaSeleccionado, corteFinal, graduados, totalCohorte, graduadosOportunosTotal]); 
+  
 
     useEffect(() => {
-      console.log(`Graduado Oportunos: ${JSON.stringify(graduadosOportunos, null, 2)}`);
-      console.log(`Tasa de Graduacion Oportuna: ${graduacionOportuna}`);
-  }, [graduadosOportunos, graduacionOportuna]);
-  
-    
+      console.log(`Graduado Oportunos Tecnologia:${graduadosOportunosTec.length}`);
+      console.log(`Tasa de Graduacion Oportuna Tecnologia: ${graduacionOportunaTec}`);
+  }, [graduadosOportunosTec, graduacionOportunaTec]);
 
+  useEffect(() => {
+    console.log(`Graduados Oportunos Profesional:${graduadosOportunosPro}`);
+    console.log(`Tasa de Graduacion Oportuna Profesional: ${graduacionOportunaPro}`);
+}, [graduadosOportunosPro, graduacionOportunaPro])
+
+
+      function calcularDuracionEstudios(estudiantes) {
+        const detallesEstudiantes = estudiantes.map(estudiante => {
+            const { id_estudiante, inicioTenologia, graduacionTecnologia, inicioIngenieria, graduacionIngenieria } = estudiante;
+
+            // Función auxiliar para calcular la cantidad de semestres correctamente
+            const calcularSemestres = (inicio, graduacion) => {
+              if (!inicio || !graduacion || !inicio.includes('-') || !graduacion.includes('-')) {
+                  console.log("Datos inválidos en calcularSemestres:", { inicio, graduacion });
+                  return 0; // Retornamos 0 para evitar que falle el código
+              }
+          
+              const [anioInicio, semestreInicio] = inicio.split('-').map(Number);
+              const [anioGrad, semestreGrad] = graduacion.split('-').map(Number);
+          
+              return ((anioGrad - anioInicio) * 2 + (semestreGrad - semestreInicio)) + 1;
+          };
+
+            // Calcular duración en cada etapa
+            const semestresTecnologia = calcularSemestres(inicioTenologia, graduacionTecnologia);
+            const semestresIngenieria = calcularSemestres(inicioIngenieria, graduacionIngenieria);
+            const totalSemestres = semestresTecnologia + semestresIngenieria;
+
+            return {
+                id_estudiante,
+                semestresTecnologia,
+                semestresIngenieria,
+                totalSemestres
+            };
+        });
+
+        // Crear un nuevo array solo con id y total de semestres
+        const totalSemestresEstudiantes = detallesEstudiantes.map(({ id_estudiante, totalSemestres }) => ({
+            id_estudiante,
+            totalSemestres
+        }));
+
+        return { detallesEstudiantes, totalSemestresEstudiantes };
+    }
+  
       // Porcentajes
       const formatearPorcentaje = (valor) => Number.isInteger(valor) ? valor : valor.toFixed(1);
       const porcentajeGraduados = totalCohorte > 0 ? formatearPorcentaje((graduados.length * 100) / totalCohorte) : 0;
@@ -333,9 +402,10 @@ const GraficarCohorte = ({ route }) => {
                 corteFinal,
                 programaSeleccionado,
                 datosBackend,
-                graduacionOportuna,
-                graduadosOportunos,
-                tipoProgramaSeleccionado
+                graduacionOportunaTec,
+                graduadosOportunosTec,
+                tipoProgramaSeleccionado,
+                idSeleccionado
               })}
           >
             <View style={styles.headerContent}>
@@ -458,23 +528,32 @@ const GraficarCohorte = ({ route }) => {
           
           <View style={styles.separator} />
 
-          {tipoProgramaSeleccionado === "Tecnologia" && (
-          <View>
-            <Text style={styles.analisisText2}>
-              {graduadosOportunos.length === 0 
-                ? "No hubo estudiantes que lograran culminar sus estudios dentro del tiempo esperado en esta cohorte."
-                : <>
+          {(tipoProgramaSeleccionado === "Tecnologia" || tipoProgramaSeleccionado === "Profesional") && (
+            <View>
+              <Text style={styles.analisisText2}>
+                {(tipoProgramaSeleccionado === "Tecnologia" && graduadosOportunosTec.length === 0) ||
+                (tipoProgramaSeleccionado === "Profesional" && graduadosOportunosPro === 0) ? (
+                  "No hubo estudiantes que lograran culminar sus estudios dentro del tiempo esperado en esta cohorte."
+                ) : (
+                  <>
                     La tasa de graduación oportuna fue de{" "}
-                    <Text style={styles.bold}>{graduacionOportuna}%</Text>,  
-                    esto significa que <Text style={styles.bold}>{`${graduadosOportunos.length} estudiantes `}</Text>
+                    <Text style={styles.bold}>
+                      {tipoProgramaSeleccionado === "Tecnologia" ? graduacionOportunaTec : graduacionOportunaPro}%
+                    </Text>
+                    , esto significa que{" "}
+                    <Text style={styles.bold}>
+                      {tipoProgramaSeleccionado === "Tecnologia"
+                        ? `${graduadosOportunosTec.length} estudiantes `
+                        : `${graduadosOportunosPro} estudiantes `}
+                    </Text>
                     lograron culminar satisfactoriamente sus estudios dentro del tiempo esperado.
                   </>
-              }
-            </Text>
-          </View>
-        )}
+                )}
+              </Text>
+            </View>
+          )}
 
-         {renderAccordion("Graduados Oportunos", graduadosOportunos, isGraduadosOportunosCollapsed, () => toggleAccordion(isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed, rotationGraduadosOportunos),rotationGraduadosOportunos)}
+         {renderAccordion("Graduados Oportunos", graduadosOportunosTec, isGraduadosOportunosCollapsed, () => toggleAccordion(isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed, rotationGraduadosOportunos),rotationGraduadosOportunos)}
 
     
           <Text style={styles.analisisText}>{generarTextoDinamico()}</Text>
