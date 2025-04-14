@@ -168,6 +168,7 @@ export const cargarEstudiantes = async (req, res) => {
             continue; // O puedes lanzar un error si prefieres
         }
 
+         // Fase 1: Cargar todos los datos a toda sus respectivas tablas
         // 1. Insertar en la tabla 'carrera'
         carreraId = await insertarCarrera(nombre_programa, codigo_programa, tipo_programa);
 
@@ -180,18 +181,21 @@ export const cargarEstudiantes = async (req, res) => {
         // 4. Insertar el historial de matrícula del estudiante
         await insertarHistoricoMatricula(estudianteId, carreraId, periodo_matricula, promedio_semestral, promedio_general);
     }
-     // console.log(carreraId)
-      //console.log(periodo_matricula)
+   
 
-    // Fase 2: Procesar relaciones de carreras
-    if (carreraId && periodo_matricula) {
-      await cambiarEstadoAcademicoSegunMatriculas(carreraId, periodo_matricula);
-      await procesarCambioEstadoRetenido(carreraId, periodo_matricula);
+    // Fase 2: Procesamiento avanzado después de insertar datos
+      if (carreraId && periodo_matricula) {
+        // 1. Procesar relaciones de carreras primero (para tener contexto completo)
+        if (selectedCareers && selectedCareers.length > 0) {
+          await procesarRelacionesCarreras(carreraId, selectedCareers);
+        }
 
-      if (selectedCareers && selectedCareers.length > 0) {
-        await procesarRelacionesCarreras(carreraId, selectedCareers);
+        // 2. Ahora que ya conocemos las relaciones, aplicar lógica de cambio de estado
+        await cambiarEstadoAcademicoSegunMatriculas(carreraId, periodo_matricula);
+
+        // 3. Procesar lógica especial de estado retenido (usa resultados previos)
+        await procesarCambioEstadoRetenido(carreraId, periodo_matricula);
       }
-    }
         
 
     return res.status(200).json({ success: true, message: 'Todos los datos han sido procesados correctamente y los estados académicos han sido actualizados.' });
@@ -200,8 +204,6 @@ export const cargarEstudiantes = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Error en el procesamiento de datos.' });
 }
 };
-
-
 
 
 async function insertarCarrera(nombre_Programa, codigo_Programa, tipo_Programa) {
