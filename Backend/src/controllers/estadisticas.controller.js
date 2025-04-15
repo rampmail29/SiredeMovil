@@ -411,7 +411,7 @@ export const insertarEstudianteCarrera = async (
       `, [
         id_carrera, // carrera nueva
         periodo_inicio,
-        `Cambio de carrera relacionada`,
+        `Cambio a carrera relacionada`,
         id_estudiante,
         idCarreraAnterior // carrera relacionada existente
       ]);
@@ -542,12 +542,26 @@ export const insertarEstudianteCarrera = async (
   
               // Verificar si el estado es 'Activo' o 'Retenido'
               if (estadoActual === 'Activo' || estadoActual === 'Retenido') {
-                  // Cambiar el estado a 'Inactivo'
-                  await cambiarEstadoAcademico(id_estudiante, carreraId, 'Inactivo', estadoActual, periodoActual);
-                 // console.log(`Estudiante ${id_estudiante} ha sido marcado como 'Inactivo' para el periodo ${periodoActual}`);
-              } 
+                // ⚠️ NUEVO: Verificar si el estudiante está matriculado en una carrera relacionada
+                const [relacionadasConMatricula] = await pool.query(`
+                  SELECT hm.id_estudiante
+                  FROM relaciones_carreras rc
+                  JOIN historico_matriculas hm ON (
+                    (rc.id_carrera1 = ? AND rc.id_carrera2 = hm.id_carrera) OR
+                    (rc.id_carrera2 = ? AND rc.id_carrera1 = hm.id_carrera)
+                  )
+                  WHERE hm.id_estudiante = ? AND hm.periodo_matricula = ?
+                `, [carreraId, carreraId, id_estudiante, periodoActual]);
+      
+                if (relacionadasConMatricula.length > 0) {
+                  // 🎉 No lo inactivamos, está matriculado en una relacionada
+                  continue;
+                }
+                // Si no está en una relacionada, ahora sí cambiar a Inactivo
+                await cambiarEstadoAcademico(id_estudiante, carreraId, 'Inactivo', estadoActual, periodoActual);
+      
               // Verificar si el estudiante ya estaba 'Inactivo'
-              else if (estadoActual === 'Inactivo') {
+               } else if (estadoActual === 'Inactivo') {
                   // Cambiar el estado a 'Desertor'
                   await cambiarEstadoAcademico(id_estudiante, carreraId, 'Desertor', estadoActual, periodoActual);
                  // console.log(`Estudiante ${id_estudiante} ha sido marcado como 'Desertor' para el periodo ${periodoActual}`);
