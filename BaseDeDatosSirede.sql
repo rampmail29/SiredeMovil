@@ -39,9 +39,13 @@ CREATE TABLE estudiantes_carreras (
     estado_academico ENUM('Activo', 'Inactivo', 'Graduado', 'Retenido', 'Desertor') NOT NULL, -- Estado del estudiante en esa carrera
     jornada ENUM('Diurna', 'Nocturna') NOT NULL, -- Jornada en esa carrera
     sede ENUM('Sede Principal', 'Sede Piedecuesta', 'Sede Barrancabermeja', 'Sede Velez', 'Sede San Gil', 'Sede San Jose de Cucuta', 'Principal', 'Piedecuesta', 'Barrancabermeja', 'Velez', 'San Gil', 'San Jose de Cucuta') NOT NULL, -- Sede en esa carrera
+    id_carrera_relacionada INT, -- Si viene de una carrera relacionada
+    periodo_cambio_relacionado VARCHAR(20), -- Periodo en el que ocurrió el cambio
+    observacion_cambio TEXT, -- Campo para dejar constancia del cambio, opcional
     PRIMARY KEY (id_estudiante, id_carrera), -- Clave primaria compuesta
     FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante),
-    FOREIGN KEY (id_carrera) REFERENCES carreras(id_carrera)
+    FOREIGN KEY (id_carrera) REFERENCES carreras(id_carrera),
+    FOREIGN KEY (id_carrera_relacionada) REFERENCES carreras(id_carrera)
 );
 
 -- Crear la tabla historico_estado
@@ -53,6 +57,7 @@ CREATE TABLE historico_estado (
     estado_nuevo VARCHAR(255), -- Estado nuevo del estudiante
     fecha_cambio DATE, -- Fecha del cambio de estado
     periodo_cambio VARCHAR(20) NOT NULL, -- Periodo de cambio de estado
+    observacion VARCHAR(255), -- Motivo u observación del cambio
     FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante),
     FOREIGN KEY (id_carrera) REFERENCES carreras(id_carrera)
 );
