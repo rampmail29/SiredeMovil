@@ -9,7 +9,6 @@ export const cargarEstudiantes = async (req, res) => {
       console.error('No se recibieron datos para procesar.');
       return res.status(400).json({ success: false, message: 'No se recibieron datos para procesar.' });
   }
-
   
       function obtenerPeriodoDesdeMatricula(codigoMatricula, fechaIngreso) {
 
