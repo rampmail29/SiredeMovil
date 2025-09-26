@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SiredeMovil",
+    "name": "SiredeApp",
     "slug": "SiredeMovil",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,14 +13,15 @@
     },
     "ios": {
       "supportsTablet": true,
-      "newArchEnabled": true
+      "newArchEnabled": true,
+      "budleIdentifier": "com.sirede.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.andresprada10.SiredeMovil",
+      "package": "com.sirede.app",
       "permissions": [
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
@@ -28,9 +29,12 @@
       "newArchEnabled": true
     },
     "web": {
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/icon.png", 
+      "web":{
+        "bundler": "metro"
+      }
     },
-    "owner": "andresprada10",
+    "owner": "telecomunicaciones.uts",
     "plugins": [
       "expo-font",
       [
