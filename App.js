@@ -24,11 +24,14 @@ export default function App() {
 * 
 */
 // App.js (ejemplo mínimo)
+import './firebaseConfig';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebaseConfig';
+import MainNavigator from './components/MainNavigator';
+import InicioSesion from './components/InicioSesion';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,9 +48,9 @@ function AuthGate() {
   return (
     <Stack.Navigator>
       {user ? (
-        <Stack.Screen name="Home" component={HomeScreen}/>
+        <Stack.Screen name="Home" component={MainNavigator}/>
       ) : (
-        <Stack.Screen name="Login" component={LoginScreen}/>
+        <Stack.Screen name="Login" component={InicioSesion}/>
       )}
     </Stack.Navigator>
   );

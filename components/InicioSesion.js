@@ -22,6 +22,7 @@ import {
 } from "../services/authService";
 import { getInitialSetupCompleted } from "../services/userProfileService";
 import { useGoogleLogin } from "../hooks/useGoogleLogin";
+import { auth } from "../firebaseConfig";
 
 const InicioSesion = ({ navigation }) => {
   const [email, setEmail] = useState("");
