@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ImageBackground, View  } from 'react-native';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebaseConfig'; // Asegúrate de que la ruta sea correcta
 import { showMessage } from "react-native-flash-message"; 
 import AntDesign from '@expo/vector-icons/AntDesign';
 
@@ -25,7 +26,7 @@ const AccessRequestForm = () => {
     }
 
     try {
-      const db = getFirestore();
+      const db = db();
       await addDoc(collection(db, 'AccessRequest'), {
         nombre: name,
         cargo: role,

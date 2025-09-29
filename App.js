@@ -24,6 +24,8 @@ export default function App() {
 * 
 */
 // App.js (ejemplo mínimo)
+console.log('[App] start (before any screen)');
+
 import './firebaseConfig';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
