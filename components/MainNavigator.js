@@ -299,38 +299,43 @@ const MainNavigator = () => {
     );
   }
 
+  if (!fontsLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#F0FFF2",
+        }}
+      >
+        {/* opcional: <ActivityIndicator size="large" color="#34531F" /> o el logo */}
+      </View>
+    );
+  }
+
   return (
-    <NavigationContainer>
-      {fontsLoaded ? (
-        <Stack.Navigator
-          initialRouteName="VideoScreen"
-          screenOptions={{ headerShown: false }}
-        >
-          <Stack.Screen name="VideoScreen" component={VideoScreen} />
-          <Stack.Screen name="InicioSesion" component={InicioSesion} />
-          <Stack.Screen name="TabInicio" component={DrawerNavi} />
-          <Stack.Screen name="StudentDetail2" component={StudentDetail2} />
-          <Stack.Screen name="CerrarSesion" component={CerrarSesion} />
-          <Stack.Screen
-            name="AccessRequest"
-            component={AccessRequestForm}
-            options={{ title: "Solicitud de Acceso" }}
-          />
-          <Stack.Screen
-            name="PasswordChangeScreen"
-            component={PasswordChangeScreen}
-          />
-          <Stack.Screen
-            name="InitialSetupScreen"
-            component={InitialSetupScreen}
-          />
-          <Stack.Screen name="ConfigList" component={ConfigList} />
-        </Stack.Navigator>
-      ) : (
-        // Fallback mientras cargan las fuentes (evita pantalla blanca)
-        <View style={{ flex: 1, backgroundColor: "#F0FFF2" }} />
-      )}
-    </NavigationContainer>
+    <Stack.Navigator
+      initialRouteName="VideoScreen"
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen name="VideoScreen" component={VideoScreen} />
+      <Stack.Screen name="InicioSesion" component={InicioSesion} />
+      <Stack.Screen name="TabInicio" component={DrawerNavi} />
+      <Stack.Screen name="StudentDetail2" component={StudentDetail2} />
+      <Stack.Screen name="CerrarSesion" component={CerrarSesion} />
+      <Stack.Screen
+        name="AccessRequest"
+        component={AccessRequestForm}
+        options={{ title: "Solicitud de Acceso" }}
+      />
+      <Stack.Screen
+        name="PasswordChangeScreen"
+        component={PasswordChangeScreen}
+      />
+      <Stack.Screen name="InitialSetupScreen" component={InitialSetupScreen} />
+      <Stack.Screen name="ConfigList" component={ConfigList} />
+    </Stack.Navigator>
   );
 };
 
