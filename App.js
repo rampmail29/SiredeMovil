@@ -96,7 +96,7 @@ export default function App() {
 
 // App.js
 // App.js
-import "./firebaseConfig";
+/* import "./firebaseConfig";
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { onAuthStateChanged } from "firebase/auth";
@@ -123,5 +123,20 @@ export default function App() {
       </NavigationContainer>
     </AuthGate>
   );
+} */
+// App.js
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { NavigationContainer } from '@react-navigation/native';
+import MainNavigator from './components/MainNavigator';
+
+export default function App() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <MainNavigator />
+      </NavigationContainer>
+    </GestureHandlerRootView>
+  );
 }
- 

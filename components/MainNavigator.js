@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { Text, StyleSheet, Platform, Dimensions } from "react-native";
+import { StyleSheet, Platform, Dimensions } from "react-native";
 import * as Font from "expo-font";
 import VideoScreen from "./VideoScreen";
 import InicioSesion from "./InicioSesion";
@@ -32,12 +32,11 @@ import Cargar from "./Cargar";
 import Estadisticas from "./Estadisticas";
 import Animated from "react-native-reanimated";
 import TabInicio from "./TabInicio";
-import { TapGestureHandler } from "react-native-gesture-handler";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { getStatusBarHeight } from "react-native-status-bar-height";
-import { View } from "react-native";
+import { View, ActivityIndicator, Text } from "react-native";
 
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
@@ -62,7 +61,6 @@ const MainNavigator = () => {
   };
 
   useEffect(() => {
-    let mounted = true;
     (async () => {
       try {
         await Font.loadAsync({
@@ -71,15 +69,16 @@ const MainNavigator = () => {
           "Montserrat-Black": require("../assets/fonts/Montserrat/Montserrat-Black.ttf"),
           "Montserrat-Regular": require("../assets/fonts/Montserrat/Montserrat-Regular.ttf"),
         });
+        console.log("[MainNavigator] fonts loaded");
       } catch (e) {
-        console.warn("[fonts] load error → continúo sin fuentes", e);
+        console.warn(
+          "[MainNavigator] fonts failed, continue with system fonts",
+          e
+        );
       } finally {
-        if (mounted) setFontsReady(true); // <- siempre seguimos
+        setFontsLoaded(true); // <- CLAVE: no nos quedamos en blanco si falla
       }
     })();
-    return () => {
-      mounted = false;
-    };
   }, []);
 
   const { height } = Dimensions.get("window");
@@ -150,22 +149,18 @@ const MainNavigator = () => {
             }
 
             return (
-              <TapGestureHandler>
-                <Animated.View style={[tabBarStyles.iconContainer]}>
-                  <Ionicons name={iconName} size={size} color={color} />
-                  <Text
-                    style={{
-                      ...tabBarStyles.iconText,
-                      fontFamily: "Montserrat-Bold",
-                      ...(focused
-                        ? { color: "#34531F" }
-                        : { color: "#B3B3B3" }),
-                    }}
-                  >
-                    {route.name}
-                  </Text>
-                </Animated.View>
-              </TapGestureHandler>
+              <Animated.View style={[tabBarStyles.iconContainer]}>
+                <Ionicons name={iconName} size={size} color={color} />
+                <Text
+                  style={{
+                    ...tabBarStyles.iconText,
+                    fontFamily: "Montserrat-Bold",
+                    ...(focused ? { color: "#34531F" } : { color: "#B3B3B3" }),
+                  }}
+                >
+                  {route.name}
+                </Text>
+              </Animated.View>
             );
           },
           tabBarActiveTintColor: "#C3D730",
@@ -251,6 +246,7 @@ const MainNavigator = () => {
   function DrawerNavi() {
     return (
       <Drawer.Navigator
+        useLegacyImplementation={false} // <--- fuerza el modo moderno
         drawerContent={(props) => <SideBar {...props} />}
         screenOptions={({ route }) => ({
           headerStyle: { backgroundColor: "#F0FFF2" },
@@ -300,16 +296,18 @@ const MainNavigator = () => {
   }
 
   if (!fontsLoaded) {
+    console.log("[MainNavigator] waiting fonts...");
     return (
       <View
         style={{
           flex: 1,
+          backgroundColor: "#F0FFF2",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#F0FFF2",
         }}
       >
-        {/* opcional: <ActivityIndicator size="large" color="#34531F" /> o el logo */}
+        <ActivityIndicator size="large" />
+        <Text style={{ marginTop: 12 }}>Cargando…</Text>
       </View>
     );
   }
@@ -319,7 +317,7 @@ const MainNavigator = () => {
       initialRouteName="VideoScreen"
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="VideoScreen" component={VideoScreen} />
+      {/* <Stack.Screen name="VideoScreen" component={VideoScreen} /> */}
       <Stack.Screen name="InicioSesion" component={InicioSesion} />
       <Stack.Screen name="TabInicio" component={DrawerNavi} />
       <Stack.Screen name="StudentDetail2" component={StudentDetail2} />
