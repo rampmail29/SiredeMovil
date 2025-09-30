@@ -139,7 +139,7 @@ const InicioSesion = ({ navigation }) => {
         style={StyleSheet.absoluteFill}
         player={player}
         resizeMode="cover"
-        allowsFullscreen={false}
+        fullscreenOptions={{enabled:false}}
         allowsPictureInPicture={false}
         nativeControls={false}
         contentFit="cover"
