@@ -11,17 +11,25 @@ import {
   View,
 } from "react-native";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebaseConfig"; // Asegúrate de que la ruta sea correcta
+import { db } from "../firebaseConfig";
 import { showMessage } from "react-native-flash-message";
-import AntDesign from "@expo/vector-icons/AntDesign";
+//import AntDesign from "@expo/vector-icons/AntDesign";
+import { Ionicons } from "@expo/vector-icons";
 
-const AccessRequestForm = () => {
+const AccessRequestForm = ({ navigation }) => {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const isValid = name.trim() && role.trim() && email.trim();
 
   const submitRequest = async () => {
-    if (!name || !role || !email) {
+    const _name = name.trim();
+    const _role = role.trim();
+    const _email = email.trim();
+    if (!_name || !_role || !_email) {
+      console.log("name", name, " - ", role, " - ", email);
       showMessage({
         message: "Faltan datos",
         description:
@@ -37,18 +45,12 @@ const AccessRequestForm = () => {
     }
 
     try {
-      //const db = db();
-      /* await addDoc(collection(db, 'AccessRequest'), {
-        nombre: name,
-        cargo: role,
-        correo: email,
-        timestamp: serverTimestamp(),
-      }); */
+      setLoading(true);
       await addDoc(collection(db, "access_requests"), {
         // nombre de colección en minúsculas recomendado
-        nombre: name,
-        cargo: role,
-        correo: email,
+        nombre: _name,
+        cargo: _role,
+        correo: _email,
         timestamp: serverTimestamp(),
       });
       showMessage({
@@ -66,7 +68,13 @@ const AccessRequestForm = () => {
       setName("");
       setRole("");
       setEmail("");
+      //aquí navegamos de vuelta
+      setTimeout(() => {
+        if (navigation.canGoBack()) navigation.goBack();
+        else navigation.navigate("InicioSesión"); // fallback
+      }, 800);
     } catch (error) {
+      console.error("Firestore addDoc failed:", error?.code, error?.message);
       showMessage({
         message: "Error",
         description:
@@ -78,6 +86,8 @@ const AccessRequestForm = () => {
         duration: 3000,
         position: "top",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,7 +103,7 @@ const AccessRequestForm = () => {
       >
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.icon}>
-            <AntDesign name="adduser" size={80} color="#6D100A" />
+            <Ionicons name="person-add" size={80} color="#6D100A" />
           </View>
           <Text style={styles.title}>Solicitud de Acceso</Text>
           <Text style={styles.description}>
@@ -125,7 +135,11 @@ const AccessRequestForm = () => {
             onChangeText={setEmail}
             keyboardType="email-address"
           />
-          <TouchableOpacity style={styles.button} onPress={submitRequest}>
+          <TouchableOpacity
+            style={[styles.button, !isValid && { opacity: 0.6 }]}
+            onPress={submitRequest}
+            disabled={!isValid}
+          >
             <Text style={styles.buttonText}>Enviar Solicitud</Text>
           </TouchableOpacity>
         </ScrollView>

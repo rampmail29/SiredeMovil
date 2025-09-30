@@ -45,11 +45,13 @@ const InicioSesion = ({ navigation }) => {
   const { request, promptAsync } = useGoogleLogin();
 
   const iniciarSesion = async () => {
+    //console.log("ingresé a iniciarSesión");
     setMostrarCargando(true);
     try {
       const { user } = await signInEmail(email, password);
       // Chequeo del setup inicial (Firestore)
       const setupCompleted = await getInitialSetupCompleted(user.uid);
+      console.log("🚀 ~ iniciarSesion ~ setupCompleted:", setupCompleted);
 
       if (setupCompleted) {
         navigation.replace("TabInicio");
@@ -77,6 +79,11 @@ const InicioSesion = ({ navigation }) => {
           mensajeError =
             "Por favor, inténtalo más tarde; has excedido el número de intentos.";
           break;
+        case "auth/invalid-credential":
+          // Puede ser password incorrecta o proyecto/config erróneos.
+          mensajeError =
+            "Credenciales inválidas. Verifica tu contraseña o consulta si tu cuenta fue creada en este proyecto.";
+          break;
         default:
           mensajeError =
             "Lo sentimos, no se pudieron autenticar tus credenciales. Intenta nuevamente.";
@@ -90,7 +97,6 @@ const InicioSesion = ({ navigation }) => {
         duration: 4000,
       });
     } finally {
-      // Si haces navigation.replace, el unmount limpia el loader; este finally es útil si falla.
       setMostrarCargando(false);
     }
   };
@@ -139,7 +145,7 @@ const InicioSesion = ({ navigation }) => {
         style={StyleSheet.absoluteFill}
         player={player}
         resizeMode="cover"
-        fullscreenOptions={{enabled:false}}
+        fullscreenOptions={{ enabled: false }}
         allowsPictureInPicture={false}
         nativeControls={false}
         contentFit="cover"
@@ -378,6 +384,7 @@ const estilos = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
+  /*  */
   signupText: {
     fontSize: 16,
     color: "#696969",

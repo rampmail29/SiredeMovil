@@ -24,7 +24,7 @@ export default function App() {
  *
  */
 
-console.log('[App] start (before any screen)');
+/* console.log('[App] start (before any screen)');
 
 import './firebaseConfig';
 import React from 'react';
@@ -65,7 +65,7 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
+ */
 
 // App.js (primera línea)
 /* import "./firebaseConfig";
@@ -93,3 +93,35 @@ export default function App() {
   );
 }
  */
+
+// App.js
+// App.js
+import "./firebaseConfig";
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebaseConfig";
+import MainNavigator from "./components/MainNavigator";
+import FlashMessage from "react-native-flash-message";
+
+function AuthGate({ children }) {
+  const [ready, setReady] = React.useState(false);
+  React.useEffect(() => {
+    const unsub = onAuthStateChanged(auth, () => setReady(true));
+    return unsub;
+  }, []);
+  if (!ready) return null;
+  return children;
+}
+
+export default function App() {
+  return (
+    <AuthGate>
+      <NavigationContainer>
+        <MainNavigator />
+        <FlashMessage position="top"/>
+      </NavigationContainer>
+    </AuthGate>
+  );
+}
+ 

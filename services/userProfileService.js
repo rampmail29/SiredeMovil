@@ -1,5 +1,5 @@
 // services/userProfileService.js
-import { db } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 export async function getInitialSetupCompleted(uid) {
@@ -8,4 +8,10 @@ export async function getInitialSetupCompleted(uid) {
   if (!snap.exists()) return null;
   const data = snap.data();
   return !!data?.initialSetupCompleted;
+}
+
+export async function ensureEmailInProfile() {
+  const u = auth.currentUser;
+  if (!u) return;
+  await getDoc(doc(db, "users", u.uid), { email: u.email }, { merge: true });
 }
