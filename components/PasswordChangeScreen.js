@@ -21,15 +21,19 @@ import {
   useWindowDimensions,
   ImageBackground,
 } from "react-native";
-
-import { auth } from "../firebaseConfig";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { db, auth } from "../firebaseConfig";
 import {
   updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
 } from "firebase/auth";
+import { useRoute } from "@react-navigation/native";
 
 const PasswordChangeScreen = ({ navigation }) => {
+  const route = useRoute();
+  const next = route.params?.next ?? "InfoPerfilScreen";
+  const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -110,8 +114,36 @@ const PasswordChangeScreen = ({ navigation }) => {
         });
         return;
       }
-
+      // 1) Reautenticación
+      if (!currentPassword) {
+        showMessage({
+          message: "Falta contraseña actual",
+          description: "Ingresa tu contraseña actual para continuar.",
+          type: "warning",
+          position: "top",
+        });
+        setLoading(false);
+        return;
+      }
+      if (currentPassword === newPassword) {
+        showMessage({
+          message: "Contraseña inválida",
+          description: "La nueva contraseña no puede ser igual a la actual.",
+          type: "warning",
+          position: "top",
+        });
+        setLoading(false);
+        return;
+      }
+      const cred = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, cred);
+      //2. Update
       await updatePassword(user, newPassword);
+      // 3) Marca el onboarding
+      await updateDoc(doc(db, "users", user.uid), {
+        "onboarding.passwordChanged": true,
+        passwordChangedAt: serverTimestamp(),
+      });
 
       showMessage({
         message: "Éxito",
@@ -124,9 +156,7 @@ const PasswordChangeScreen = ({ navigation }) => {
         position: "top",
       });
 
-      setTimeout(() => {
-        navigation.replace("InitialSetupScreen");
-      }, 2000);
+      setTimeout(() => navigation.replace(next), 2000);
     } catch (error) {
       console.log("Error al actualizar la contraseña:", error);
       if (error?.code === "auth/requires-recent-login") {
@@ -189,7 +219,26 @@ const PasswordChangeScreen = ({ navigation }) => {
 
           <Animated.View style={animatedStyle2}>
             <Text style={styles.text}>Digite la nueva Contraseña: </Text>
-
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Contraseña actual"
+                secureTextEntry={secureTextEntry}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                style={styles.iconContainer}
+                onPress={passwordVisibility}
+              >
+                <Ionicons
+                  name={secureTextEntry ? "eye-off" : "eye"}
+                  size={20}
+                  color="#132F20"
+                />
+              </TouchableOpacity>
+            </View>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}

@@ -22,11 +22,13 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { FontAwesome } from "@expo/vector-icons";
 import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
 import { showMessage } from "react-native-flash-message";
+import { useNavigation } from "@react-navigation/native";
 
 // 👇 Usa SIEMPRE las instancias únicas
 import { auth, db, storage } from "../firebaseConfig";
 
 const InfoPerfilScreen = ({ onNext }) => {
+  const navigation = useNavigation();
   const { height: windowHeight } = useWindowDimensions();
   const [imageUri, setImageUri] = useState(null);
   const [nombre, setNombre] = useState("");
@@ -81,6 +83,20 @@ const InfoPerfilScreen = ({ onNext }) => {
           setProfesion(data.profesion ?? "");
           setRol(data.rol ?? "");
           if (data.photoURL && !user.photoURL) setImageUri(data.photoURL);
+          // --- CHEQUEO: si ya está completo, saltamos esta pantalla ---
+          const alreadyComplete = Boolean(
+            data.nombre && data.rol && data.profesion
+          );
+          if (alreadyComplete) {
+            // Opción A: si el padre controla el paso siguiente
+            if (typeof onNext === "function") {
+              onNext();
+            } else {
+              // Opción B: navegar directo
+              navigation.replace("TabInicio");
+            }
+            return;
+          }
         } else {
           console.log("El documento del usuario no existe.");
         }
@@ -103,7 +119,11 @@ const InfoPerfilScreen = ({ onNext }) => {
     return () => {
       isMounted.current = false;
     };
-  }, []);
+  }, [onNext, navigation]);
+
+  // Añade a tus imports:
+  // import { doc, updateDoc, setDoc /*, serverTimestamp */ } from 'firebase/firestore';
+  // y si no lo tienes ya: import { useNavigation } from '@react-navigation/native';
 
   const guardar = async () => {
     if (!nombre || !profesion || !rol) {
@@ -120,8 +140,10 @@ const InfoPerfilScreen = ({ onNext }) => {
       return;
     }
 
+    if (loading) return;
+    setLoading(true);
+
     try {
-      setLoading(true);
       const user = auth.currentUser;
       if (!user) {
         Alert.alert("Error", "No hay un usuario registrado.");
@@ -129,25 +151,58 @@ const InfoPerfilScreen = ({ onNext }) => {
         return;
       }
 
-      // Actualizar displayName (y si tuvieras imageUri también puedes setear photoURL aquí)
-      await updateProfile(user, { displayName: nombre });
+      // --- Auth profile ---
+      const authPatch = { displayName: nombre };
+      if (imageUri) authPatch.photoURL = imageUri;
+      await updateProfile(user, authPatch);
 
-      // Actualizar Firestore
+      // --- Firestore ---
       const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, {
+      const payload = {
         nombre,
         telefono,
         profesion,
         rol,
-        initialSetupCompleted,
+        initialSetupCompleted: true,
+        // updatedAt: serverTimestamp(), // <- opcional si importas serverTimestamp
         ...(imageUri ? { photoURL: imageUri } : {}),
+      };
+
+      try {
+        // Usa dot-notation para no pisar otros campos dentro de "onboarding"
+        await updateDoc(userRef, {
+          ...payload,
+          "onboarding.profileCompleted": true,
+        });
+      } catch (err) {
+        // Si el doc no existe aún, lo creamos con merge
+        // not-found: no document to update
+        await setDoc(
+          userRef,
+          {
+            uid: user.uid,
+            email: user.email ?? null,
+            ...payload,
+            onboarding: { profileCompleted: true },
+          },
+          { merge: true }
+        );
+      }
+
+      showMessage({
+        message: "Perfil actualizado",
+        type: "success",
+        position: "top",
+        icon: "success",
+        duration: 1800,
       });
 
-      // Pequeña espera para UX (si realmente la deseas)
       setTimeout(() => {
-        if (isMounted.current) setLoading(false);
-        onNext?.();
-      }, 1200);
+        if (!isMounted.current) return;
+        setLoading(false);
+        if (typeof onNext === "function") onNext();
+        else navigation.replace("TabInicio");
+      }, 800);
     } catch (error) {
       console.log("Error al actualizar el perfil:", error);
       showMessage({

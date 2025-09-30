@@ -37,6 +37,7 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { getStatusBarHeight } from "react-native-status-bar-height";
+import { View } from "react-native";
 
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
@@ -61,7 +62,24 @@ const MainNavigator = () => {
   };
 
   useEffect(() => {
-    loadFontsAsync();
+    let mounted = true;
+    (async () => {
+      try {
+        await Font.loadAsync({
+          "Montserrat-Bold": require("../assets/fonts/Montserrat/Montserrat-Bold.ttf"),
+          "Montserrat-Medium": require("../assets/fonts/Montserrat/Montserrat-Medium.ttf"),
+          "Montserrat-Black": require("../assets/fonts/Montserrat/Montserrat-Black.ttf"),
+          "Montserrat-Regular": require("../assets/fonts/Montserrat/Montserrat-Regular.ttf"),
+        });
+      } catch (e) {
+        console.warn("[fonts] load error → continúo sin fuentes", e);
+      } finally {
+        if (mounted) setFontsReady(true); // <- siempre seguimos
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const { height } = Dimensions.get("window");
@@ -171,14 +189,12 @@ const MainNavigator = () => {
           component={Informes}
           options={{ headerShown: false }}
         />
+
+        {/* Las pantallas ocultas de la tab */}
         <Tab.Screen
           name="Graficar"
           component={Graficar}
-          options={{
-            tabBarButton: () => null,
-            tabBarVisible: false,
-            headerShown: false,
-          }}
+          options={{ tabBarButton: () => null, headerShown: false }}
         />
         <Tab.Screen
           name="GraficarCohorte"
@@ -186,7 +202,6 @@ const MainNavigator = () => {
           options={{
             unmountOnBlur: true,
             tabBarButton: () => null,
-            tabBarVisible: false,
             headerShown: false,
           }}
         />
@@ -196,63 +211,38 @@ const MainNavigator = () => {
           options={{
             unmountOnBlur: true,
             tabBarButton: () => null,
-            tabBarVisible: false,
             headerShown: false,
           }}
         />
         <Tab.Screen
           name="GraficarPdf"
           component={GraficarPdf}
-          options={{
-            tabBarButton: () => null,
-            tabBarVisible: false,
-            headerShown: false,
-          }}
+          options={{ tabBarButton: () => null, headerShown: false }}
         />
         <Tab.Screen
           name="InformeEstudiante"
           component={InformeEstudiante}
-          options={{
-            tabBarButton: () => null,
-            tabBarVisible: false,
-            headerShown: false,
-          }}
+          options={{ tabBarButton: () => null, headerShown: false }}
         />
         <Tab.Screen
           name="StudentDetail"
           component={StudentDetail}
-          options={{
-            tabBarButton: () => null,
-            tabBarVisible: false,
-            headerShown: false,
-          }}
+          options={{ tabBarButton: () => null, headerShown: false }}
         />
         <Tab.Screen
           name="InformeCarrera"
           component={InformeCarrera}
-          options={{
-            tabBarButton: () => null,
-            tabBarVisible: false,
-            headerShown: false,
-          }}
+          options={{ tabBarButton: () => null, headerShown: false }}
         />
         <Tab.Screen
           name="Estadis_Cohorte"
           component={Estadis_Cohorte}
-          options={{
-            tabBarButton: () => null,
-            tabBarVisible: false,
-            headerShown: false,
-          }}
+          options={{ tabBarButton: () => null, headerShown: false }}
         />
         <Tab.Screen
           name="Estadis_Matricula"
           component={Estadis_Matricula}
-          options={{
-            tabBarButton: () => null,
-            tabBarVisible: false,
-            headerShown: false,
-          }}
+          options={{ tabBarButton: () => null, headerShown: false }}
         />
       </Tab.Navigator>
     );
@@ -263,71 +253,43 @@ const MainNavigator = () => {
       <Drawer.Navigator
         drawerContent={(props) => <SideBar {...props} />}
         screenOptions={({ route }) => ({
-          headerStyle: {
-            backgroundColor: "#F0FFF2", // Cambia el color del encabezado
-          },
-          drawerHideStatusBarOnOpen: true, //Ocultar la barra del sistema operativo (reloj,señal. etc)
-          //drawerType: 'front',
-          //drawerPosition:'right',
+          headerStyle: { backgroundColor: "#F0FFF2" },
+          drawerHideStatusBarOnOpen: true,
           drawerStyle: {
             width: "74.9%",
-            //height: "75%",
-            //borderTopRightRadius: 20,
-            //borderBottomRightRadius: 20,
-            //borderBottomLeftRadius:20,
-            backgroundColor: "#F0FFF2", // Color de fondo del Drawer
-            shadowColor: "#000", // Color de la sombra
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
+            backgroundColor: "#F0FFF2",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.25,
             shadowRadius: 3.84,
           },
-          drawerActiveTintColor: "#34531F", // Color del icono y la etiqueta del elemento activo en el cajón.
-          drawerActiveBackgroundColor: "#C3D730", // Color de fondo del elemento activo en el cajón
-          drawerInactiveTintColor: "#B3B3B3", //Color del icono y la etiqueta de los elementos inactivos del cajón.
-
+          drawerActiveTintColor: "#34531F",
+          drawerActiveBackgroundColor: "#C3D730",
+          drawerInactiveTintColor: "#B3B3B3",
           drawerIcon: ({ focused, color, size }) => {
             let iconName;
-
-            if (route.name === "Perfil") {
+            if (route.name === "Perfil")
               iconName = focused ? "person" : "person-outline";
-            } else if (route.name === "SireBot") {
+            else if (route.name === "SireBot")
               iconName = focused
                 ? "chatbox-ellipses"
                 : "chatbox-ellipses-outline";
-            } else if (route.name === "Reporte") {
+            else if (route.name === "Reporte")
               iconName = focused ? "clipboard" : "clipboard-outline";
-            } else if (route.name === "Acerca de") {
+            else if (route.name === "Acerca de")
               iconName = focused
                 ? "information-circle"
                 : "information-circle-outline";
-            } else if (route.name === "Cargar CSV") {
+            else if (route.name === "Cargar CSV")
               iconName = focused ? "cloud-upload" : "cloud-upload-outline";
-            }
-
-            iconComponent = (
-              <Ionicons name={iconName} size={size} color={color} />
-            );
-
-            return iconComponent;
+            return <Ionicons name={iconName} size={size} color={color} />;
           },
-          drawerLabelStyle: {
-            // Establecer el estilo del texto del título
-            fontSize: 16,
-            fontFamily: "Montserrat-Medium",
-          },
-          headerTintColor: "#34531F", // Cambiar el color del texto del encabezado
-          headerTitleStyle: {
-            //fontSize: 20, // Tamaño de la fuente del encabezado
-            //fontFamily: 'Montserrat-Black', // Cambia a la fuente deseada
-            display: "none", // También puedes intentar con display: 'none'
-          },
+          drawerLabelStyle: { fontSize: 16, fontFamily: "Montserrat-Medium" },
+          headerTintColor: "#34531F",
+          headerTitleStyle: { display: "none" },
         })}
       >
-        <Drawer.Screen name="SIREDE Móvil">{() => <TabNavi />}</Drawer.Screen>
-
+        <Drawer.Screen name="SIREDE Móvil" component={TabNavi} />
         <Drawer.Screen name="Perfil" component={Perfil} />
         <Drawer.Screen name="SireBot" component={SireBot} />
         <Drawer.Screen name="Reporte" component={Reporte} />
@@ -337,55 +299,39 @@ const MainNavigator = () => {
     );
   }
 
-  return fontsLoaded ? (
-    <Stack.Navigator initialRouteName="VideoScreen">
-      <Stack.Screen
-        name="VideoScreen"
-        component={VideoScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="InicioSesion"
-        component={InicioSesion}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="TabInicio"
-        component={DrawerNavi}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="StudentDetail2"
-        component={StudentDetail2}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="CerrarSesion"
-        component={CerrarSesion}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AccessRequest"
-        component={AccessRequestForm}
-        options={{ headerShown: false, title: "Solicitud de Acceso" }}
-      />
-      <Stack.Screen
-        name="PasswordChangeScreen"
-        component={PasswordChangeScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="InitialSetupScreen"
-        component={InitialSetupScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ConfigList"
-        component={ConfigList}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
-  ) : null;
+  return (
+    <NavigationContainer>
+      {fontsLoaded ? (
+        <Stack.Navigator
+          initialRouteName="VideoScreen"
+          screenOptions={{ headerShown: false }}
+        >
+          <Stack.Screen name="VideoScreen" component={VideoScreen} />
+          <Stack.Screen name="InicioSesion" component={InicioSesion} />
+          <Stack.Screen name="TabInicio" component={DrawerNavi} />
+          <Stack.Screen name="StudentDetail2" component={StudentDetail2} />
+          <Stack.Screen name="CerrarSesion" component={CerrarSesion} />
+          <Stack.Screen
+            name="AccessRequest"
+            component={AccessRequestForm}
+            options={{ title: "Solicitud de Acceso" }}
+          />
+          <Stack.Screen
+            name="PasswordChangeScreen"
+            component={PasswordChangeScreen}
+          />
+          <Stack.Screen
+            name="InitialSetupScreen"
+            component={InitialSetupScreen}
+          />
+          <Stack.Screen name="ConfigList" component={ConfigList} />
+        </Stack.Navigator>
+      ) : (
+        // Fallback mientras cargan las fuentes (evita pantalla blanca)
+        <View style={{ flex: 1, backgroundColor: "#F0FFF2" }} />
+      )}
+    </NavigationContainer>
+  );
 };
 
 export default MainNavigator;

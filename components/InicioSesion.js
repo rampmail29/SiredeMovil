@@ -14,6 +14,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { showMessage } from "react-native-flash-message";
 import { useVideoPlayer, VideoView } from "expo-video";
+import { db } from '../firebaseConfig';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 import {
   signInEmail,
@@ -49,15 +51,57 @@ const InicioSesion = ({ navigation }) => {
     setMostrarCargando(true);
     try {
       const { user } = await signInEmail(email, password);
+
+      const providerId = user.providerData?.[0]?.providerId ?? "password";
+      const userRef = doc(db, "users", user.uid);
+      let snap = await getDoc(userRef);
+      // Crea el doc si no existe
+      if (!snap.exists()) {
+        await setDoc(userRef, {
+          email: user.email ?? "",
+          nombre: "",
+          rol: "",
+          profesion: "",
+          telefono: "",
+          photoURL: user.photoURL ?? "",
+          createdAt: serverTimestamp(),
+          provider: providerId,
+          onboarding: {
+            // si es password pediremos cambio la 1ª vez, en otros proveedores no
+            passwordChanged: providerId !== "password",
+            profileCompleted: false,
+          },
+          initialSetupCompleted: false, // si prefieres mantenerlo por compatibilidad
+        });
+        snap = await getDoc(userRef);
+      }
+      const data = snap.data() || {};
+      const onboarding = data.onboarding || {};
+      const needsPwd = providerId === "password" && !onboarding.passwordChanged;
+      const needsProfile = !onboarding.profileCompleted;
+
+      if (needsPwd) {
+        // puedes pasar la siguiente ruta como param
+        navigation.replace("PasswordChangeScreen", {
+          next: needsProfile ? "InfoPerfilScreen" : "TabInicio",
+        });
+        return;
+      }
+
+      if (needsProfile) {
+        navigation.replace("InfoPerfilScreen"); // directo, sin pantallas intermedias
+        return;
+      }
+      navigation.replace('TabInicio');
       // Chequeo del setup inicial (Firestore)
-      const setupCompleted = await getInitialSetupCompleted(user.uid);
+      /* const setupCompleted = await getInitialSetupCompleted(user.uid);
       console.log("🚀 ~ iniciarSesion ~ setupCompleted:", setupCompleted);
 
       if (setupCompleted) {
         navigation.replace("TabInicio");
       } else {
         navigation.replace("PasswordChangeScreen");
-      }
+      } */
     } catch (error) {
       console.log("Error al autenticar usuario:", error);
       let mensajeError;
