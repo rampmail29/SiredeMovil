@@ -61,33 +61,42 @@ const InicioSesion = ({ navigation }) => {
     } catch (error) {
       console.log("Error al autenticar usuario:", error);
       let mensajeError;
-      switch (error.code) {
-        case "auth/invalid-email":
-          mensajeError = "El correo electrónico que ingresaste no es válido.";
-          break;
-        case "auth/user-disabled":
-          mensajeError = "Este usuario ha sido deshabilitado.";
-          break;
-        case "auth/user-not-found":
-          mensajeError =
-            "No se encontró ninguna cuenta con este correo electrónico.";
-          break;
-        case "auth/wrong-password":
-          mensajeError = "La contraseña que ingresaste es incorrecta.";
-          break;
-        case "auth/too-many-requests":
-          mensajeError =
-            "Por favor, inténtalo más tarde; has excedido el número de intentos.";
-          break;
-        case "auth/invalid-credential":
-          // Puede ser password incorrecta o proyecto/config erróneos.
-          mensajeError =
-            "Credenciales inválidas. Verifica tu contraseña o consulta si tu cuenta fue creada en este proyecto.";
-          break;
-        default:
-          mensajeError =
-            "Lo sentimos, no se pudieron autenticar tus credenciales. Intenta nuevamente.";
+      if (
+        error.code === "firestore/permission-denied" ||
+        /insufficient permissions/i.test(String(error))
+      ) {
+        mensajeError =
+          "No tienes permisos para leer tu perfil. Contacta al administrador.";
+      } else {
+        switch (error.code) {
+          case "auth/invalid-email":
+            mensajeError = "El correo electrónico que ingresaste no es válido.";
+            break;
+          case "auth/user-disabled":
+            mensajeError = "Este usuario ha sido deshabilitado.";
+            break;
+          case "auth/user-not-found":
+            mensajeError =
+              "No se encontró ninguna cuenta con este correo electrónico.";
+            break;
+          case "auth/wrong-password":
+            mensajeError = "La contraseña que ingresaste es incorrecta.";
+            break;
+          case "auth/too-many-requests":
+            mensajeError =
+              "Por favor, inténtalo más tarde; has excedido el número de intentos.";
+            break;
+          case "auth/invalid-credential":
+            // Puede ser password incorrecta o proyecto/config erróneos.
+            mensajeError =
+              "Credenciales inválidas. Verifica tu contraseña o consulta si tu cuenta fue creada en este proyecto.";
+            break;
+          default:
+            mensajeError =
+              "Lo sentimos, no se pudieron autenticar tus credenciales. Intenta nuevamente.";
+        }
       }
+
       showMessage({
         message: "Error",
         description: mensajeError,

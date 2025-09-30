@@ -3,11 +3,16 @@ import { auth, db } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 export async function getInitialSetupCompleted(uid) {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
-  const data = snap.data();
-  return !!data?.initialSetupCompleted;
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    if (!snap.exists()) return false;
+    return !!snap.data().initialSetupCompleted;
+  } catch (e) {
+    console.log("[Firestore] getInitialSetupCompleted error:", e);
+    // Si es permisos, lánzalo con un code reconocible
+    e.code = e.code || "firestore/permission-denied";
+    throw e;
+  }
 }
 
 export async function ensureEmailInProfile() {
