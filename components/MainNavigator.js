@@ -313,26 +313,52 @@ const MainNavigator = () => {
   }
 
   return (
-    <Stack.Navigator
-      initialRouteName="VideoScreen"
-      screenOptions={{ headerShown: false }}
-    >
-      {/* <Stack.Screen name="VideoScreen" component={VideoScreen} /> */}
-      <Stack.Screen name="InicioSesion" component={InicioSesion} />
-      <Stack.Screen name="TabInicio" component={DrawerNavi} />
-      <Stack.Screen name="StudentDetail2" component={StudentDetail2} />
-      <Stack.Screen name="CerrarSesion" component={CerrarSesion} />
+    <Stack.Navigator /* initialRouteName="VideoScreen" */>
+      <Stack.Screen
+        name="VideoScreen"
+        component={VideoScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="InicioSesion"
+        component={InicioSesion}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="TabInicio"
+        component={DrawerNavi}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="StudentDetail2"
+        component={StudentDetail2}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CerrarSesion"
+        component={CerrarSesion}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="AccessRequest"
         component={AccessRequestForm}
-        options={{ title: "Solicitud de Acceso" }}
+        options={{ headerShown: false, title: "Solicitud de Acceso" }}
       />
       <Stack.Screen
         name="PasswordChangeScreen"
         component={PasswordChangeScreen}
+        options={{ headerShown: false }}
       />
-      <Stack.Screen name="InitialSetupScreen" component={InitialSetupScreen} />
-      <Stack.Screen name="ConfigList" component={ConfigList} />
+      <Stack.Screen
+        name="InitialSetupScreen"
+        component={InitialSetupScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ConfigList"
+        component={ConfigList}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
