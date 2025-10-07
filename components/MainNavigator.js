@@ -130,6 +130,28 @@ const MainNavigator = () => {
     return (
       <Tab.Navigator
         screenOptions={({ route }) => ({
+          tabBarStyle: {
+            backgroundColor: "#F0FFF2",
+            height: 64,
+            borderTopWidth: 0,
+            elevation: 8, // Android sombra
+            tabBarStyle: {
+              position: "absolute",
+              left: 12,
+              right: 12,
+              bottom: 12,
+              height: 64,
+              borderRadius: 16,
+              backgroundColor: "#F0FFF2",
+              borderTopWidth: 0,
+              elevation: 8,
+              // paddingBottom para respetar safe area si hace falta
+              paddingBottom: 6,
+            },
+          },
+          tabBarActiveTintColor: "#C3D730",
+          tabBarInactiveTintColor: "#B3B3B3",
+          tabBarShowLabel: false,
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
             let iconTextStyles = [tabBarStyles.iconText];
