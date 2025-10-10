@@ -3,7 +3,7 @@
 import React from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
-import TabNavi from "./TabInicio"; // Importas el TabNavi aquí
+import TabInicio from "./TabInicio"; // Importas el TabInicio aquí
 import Perfil from "./Perfil";
 import SireBot from "./SireBot";
 import Reporte from "./Reporte";
@@ -47,10 +47,10 @@ export default function DrawerNavi() {
         },
       }}
     >
-      {/* Cargar TabNavi como pantalla principal dentro del Drawer */}
+      {/* Cargar TabInicio como pantalla principal dentro del Drawer */}
       <Drawer.Screen
         name="SIREDE Móvil"
-        component={TabNavi} // Este es el TabNavi como la pantalla principal dentro del Drawer
+        component={TabInicio} // Este es el TabNavi como la pantalla principal dentro del Drawer
         options={{
           headerShown: false,
           drawerIcon: ({ focused, color, size }) => {

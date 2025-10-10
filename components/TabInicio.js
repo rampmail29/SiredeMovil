@@ -25,13 +25,13 @@ export default function TabNavi() {
         tabBarActiveTintColor: "#C3D730",
         tabBarInactiveTintColor: "#B3B3B3",
         tabBarStyle: {
-          position: "absolute",
+          position:"absolute",
           left: 12,
           right: 12,
           bottom: 12,
           height: 64,
           borderRadius: 16,
-          backgroundColor: "#F0FFF2",
+          backgroundColor: "#2c302dff",
           borderTopWidth: 0,
           elevation: 8,
           paddingBottom: Platform.OS === "android" ? 6 : 12,
@@ -40,7 +40,7 @@ export default function TabNavi() {
     >
       <Tab.Screen
         name="Inicio"
-        component={Inicio} // Aquí vuelves a mostrar la pantalla "Inicio"
+        component={Inicio}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
@@ -49,7 +49,7 @@ export default function TabNavi() {
       />
       <Tab.Screen
         name="Estadisticas"
-        component={Estadisticas} // Aquí vuelves a mostrar la pantalla "Estadisticas"
+        component={Estadisticas}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="stats-chart-outline" size={size} color={color} />
@@ -58,7 +58,7 @@ export default function TabNavi() {
       />
       <Tab.Screen
         name="Informes"
-        component={Informes} // Aquí vuelves a mostrar la pantalla "Informes"
+        component={Informes}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size} color={color} />
@@ -67,7 +67,7 @@ export default function TabNavi() {
       />
 
       {/* Pantallas que se ocultan de la barra de tabs */}
-      <Tab.Screen
+     {/*  <Tab.Screen
         name="Graficar"
         component={Graficar}
         options={{ tabBarButton: () => null }}
@@ -111,7 +111,7 @@ export default function TabNavi() {
         name="Estadis_Matricula"
         component={GraficarMatriculas}
         options={{ tabBarButton: () => null }}
-      />
+      /> */}
     </Tab.Navigator>
   );
 }

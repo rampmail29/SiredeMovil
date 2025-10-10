@@ -1,4 +1,4 @@
-// VideoScreen.js (listo para pegar)
+// VideoScreen.js
 import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
@@ -21,12 +21,12 @@ export default function VideoScreen() {
       try {
         const t = player.currentTime ?? 0;
         const d = player.duration ?? 0;
-        // navega cuando falten <300ms
+        // navego cuando falten <300ms
         if (!didNavigate && d > 0 && t >= d - 0.3) {
           setDidNavigate(true);
-          // IMPORTANTE: usa replace a un screen que SI existe en el Stack
-          navigation.replace("InicioSesion"); // <-- primero al login
-          // Si quieres saltar directo al home, cámbialo por "TabInicio"
+          // IMPORTANTE: uso replace a un screen que Sí existe en el Stack
+          //navigation.replace("InicioSesion"); // <-- primero al login
+          navigation.replace("TabInicio"); // <-- primero al tabinicio
         }
       } catch {}
     };

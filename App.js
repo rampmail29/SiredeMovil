@@ -1,4 +1,4 @@
-// App.js (listo para pegar)
+// App.js
 import "react-native-gesture-handler";
 // Reanimated DEBE ir en el entry antes de cualquier otra import de React Navigation
 import "react-native-reanimated";
@@ -10,7 +10,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import MainNavigator from "./components/MainNavigator";
 
-// evita que el splash se oculte antes de tiempo
+// acá se evitaa que el splash se oculte antes de tiempo
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
