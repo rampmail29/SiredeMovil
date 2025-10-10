@@ -25,8 +25,7 @@ export default function VideoScreen() {
         if (!didNavigate && d > 0 && t >= d - 0.3) {
           setDidNavigate(true);
           // IMPORTANTE: uso replace a un screen que Sí existe en el Stack
-          //navigation.replace("InicioSesion"); // <-- primero al login
-          navigation.replace("TabInicio"); // <-- primero al tabinicio
+          navigation.replace("InicioSesion"); // <-- primero al login
         }
       } catch {}
     };

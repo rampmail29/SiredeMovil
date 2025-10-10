@@ -92,16 +92,8 @@ const InicioSesion = ({ navigation }) => {
         navigation.replace("InfoPerfilScreen"); // directo, sin pantallas intermedias
         return;
       }
-      navigation.replace('TabInicio');
-      // Chequeo del setup inicial (Firestore)
-      /* const setupCompleted = await getInitialSetupCompleted(user.uid);
-      console.log("🚀 ~ iniciarSesion ~ setupCompleted:", setupCompleted);
-
-      if (setupCompleted) {
-        navigation.replace("TabInicio");
-      } else {
-        navigation.replace("PasswordChangeScreen");
-      } */
+      navigation.replace('DrawerNavi');
+     
     } catch (error) {
       console.log("Error al autenticar usuario:", error);
       let mensajeError;
