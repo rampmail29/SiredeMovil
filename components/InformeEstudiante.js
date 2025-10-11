@@ -32,7 +32,7 @@ const InformeEstudiante = () => {
         }))
       );
 
-      console.log("🚀 ~ buscarEstudiantes ~ data:", data[0]);
+      console.log("🚀 ~ buscarEstudiantes ~ data_:___:", data[0]);
     } catch (error) {
       showMessage({
         message: "Error",
