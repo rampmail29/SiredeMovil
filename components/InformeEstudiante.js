@@ -12,6 +12,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { showMessage } from "react-native-flash-message";
 import { API_BASE_URL } from "./Config";
+console.log("🚀 ~ API_BASE_URL:", API_BASE_URL)
 
 const InformeEstudiante = () => {
   const [busqueda, setBusqueda] = useState("");
