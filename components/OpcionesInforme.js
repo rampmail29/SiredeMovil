@@ -75,7 +75,7 @@ const OpcionesInforme = ({ academicData, selectedCorteInicial, selectedCorteFina
   };
 
   const generarInformeTodos = () => {
-    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertores.length > 0 || academicData.todos.length > 0)) {
+    if (academicData && (academicData.graduados.length > 0 || academicData.retenidos.length > 0 || academicData.desertados.length > 0 || academicData.todosEstudiantes.length > 0)) {
       console.log('Generando informe de Todos los estudiantes');
       navigationInforme('general', { general: academicData.todosEstudiantes });
     } else {

@@ -108,6 +108,8 @@ import Perfil from "../components/Perfil";
 import SireBot from "../components/SireBot";
 import Cargar from "../components/Cargar";
 import TabInicio from "../components/TabInicio";
+import Estadis_Matricula from "../components/Estadis_Matricula";
+import Estadis_Cohorte from "../components/Estadis_Cohorte";
 
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
@@ -137,24 +139,6 @@ function DrawerNavi() {
         drawerLabelStyle: { fontSize: 16, fontFamily: "Montserrat-Medium" },
         headerTintColor: "#34531F",
         headerTitleStyle: { display: "none" },
-        /* drawerIcon: ({ focused, color, size }) => {
-          let iconName = "menu";
-          if (route.name === "Perfil")
-            iconName = focused ? "person" : "person-outline";
-          else if (route.name === "SireBot")
-            iconName = focused
-              ? "chatbox-ellipses"
-              : "chatbox-ellipses-outline";
-          else if (route.name === "Reporte")
-            iconName = focused ? "clipboard" : "clipboard-outline";
-          else if (route.name === "Acerca de")
-            iconName = focused
-              ? "information-circle"
-              : "information-circle-outline";
-          else if (route.name === "Cargar CSV")
-            iconName = focused ? "cloud-upload" : "cloud-upload-outline";
-          return <Ionicons name={iconName} size={size} color={color} />;
-        }, */
       })}
     >
       <Drawer.Screen

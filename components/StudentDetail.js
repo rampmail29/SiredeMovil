@@ -129,10 +129,6 @@ const StudentDetail = ({ route, navigation }) => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/obtener/${id}`);
         const data = await response.json();
-        console.log(
-          "🚀 ~ obtenerDetallesEstudiante ~ data:",
-          data.estudiantes_carreras[0].historico_estado
-        );
         setStudent(data);
       } catch (error) {
         console.error("Error al obtener detalles del estudiante:", error);

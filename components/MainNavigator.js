@@ -10,8 +10,10 @@ import CerrarSesion from "./CerrarSesion";
 import AccessRequestForm from "./AccessRequestForm";
 import InitialSetupScreen from "./InitialSetupScreen";
 import ConfigList from "./ConfigList";
-import InformeEstudiante from './InformeEstudiante';
-import StudentDetail from './StudentDetail';
+import InformeEstudiante from "./InformeEstudiante";
+import InformeCarrera from "./InformeCarrera";
+import StudentDetail from "./StudentDetail";
+import GraficarPdf from "./GraficarPdf";
 
 const Stack = createNativeStackNavigator();
 
@@ -71,6 +73,16 @@ export default function MainNavigator() {
       <Stack.Screen
         name="StudentDetail"
         component={StudentDetail}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="InformeCarrera"
+        component={InformeCarrera}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GraficarPdf"
+        component={GraficarPdf}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
