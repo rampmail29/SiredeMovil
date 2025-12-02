@@ -54,6 +54,7 @@ const generarHTML = (
   corteInicial,
   corteFinal
 ) => {
+  console.log(programa, tipoInforme, corteInicial, corteFinal);
   const informeTitulo =
     {
       graduados: "Informe de estudiantes Graduados",
@@ -63,10 +64,10 @@ const generarHTML = (
     }[tipoInforme] || "Informe";
 
   const notaTexto = {
-    graduados: `Este Informe contiene los estudiantes <strong>GRADUADOS</strong>...`,
-    desertados: `Este Informe contiene los estudiantes <strong>DESERTADOS</strong>...`,
-    retenidos: `Este Informe contiene los estudiantes <strong>RETENIDOS</strong>...`,
-    general: `Este Informe contiene <strong>TODOS</strong> los estudiantes...`,
+    graduados: `Este Informe contiene los estudiantes <strong>GRADUADOS</strong>del programa ${programa.programa} que ingresaron en el período <strong>${dataArray[0].periodos.codigo_periodo}</strong>.`,
+    desertados: `Este Informe contiene los estudiantes <strong>DESERTADOS</strong>del programa ${programa.programa} que ingresaron en el período <strong>${dataArray[0].periodos.codigo_periodo}</strong>.`,
+    retenidos: `Este Informe contiene los estudiantes <strong>RETENIDOS</strong>del programa ${programa.programa} que ingresaron en el período <strong>${dataArray[0].periodos.codigo_periodo}</strong>.`,
+    general: `Este Informe contiene <strong>TODOS</strong> los estudiantes del programa ${programa.programa} que ingresaron en el período <strong>${dataArray[0].periodos.codigo_periodo}</strong>.`,
   }[tipoInforme];
 
   return `
@@ -85,7 +86,7 @@ const generarHTML = (
 
         <table>
           <thead>
-            <tr><th>Documento</th><th>Nombre Completo</th></tr>
+            <tr><th>Documento</th><th>Nombre Completo</th><th>Celular</th><th>Correo electrónico</th></tr>
           </thead>
           <tbody>
             ${dataArray
@@ -94,6 +95,8 @@ const generarHTML = (
                 <tr>
                   <td>${d.estudiantes.numero_documento || "N/A"}</td>
                   <td>${d.estudiantes.nombre_completo || "N/A"}</td>
+                  <td>${d.estudiantes.celular || "N/A"}</td>
+                  <td>${d.estudiantes.correo_electronico || "N/A"}</td>
                 </tr>`
               )
               .join("")}

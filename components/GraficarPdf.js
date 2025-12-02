@@ -23,14 +23,14 @@ import Animated, {
 import { generatePDF } from "./Generate";
 
 const GraficarPdf = ({ route, navigation }) => {
-  /* console.log("hello")
-  console.log(route.params.datos.general[0].estudiantes.nombre_completo); */
   const { tipoInforme, datos, programa, corteInicial, corteFinal } =
     route.params;
   const dataArray = datos[tipoInforme] || []; // Evitar undefined si no hay datos
-  console.log(dataArray[0].estudiantes.nombre_completo);
   //dataArray.foreach((a) => a.estudiantes.nombre_completo);
-  //console.log("Datos recibidos en GraficarPdf:", dataArray);
+  console.log("Datos recibidos en GraficarPdf:", dataArray.todosEstudiantes);
+  /* [0].historico_estado[0]
+      .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
+      .nombre_estado */
   const [imageUrls, setImageUrls] = useState({});
   const [showModal, setShowModal] = useState(false);
   const fetchImages = async () => {

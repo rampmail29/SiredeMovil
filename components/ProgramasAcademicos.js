@@ -30,7 +30,8 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/programas`);
         const data = await response.json();
-
+        //console.log("Programas académicos obtenidos:", data);
+        //data.forEach((a)=>console.log(a.facultades.nombre_facultad))
         const cleanString = (str) => str.replace(/^"|"$/g, "").trim();
 
         const facultadesMap = {};
@@ -38,16 +39,16 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
         data.forEach((programa) => {
           const facultadRaw =
             programa.facultades?.nombre_facultad || "Sin facultad";
-
+          //console.log("Programas recibidos por el BE: ",programa);
           const facultad = cleanString(facultadRaw);
-
+          //console.log(facultad)
           if (!facultadesMap[facultad]) {
             facultadesMap[facultad] = [];
           }
 
           facultadesMap[facultad].push(programa);
         });
-
+        //console.log("Facultades mapeadas:", facultadesMap);
         const grouped = Object.keys(facultadesMap).map((fac, index) => ({
           id: index,
           title: fac,
@@ -55,7 +56,7 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
           isOpen: false,
           data: facultadesMap[fac],
         }));
-
+        //console.log("Programas agrupados por facultad:", grouped[0].data[1].nombre);
         setProgramas(grouped);
       } catch (error) {
         console.error("Error cargando programas:", error);
@@ -110,14 +111,8 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
     }
   };
 
-  const renderItem = ({ item, index, section }) => {
+  const renderItem = ({ item, section }) => {
     if (!section.isOpen) return null;
-
-    const isLeft = index % 2 === 0;
-    if (!isLeft) return null; // solo renderiza filas
-
-    const rightItem = section.data[index + 1];
-
     return (
       <View style={styles.programRow}>
         <TouchableOpacity
@@ -129,13 +124,13 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
           </Text>
         </TouchableOpacity>
 
-        {rightItem && (
+        {item && (
           <TouchableOpacity
             style={styles.programButton}
-            onPress={() => programSelect(rightItem)}
+            onPress={() => programSelect(item)}
           >
             <Text style={styles.programText}>
-              {capitalizeFirstLetter(rightItem.nombre)}
+              {capitalizeFirstLetter(item.nombre)}
             </Text>
           </TouchableOpacity>
         )}
@@ -234,11 +229,13 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   programButton: {
-    backgroundColor: "#B3B3B3",
+    backgroundColor: "#918c8cff",
     borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
     height: windowHeight * 0.18,
+    padding: 12,
+    marginBottom: 10,
   },
   programText: {
     fontSize: 16,
@@ -257,5 +254,5 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 });
-
+console.clear()
 export default ProgramasAcademicos;

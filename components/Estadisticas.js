@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     color: '#C3D730',
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 20, 
     fontFamily: 'Montserrat-Medium',
     alignSelf: 'flex-start',
     color: '#132F20',

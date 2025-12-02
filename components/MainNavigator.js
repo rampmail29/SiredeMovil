@@ -14,6 +14,9 @@ import InformeEstudiante from "./InformeEstudiante";
 import InformeCarrera from "./InformeCarrera";
 import StudentDetail from "./StudentDetail";
 import GraficarPdf from "./GraficarPdf";
+import Estadisticas from "./Estadisticas";
+import Estadis_Cohorte from "./Estadis_Cohorte";
+import Estadis_Matricula from "./Estadis_Matricula";
 
 const Stack = createNativeStackNavigator();
 
@@ -83,6 +86,21 @@ export default function MainNavigator() {
       <Stack.Screen
         name="GraficarPdf"
         component={GraficarPdf}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Estadisticas"
+        component={Estadisticas}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Estadis_Cohorte"
+        component={Estadis_Cohorte}
+        options={{ headerShown: false }}
+      /> 
+      <Stack.Screen
+        name="Estadis_Matricula"
+        component={Estadis_Matricula}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

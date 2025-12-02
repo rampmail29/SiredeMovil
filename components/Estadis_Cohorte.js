@@ -27,6 +27,7 @@ const Estadisticas = () => {
   });
 
       const capitalizeFirstLetter = (string) => {
+        //console.log(string)
         return string
           .toLowerCase()
           .split(' ')
@@ -39,10 +40,11 @@ const Estadisticas = () => {
               try {
                   const response = await fetch(`${API_BASE_URL}/api/programas`);
                   const data = await response.json();
+                  //console.log(data)
                   const filteredData = data.map(element => ({
-                      cod_snies: element.codigo_programa,
-                      programa: element.nombre_programa,
-                      tipo: element.tipo_programa,
+                      cod_snies: element.codigo_snies,
+                      programa: element.nombre,
+                      tipo: element.tipo_programa_id,
                       id: element.id_carrera
                   }));
                   setProgramas(filteredData); 
@@ -68,7 +70,7 @@ const Estadisticas = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/cortes-iniciales/${id_carrera}`);
       const data = await response.json();
-      console.log(data)
+      //console.log(data)
       if (Array.isArray(data)) {
         setCortesIniciales(data);
       } 
@@ -178,7 +180,7 @@ const Estadisticas = () => {
           icon: "danger",
           position: "top",
         });
-        return;
+        return; 
       }
       const response = await fetch(`${API_BASE_URL}/api/estudiantes-por-corte`, {
         method: 'POST',
