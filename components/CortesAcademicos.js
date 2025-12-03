@@ -25,7 +25,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
     desertados: [],
   });
   const [loading, setLoading] = useState(false);
-  //console.log(selectedProgram.id);
+  //console.log(selectedProgram);
   // Obtener los cortes iniciales basados en el ID del programa
   const obtenerCortesIniciales = async () => {
     try {
@@ -33,7 +33,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
         `${API_BASE_URL}/api/cortes-iniciales/${selectedProgram.id}`
       );
       const data = await response.json();
-      //console.log("data", data);
+      console.log("data", data);
       Array.isArray(data) && setCortesIniciales(data); // Si es un array, actualiza cortesIniciales
     } catch (error) {
       showMessage({
@@ -75,51 +75,60 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
 
   // Lógica para calcular el corte tope (corte final) basado en el corte inicial y el tipo de programa
   useEffect(() => {
+    console.log(
+      "selectedCorteInicial en CortesAcademicos:",
+      selectedCorteInicial
+    );
+
     const cohorteTope = () => {
       if (
         !selectedCorteInicial ||
         typeof selectedCorteInicial !== "string" ||
-        !selectedProgram ||
-        !selectedProgram.tipo
+        !selectedProgram
       ) {
-        return; // Salir si selectedProgram o su tipo no están definidos
+        return;
       }
+      console.log("programa seleccionado: ", selectedProgram);
+      // Convertir tipo a string de forma segura
+      const tipoPrograma = String(selectedProgram.tipo || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
 
       // Obtener año y periodo del corte inicial
       const [anioInicial, periodoInicial] = selectedCorteInicial
         .split("-")
         .map(Number);
 
-      // Determinar la cantidad de semestres según el tipo de programa
+      // Determinar semestres
       let cantidadSemestres = 0;
-      if (selectedProgram.tipo === "Profesional") {
-        cantidadSemestres = 4; // 4 periodos (2 años) para programas profesionales
-      } else if (selectedProgram.tipo === "Tecnologia") {
-        cantidadSemestres = 6; // 6 periodos (3 años) para programas tecnológicos
+      if (tipoPrograma === "profesional") {
+        cantidadSemestres = 4;
+      } else if (tipoPrograma === "tecnologico") {
+        cantidadSemestres = 6;
       } else {
-        console.error("Tipo de programa no válido.");
+        console.error("Tipo de programa no válido:", selectedProgram.tipo);
         return;
       }
 
-      // Generar los cortes finales según el tipo de programa
+      // Generar los cortes finales
       const cortesFinalesCalculados = generarCohorte(
         anioInicial,
         periodoInicial,
         cantidadSemestres
       );
 
-      // Agregar cortes iniciales posteriores al corte calculado
+      // Agregar cortes iniciales posteriores
       cortesIniciales.forEach((corte) => {
         if (corte.key > selectedCorteInicial) {
           cortesFinalesCalculados.push({ label: corte.key, key: corte.key });
         }
       });
 
-      // Obtener solo el último corte final
+      // Tomar solo el último
       const ultimoCorteFinal =
         cortesFinalesCalculados.slice(-1)[0]?.key || null;
 
-      // Actualizar estado con el último corte final generado
       setCorteFinal(ultimoCorteFinal);
     };
 
@@ -175,7 +184,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
         `${API_BASE_URL}/api/estudiantes-por-corte`,
         {
           method: "POST",
-          headers: {  
+          headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -252,9 +261,11 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
                 <TouchableOpacity
                   key={index}
                   style={styles.modalItemContainer}
-                  onPress={() => corteInicialSelect(corte)}
+                  onPress={() => corteInicialSelect(corte.codigo_periodo)}
                 >
-                  <Text style={styles.modalItemTextCorte}>{corte}</Text>
+                  <Text style={styles.modalItemTextCorte}>
+                    {corte.codigo_periodo}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>

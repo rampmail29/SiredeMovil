@@ -14,6 +14,9 @@ import { API_BASE_URL } from "./Config";
 
 const ProgramasAcademicos = ({ onProgramSelect }) => {
   const [programas, setProgramas] = useState([]);
+  programas.forEach((a) =>
+    a.data.forEach((b) => console.log(b.tipos_programa))
+  );
   const [rotateAnimNaturales] = useState(new Animated.Value(0));
   const [rotateAnimSocioeconomicas] = useState(new Animated.Value(0));
   const [programaAnim] = useState(new Animated.Value(0));
@@ -105,7 +108,7 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
       onProgramSelect({
         cod_snies: programa.codigo_snies,
         programa: programa.nombre,
-        tipo: programa.tipo_programa_id,
+        tipo: programa.tipos_programa.nombre,
         id: programa.id_carrera,
       });
     }
@@ -254,5 +257,5 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 });
-console.clear()
+console.clear();
 export default ProgramasAcademicos;

@@ -8,7 +8,9 @@ import { API_BASE_URL } from './Config';
 
 const GraficarCohorte = ({ route }) => {
     // Parámetros recibidos
-    const { fromScreen, selectedCorteInicial, corteFinal, programaSeleccionado, tipoProgramaSeleccionado, idSeleccionado, datosBackend } = route.params;
+    const { fromScreen, selectedCorteInicial, ultimoCorteFinal, programaSeleccionado, tipoProgramaSeleccionado, idSeleccionado, datosBackend } = route.params;
+    console.log(`Programa Seleccionado: ${selectedCorteInicial}`);
+    const corteFinal = ultimoCorteFinal;
 
      // Hooks y navegación
      const navigation = useNavigation();
@@ -26,7 +28,7 @@ const GraficarCohorte = ({ route }) => {
      const [isInactivosCollapsed, setInactivosCollapsed] = useState(true);
      const [isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed] = useState(true);
      console.log(`SEPARADOR-----------------------------`)
-     console.log(`Corte Inicial: ${selectedCorteInicial}`)
+     console.log(`Corte Inicial: ${selectedCorteInicial.codigo_periodo}`)
      console.log(`Corte Final: ${corteFinal}`)
 
     // Referencias para animación
@@ -95,6 +97,7 @@ const GraficarCohorte = ({ route }) => {
   
 
     const compararPeriodos = (corteFinal, periodoActual) => {
+      console.log(`Corte final para calcular max graduacion oportuna: ${corteFinal}`);
       const [añoFinal, semestreFinal] = corteFinal.split('-').map(Number);
       const [añoActual, semestreActual] = periodoActual.split('-').map(Number);
 
@@ -125,6 +128,7 @@ const GraficarCohorte = ({ route }) => {
 
      // Funciones relacionadas con programas
      const periodoMaxGraduacionOportunaTec = (corteFinal) => {
+      
       let [año, periodo] = corteFinal.split('-').map(Number);
       for (let i = 0; i < 2; i++) {
           if (periodo === 1) {
@@ -398,7 +402,7 @@ const procesarGraduadosProfesionales = () => {
             onPress={() => navigation.navigate('StudentDetail', { 
                 id: estudiante.id_estudiante, 
                 fromScreen: 'GraficarCohorte',
-                selectedCorteInicial, // Asegúrate de que estas variables existan
+                selectedCorteInicial,
                 corteFinal,
                 programaSeleccionado,
                 datosBackend,
@@ -431,7 +435,7 @@ const procesarGraduadosProfesionales = () => {
     const hayInactivos = inactivos.length > 0;
   
     if (hayGraduados && hayDesertados && hayRetenidos && !hayActivos && !hayInactivos) {
-      return `En este grupo de estudiantes que empezo su formacion academica en el periodo ${selectedCorteInicial}, se destaca que ${graduados.length} estudiantes completaron su formación con éxito, Sin embargo, también se evidencia que ${desertados.length} han desertado y ${retenidos.length} permanecen retenidos. Podremos ver mas detalles de estos estudiantes a continuación:`;
+      return `En este grupo de estudiantes que empezo su formacion academica en el periodo ${selectedCorteInicial.codigo_periodo}, se destaca que ${graduados.length} estudiantes completaron su formación con éxito, Sin embargo, también se evidencia que ${desertados.length} han desertado y ${retenidos.length} permanecen retenidos. Podremos ver mas detalles de estos estudiantes a continuación:`;
     }
   
     if (hayGraduados && hayDesertados && !hayRetenidos && !hayActivos && !hayInactivos) {
@@ -491,8 +495,8 @@ const procesarGraduadosProfesionales = () => {
              se enfoca en los estudiantes que comenzaron su formación en la carrera de
             <Text style={{ fontFamily:'Montserrat-Bold'}}> {capitalizeFirstLetter(programaSeleccionado)} </Text> 
             durante el periodo
-            <Text style= {{ fontFamily:'Montserrat-Bold' }}> {selectedCorteInicial}</Text>.
-            Aquí se muestra cómo han progresado a lo largo del tiempo.
+            <Text style= {{ fontFamily:'Montserrat-Bold' }}> {selectedCorteInicial.codigo_periodo}</Text>.
+            Aquí se muestra cómo han progresado a lo largo del tiempo. 
           </Text>
           <View style={styles.pieChartContainer}>
           <PieChart

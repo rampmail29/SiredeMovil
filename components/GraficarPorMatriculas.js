@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const GraficarMatriculas = ({ route }) => {
     const { fromScreen, selectedCorteInicial, selectedCorteFinal, programaSeleccionado, idSeleccionado, datosBackend } = route.params;
+    console.log("🚀 ~ selectedCorteInicial en GraficarPorMatricula:", selectedCorteInicial);
     const [resultadosTransformados, setResultadosTransformados] = useState([]);
     const navigation = useNavigation();
 

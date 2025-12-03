@@ -17,7 +17,8 @@ import GraficarPdf from "./GraficarPdf";
 import Estadisticas from "./Estadisticas";
 import Estadis_Cohorte from "./Estadis_Cohorte";
 import Estadis_Matricula from "./Estadis_Matricula";
-
+import GraficarMatriculas from "./GraficarPorMatriculas";
+import GraficarCohorte from "./GraficarPorCohorte";
 const Stack = createNativeStackNavigator();
 
 export default function MainNavigator() {
@@ -88,7 +89,7 @@ export default function MainNavigator() {
         component={GraficarPdf}
         options={{ headerShown: false }}
       />
-      <Stack.Screen 
+      <Stack.Screen
         name="Estadisticas"
         component={Estadisticas}
         options={{ headerShown: false }}
@@ -97,10 +98,20 @@ export default function MainNavigator() {
         name="Estadis_Cohorte"
         component={Estadis_Cohorte}
         options={{ headerShown: false }}
-      /> 
+      />
       <Stack.Screen
         name="Estadis_Matricula"
         component={Estadis_Matricula}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GraficarMatriculas"
+        component={GraficarMatriculas}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GraficarCohorte"
+        component={GraficarCohorte}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

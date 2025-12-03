@@ -42,7 +42,7 @@ const Estadisticas = () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/programas`);
         const data = await response.json();
-        console.log(" Programas fetched:", data);
+        //console.log(" Programas fetched:", data);
         const filteredData = data.map((element) => ({
           cod_snies: element.codigo_snies,
           programa: element.nombre,
@@ -68,12 +68,13 @@ const Estadisticas = () => {
   }, []);
 
   const obtenerPeriodos = async (id_carrera) => {
+    //console.log("Obteniendo periodos para id_carrera:", id_carrera);
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/periodos/${id_carrera}`
       );
       const data = await response.json();
-      console.log(data);
+      //console.log("Data", data);
       if (Array.isArray(data)) {
         setCortesIniciales(data);
       }
@@ -93,7 +94,7 @@ const Estadisticas = () => {
   };
 
   const obtenerCortesFinales = (cortes, corteInicial) => {
-    return cortes.filter((corte) => corte > corteInicial);
+    return cortes.filter((corte) => corte.codigo_periodo > corteInicial);
   };
 
   const ProgramaSelect = (programa) => {
@@ -106,8 +107,18 @@ const Estadisticas = () => {
   const cohorteInicialSelect = (corteInicial) => {
     setSelectedCorteInicial(corteInicial);
 
-    const cortesFiltrados = obtenerCortesFinales(cortesIniciales, corteInicial);
+    // Filtrar solo cortes posteriores estrictamente
+    const cortesFiltrados = cortesIniciales.filter(
+      (corte) => corte.codigo_periodo > corteInicial
+    );
+
     setCortesFinales(cortesFiltrados);
+
+    // Si el corte final seleccionado es inválido, resetear
+    if (selectedCorteFinal && selectedCorteFinal <= corteInicial) {
+      setSelectedCorteFinal("");
+    }
+
     setModalCorteInicialVisible(false);
   };
 
@@ -137,6 +148,20 @@ const Estadisticas = () => {
         });
         return;
       }
+      if (selectedCorteFinal && selectedCorteFinal <= selectedCorteInicial) {
+        showMessage({
+          message: "Error",
+          description: "El periodo final debe ser mayor al periodo inicial.",
+          type: "danger",
+          icon: "danger",
+          duration: 3000,
+          titleStyle: { fontSize: 18, fontFamily: "Montserrat-Bold" },
+          textStyle: { fontSize: 16, fontFamily: "Montserrat-Regular" },
+          position: "top",
+        });
+        return;
+      }
+
       const response = await fetch(
         `${API_BASE_URL}/api/estudiantes-por-matricula`,
         {
@@ -151,6 +176,7 @@ const Estadisticas = () => {
           }),
         }
       );
+      //console.log("Response status:", response.status);
 
       const data = await response.json();
       setDatosBackend(data);
@@ -220,7 +246,7 @@ const Estadisticas = () => {
         >
           <Text style={styles.buttonTextCortes}>
             {selectedCorteFinal
-              ? `Periodo inicial: ${selectedCorteFinal}`
+              ? `Periodo final: ${selectedCorteFinal}`
               : "Seleccionar Periodo Matricula"}
           </Text>
         </TouchableOpacity>
@@ -276,9 +302,11 @@ const Estadisticas = () => {
                   <TouchableOpacity
                     key={index}
                     style={styles.modalItemContainer}
-                    onPress={() => cohorteInicialSelect(corte)}
+                    onPress={() => cohorteInicialSelect(corte.codigo_periodo)}
                   >
-                    <Text style={styles.modalItemTextCorte}>{corte}</Text>
+                    <Text style={styles.modalItemTextCorte}>
+                      {corte.codigo_periodo}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -309,9 +337,11 @@ const Estadisticas = () => {
                   <TouchableOpacity
                     key={index}
                     style={styles.modalItemContainer}
-                    onPress={() => cohorteFinalSelect(corte)}
+                    onPress={() => cohorteFinalSelect(corte.codigo_periodo)}
                   >
-                    <Text style={styles.modalItemTextCorte}>{corte}</Text>
+                    <Text style={styles.modalItemTextCorte}>
+                      {corte.codigo_periodo}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
