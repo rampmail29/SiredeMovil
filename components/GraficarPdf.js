@@ -26,7 +26,7 @@ const GraficarPdf = ({ route, navigation }) => {
   const { tipoInforme, datos, programa, corteInicial, corteFinal } =
     route.params;
 
- /*  datos.retenidos.forEach((a) =>
+  /* datos.retenidos.forEach((a) =>
     a.historico_estado.forEach((b) =>
       console.log(
         "Estado reciente: ",
@@ -34,13 +34,11 @@ const GraficarPdf = ({ route, navigation }) => {
           .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
           .nombre_estado
       )
-    )
+    ) 
   ); */
-  /* console.log(
-    datos.retenidos[0].historico_estado[0]
-      .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
-      .nombre_estado
-  ); */
+  console.log(
+    "datos recibidos en generar pdf: ",datos
+  );
 
   const dataArray = datos[tipoInforme] || []; // Evitar undefined si no hay datos
   //dataArray.foreach((a) => a.estudiantes.nombre_completo);

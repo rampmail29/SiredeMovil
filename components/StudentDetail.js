@@ -409,7 +409,11 @@ const StudentDetail = ({ route, navigation }) => {
                   <View>
                     <Text style={styles.labell}>Estado Académico:</Text>
                     <Text style={styles.text}>
-                      {console.log("Estado académico carrera - StudentDetail:", carrera)}
+                      {console.log(
+                        "Estado académico carrera - StudentDetail:",
+                        carrera.historico_estado 
+                          
+                      )}
                       {safeText(
                         carrera.historico_estado[0]
                           .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos

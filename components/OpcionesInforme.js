@@ -9,148 +9,149 @@ import {
 import { FontAwesome5 } from "@expo/vector-icons";
 import { showMessage } from "react-native-flash-message";
 import { useNavigation } from "@react-navigation/native";
+import { ScrollView } from "react-native";
 
 const OpcionesInforme = ({
   academicData,
   selectedCorteInicial,
   selectedCorteFinal,
 }) => {
+  console.log(
+    "RETENIDOS RAW DETALLADO:\n",
+    JSON.stringify(
+      academicData?.retenidos?.map((est) => ({
+        estudiante:
+          est.documento || est.id_estudiante || est.codigo || "sin-id",
+        historico: est.historico_estado?.map((h) => ({
+          nuevo:
+            h
+              ?.estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
+              ?.nombre_estado,
+          viejo:
+            h
+              ?.estados_academicos_historico_estado_estado_anterior_idToestados_academicos
+              ?.nombre_estado,
+        })),
+      })),
+      null,
+      2
+    )
+  );
+
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
 
+  /** ============================================
+   *           Navegación genérica
+   * ============================================ */
   const navigationInforme = (tipoInforme, datos) => {
     setIsLoading(true);
+
     setTimeout(() => {
       setIsLoading(false);
+
       navigation.navigate("GraficarPdf", {
         tipoInforme,
         datos,
-        programa: academicData.carrera,
-        corteInicial: selectedCorteInicial,
-        corteFinal: selectedCorteFinal,
+        programa: academicData?.carrera ?? "N/D",
+        corteInicial: selectedCorteInicial ?? "N/D",
+        corteFinal: selectedCorteFinal ?? "N/D",
       });
-    }, 1000);
-  };
-  //console.log("academicData en OpcionesInforme:", academicData);
-  const generarInformeGraduados = () => {
-    if (
-      academicData &&
-      (academicData.graduados.length > 0 ||
-        academicData.retenidos.length > 0 ||
-        academicData.desertados.length > 0 ||
-        academicData.todosEstudiantes.length > 0 ||
-        academicData.activos.length > 0 ||
-        academicData.inactivos.length > 0)
-    ) {
-      console.log("Generando informe de Graduados");
-      /* console.log(
-        "academicData en OpcionesInforme todosESTUDIANTES:",
-        academicData.todosEstudiantes[0].historico_estado[0]
-          .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
-          .nombre_estado
-      ); */
-      navigationInforme("graduados", {
-        graduados: academicData,
-      });
-    } else {
-      showMessage({
-        message: "Error",
-        description:
-          "No se puede generar un informe de graduados pues no hay ningún programa académico ni cortes seleccionado, Por favor seleccione todos los datos necesarios y presione el botón de Evaluar.",
-        duration: 10000,
-        titleStyle: { fontSize: 19, fontFamily: "Montserrat-Bold" },
-        textStyle: {
-          fontSize: 18,
-          fontFamily: "Montserrat-Regular",
-          textAlign: "justify",
-        },
-        type: "danger",
-        icon: "danger",
-      });
-    }
+    }, 800);
   };
 
-  const generarInformeRetenidos = () => {
-    if (academicData && academicData.retenidos.length > 0) {
-      console.log("Generando informe de Retenidos");
-      navigationInforme("retenidos", { retenidos: academicData.retenidos });
-    } else {
-      showMessage({
-        message: "Error",
-        description:
-          "No se puede generar un informe de retenidos pues no hay ningún programa académico ni cortes seleccionado, Por favor seleccione todos los datos necesarios y presione el botón de Evaluar.",
-        duration: 10000,
-        titleStyle: { fontSize: 19, fontFamily: "Montserrat-Bold" },
-        textStyle: {
-          fontSize: 18,
-          fontFamily: "Montserrat-Regular",
-          textAlign: "justify",
-        },
-        type: "danger",
-        icon: "danger",
-      });
-    }
+  /** ============================================
+   *          Mensaje genérico de error
+   * ============================================ */
+  const mostrarError = (nombre) => {
+    showMessage({
+      message: "Error",
+      description: `No se puede generar el informe de ${nombre} porque no hay datos suficientes. Seleccione programa y cortes y presione Evaluar.`,
+      duration: 5000,
+      titleStyle: { fontSize: 19, fontFamily: "Montserrat-Bold" },
+      textStyle: {
+        fontSize: 18,
+        fontFamily: "Montserrat-Regular",
+        textAlign: "justify",
+      },
+      type: "danger",
+      icon: "danger",
+    });
   };
 
-  /* 
-  
-  REVISAR LAS CONDICIONES --> ME ESTÁ REVOLVIENDO INFORMACIÓN DE ESTUDIANTES CON DIFERENTES ESTADOS EN LOS DIFERENTES INFORMES DE PDF
-  
-  
-  */
-
-  const generarInformeDesertados = () => {
-    if (academicData && academicData.desertados.length) {
-      console.log("Generando informe de Desertados");
-      navigationInforme("desertados", { desertados: academicData.desertados });
-    } else {
-      showMessage({
-        message: "Error",
-        description:
-          "No se puede generar un informe de desertados pues no hay ningún programa académico ni cortes seleccionado, Por favor seleccione todos los datos necesarios y presione el botón de Evaluar.",
-        duration: 10000,
-        titleStyle: { fontSize: 19, fontFamily: "Montserrat-Bold" },
-        textStyle: {
-          fontSize: 18,
-          fontFamily: "Montserrat-Regular",
-          textAlign: "justify",
-        },
-        type: "danger",
-        icon: "danger",
-      });
+  /** ============================================
+   *       Función genérica para informes
+   * ============================================ */
+  const generarInforme = (tipo, arreglo, nombreError) => {
+    // Validar que existan cortes
+    if (!selectedCorteInicial || !selectedCorteFinal) {
+      return mostrarError("cortes académicos");
     }
+
+    // Validar que existan datos
+    if (!academicData || !arreglo || arreglo.length === 0) {
+      return mostrarError(nombreError);
+    }
+
+    navigationInforme(tipo, { [tipo]: arreglo });
   };
 
-  const generarInformeTodos = () => {
-    if (
-      academicData &&
-      (academicData.graduados.length > 0 ||
-        academicData.retenidos.length > 0 ||
-        academicData.desertados.length > 0 ||
-        academicData.todosEstudiantes.length > 0)
-    ) {
-      console.log("Generando informe de Todos los estudiantes");
-      navigationInforme("general", { general: academicData.todosEstudiantes });
-    } else {
-      showMessage({
-        message: "Error",
-        description:
-          "No se puede generar un informe general pues no hay ningún programa académico ni cortes seleccionado, Por favor seleccione todos los datos necesarios y presione el botón de Evaluar.",
-        duration: 10000,
-        titleStyle: { fontSize: 19, fontFamily: "Montserrat-Bold" },
-        textStyle: {
-          fontSize: 18,
-          fontFamily: "Montserrat-Regular",
-          textAlign: "justify",
-        },
-        type: "danger",
-        icon: "danger",
-      });
-    }
+  /** ============================================
+   *        Helper para obtener estado final
+   * ============================================ */
+  const tieneEstado = (historico, estadoBuscado) => {
+    return historico?.some((h) => {
+      const estado =
+        h.estados_academicos_historico_estado_estado_nuevo_idToestados_academicos;
+      return estado?.nombre_estado === estadoBuscado;
+    });
   };
+
+  /** ============================================
+   *               Filtrados
+   * ============================================ */
+
+  const obtenerGraduadosFiltrados = () =>
+    academicData?.todosEstudiantes?.filter((est) =>
+      tieneEstado(est.historico_estado, "Graduado")
+    ) ?? [];
+
+  const obtenerRetenidosFiltrados = () =>
+    academicData?.todosEstudiantes?.filter((est) =>
+      tieneEstado(est.historico_estado, "Retenido")
+    ) ?? [];
+
+  const obtenerDesertadosFiltrados = () =>
+    academicData?.todosEstudiantes?.filter((est) =>
+      tieneEstado(est.historico_estado, "Desertor")
+    ) ?? [];
+
+  const obtenerInactivosFiltrados = () =>
+    academicData?.inactivos?.filter((est) =>
+      tieneEstado(est.historico_estado, "Inactivo")
+    ) ?? [];
+
+  /** ============================================
+   *        Handlers para cada informe
+   * ============================================ */
+
+  const generarInformeGraduados = () =>
+    generarInforme("graduados", obtenerGraduadosFiltrados(), "graduados");
+
+  const generarInformeRetenidos = () =>
+    generarInforme("retenidos", obtenerRetenidosFiltrados(), "retenidos");
+
+  const generarInformeDesertados = () =>
+    generarInforme("desertados", obtenerDesertadosFiltrados(), "desertados");
+
+  const generarInformeTodos = () =>
+    generarInforme("general", academicData?.todosEstudiantes, "estudiantes");
+
+  const generarInformeInactivos = () =>
+    generarInforme("inactivos", obtenerInactivosFiltrados(), "inactivos");
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#34531F" />
@@ -171,6 +172,7 @@ const OpcionesInforme = ({
               />
               <Text style={styles.buttonText}>Todos los Estudiantes</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.button}
               onPress={generarInformeGraduados}
@@ -184,6 +186,7 @@ const OpcionesInforme = ({
               <Text style={styles.buttonText}>Graduados</Text>
             </TouchableOpacity>
           </View>
+
           <View style={styles.row}>
             <TouchableOpacity
               style={styles.button}
@@ -197,6 +200,7 @@ const OpcionesInforme = ({
               />
               <Text style={styles.buttonText}>Retenidos</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.button}
               onPress={generarInformeDesertados}
@@ -210,9 +214,24 @@ const OpcionesInforme = ({
               <Text style={styles.buttonText}>Desertados</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={generarInformeInactivos}
+            >
+              <FontAwesome5
+                name="user-slash"
+                size={45}
+                color="white"
+                style={styles.icon}
+              />
+              <Text style={styles.buttonText}>Inactivos</Text>
+            </TouchableOpacity>
+          </View>
         </>
       )}
-    </View>
+    </ScrollView>
   );
 };
 
@@ -221,6 +240,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 30,
     flex: 1,
+  },
+  container: {
+    paddingVertical: 20, // para que el scroll no quede "pegado"
+    paddingHorizontal: 10,
+    alignItems: "center",
   },
   row: {
     flexDirection: "row",

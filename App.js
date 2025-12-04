@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import MainNavigator from "./components/MainNavigator";
+import FlashMessage from "react-native-flash-message";
 
 // acá se evitaa que el splash se oculte antes de tiempo
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -32,6 +33,7 @@ export default function App() {
       <NavigationContainer>
         <MainNavigator />
       </NavigationContainer>
+      <FlashMessage position="top" />
     </GestureHandlerRootView>
   );
 }

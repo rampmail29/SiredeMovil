@@ -61,6 +61,7 @@ const generarHTML = (
       desertados: "Informe de estudiantes Desertados",
       retenidos: "Informe de estudiantes Retenidos",
       general: "Informe General de Estudiantes",
+      inactivos: "Informe de estudiantes Inactivos",
     }[tipoInforme] || "Informe";
 
   const notaTexto = {
@@ -68,6 +69,7 @@ const generarHTML = (
     desertados: `Este Informe contiene los estudiantes <strong>DESERTADOS</strong>del programa ${programa.programa} que ingresaron en el período <strong>${dataArray[0].periodos.codigo_periodo}</strong>.`,
     retenidos: `Este Informe contiene los estudiantes <strong>RETENIDOS</strong>del programa ${programa.programa} que ingresaron en el período <strong>${dataArray[0].periodos.codigo_periodo}</strong>.`,
     general: `Este Informe contiene <strong>TODOS</strong> los estudiantes del programa ${programa.programa} que ingresaron en el período <strong>${dataArray[0].periodos.codigo_periodo}</strong>.`,
+    inactivos: `Este Informe contiene los estudiantes <strong>INACTIVOS</strong>del programa ${programa.programa} que ingresaron en el período <strong>${dataArray[0].periodos.codigo_periodo}</strong>.`,
   }[tipoInforme];
 
   return `
