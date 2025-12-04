@@ -9,7 +9,7 @@ import { API_BASE_URL } from './Config';
 const GraficarCohorte = ({ route }) => {
     // Parámetros recibidos
     const { fromScreen, selectedCorteInicial, ultimoCorteFinal, programaSeleccionado, tipoProgramaSeleccionado, idSeleccionado, datosBackend } = route.params;
-    console.log(`Programa Seleccionado: ${selectedCorteInicial}`);
+    //console.log(`Programa Seleccionado: ${selectedCorteInicial}`);
     const corteFinal = ultimoCorteFinal;
 
      // Hooks y navegación
@@ -27,9 +27,9 @@ const GraficarCohorte = ({ route }) => {
      const [isActivosCollapsed, setActivosCollapsed] = useState(true);
      const [isInactivosCollapsed, setInactivosCollapsed] = useState(true);
      const [isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed] = useState(true);
-     console.log(`SEPARADOR-----------------------------`)
+     /* console.log(`SEPARADOR-----------------------------`)
      console.log(`Corte Inicial: ${selectedCorteInicial.codigo_periodo}`)
-     console.log(`Corte Final: ${corteFinal}`)
+     console.log(`Corte Final: ${corteFinal}`) */
 
     // Referencias para animación
     const rotationGraduados = useRef(new Animated.Value(0)).current;
@@ -53,7 +53,7 @@ const GraficarCohorte = ({ route }) => {
         try {
           const response = await fetch(`${API_BASE_URL}/api/carreras-relacionadas/${idSeleccionado}`);
           const data = await response.json();
-          console.log('Carreras relacionadas:', data); // Array con IDs de carreras relacionadas
+          //console.log('Carreras relacionadas:', data); // Array con IDs de carreras relacionadas
           setCarrerasRelacionadas(data);
           setIsCarrerasLoaded(true); // Marcar que los datos están cargados
         } catch (error) {
@@ -83,7 +83,7 @@ const GraficarCohorte = ({ route }) => {
           });
   
           const data = await response.json();
-          console.log('Detalles de graduados relacionados:', data);
+          ///console.log('Detalles de graduados relacionados:', data);
           setgraduadosOportunosTotal(data)
           // Aquí puedes manejar los datos recibidos del backend como prefieras
         } catch (error) {
@@ -97,7 +97,7 @@ const GraficarCohorte = ({ route }) => {
   
 
     const compararPeriodos = (corteFinal, periodoActual) => {
-      console.log(`Corte final para calcular max graduacion oportuna: ${corteFinal}`);
+      //console.log(`Corte final para calcular max graduacion oportuna: ${corteFinal}`);
       const [añoFinal, semestreFinal] = corteFinal.split('-').map(Number);
       const [añoActual, semestreActual] = periodoActual.split('-').map(Number);
 
@@ -123,7 +123,7 @@ const GraficarCohorte = ({ route }) => {
 
     const idsEstudiantesGraduados = graduados.map(estudiante => estudiante.id_estudiante);
 
-    console.log(`Ids de estudiantes graduados = ${idsEstudiantesGraduados}`);
+    //console.log(`Ids de estudiantes graduados = ${idsEstudiantesGraduados}`);
     
 
      // Funciones relacionadas con programas
@@ -174,12 +174,12 @@ const GraficarCohorte = ({ route }) => {
 const procesarGraduadosProfesionales = () => {
   if (graduadosOportunosTotal.length > 0) {
       const resultado = calcularDuracionEstudios(graduadosOportunosTotal);
-      console.log("Detalles completos:", resultado.detallesEstudiantes);
-      console.log("Total de semestres por estudiante:", resultado.totalSemestresEstudiantes);
+      //console.log("Detalles completos:", resultado.detallesEstudiantes);
+      //console.log("Total de semestres por estudiante:", resultado.totalSemestresEstudiantes);
 
       // Filtrar estudiantes con ≤12 semestres
       const graduadosOportunosProfesionales = filtrarGraduadosOportunosProfesionales(resultado.totalSemestresEstudiantes);
-      console.log("Graduados Oportunos Profesionales (≤12 semestres):", graduadosOportunosProfesionales.length);
+      //console.log("Graduados Oportunos Profesionales (≤12 semestres):", graduadosOportunosProfesionales.length);
 
       setGraduadosOportunosPro(graduadosOportunosProfesionales.length)
       setGraduacionOportunaPro(calcularTasaGraduacionOportuna(totalCohorte, graduadosOportunosProfesionales))
@@ -198,13 +198,13 @@ const procesarGraduadosProfesionales = () => {
   
 
     useEffect(() => {
-      console.log(`Graduado Oportunos Tecnologia:${graduadosOportunosTec.length}`);
-      console.log(`Tasa de Graduacion Oportuna Tecnologia: ${graduacionOportunaTec}`);
+      /* console.log(`Graduado Oportunos Tecnologia:${graduadosOportunosTec.length}`);
+      console.log(`Tasa de Graduacion Oportuna Tecnologia: ${graduacionOportunaTec}`); */
   }, [graduadosOportunosTec, graduacionOportunaTec]);
 
   useEffect(() => {
-    console.log(`Graduados Oportunos Profesional:${graduadosOportunosPro}`);
-    console.log(`Tasa de Graduacion Oportuna Profesional: ${graduacionOportunaPro}`);
+    /* console.log(`Graduados Oportunos Profesional:${graduadosOportunosPro}`);
+    console.log(`Tasa de Graduacion Oportuna Profesional: ${graduacionOportunaPro}`); */
 }, [graduadosOportunosPro, graduacionOportunaPro])
 
 
@@ -215,7 +215,7 @@ const procesarGraduadosProfesionales = () => {
             // Función auxiliar para calcular la cantidad de semestres correctamente
             const calcularSemestres = (inicio, graduacion) => {
               if (!inicio || !graduacion || !inicio.includes('-') || !graduacion.includes('-')) {
-                  console.log("Datos inválidos en calcularSemestres:", { inicio, graduacion });
+                  //console.log("Datos inválidos en calcularSemestres:", { inicio, graduacion });
                   return 0; // Retornamos 0 para evitar que falle el código
               }
           

@@ -81,7 +81,7 @@ const Estadisticas = () => {
       );
       const data = await response.json();
       //hasta aquí ok, se pobla el sect con los cortes;
-      console.log("cohortes iniciales: ", data);
+      //console.log("cohortes iniciales: ", data);
       if (Array.isArray(data)) {
         setCortesIniciales(data);
       }
@@ -133,7 +133,7 @@ const Estadisticas = () => {
       const ultimoCorteFinal =
         cortesFinalesCalculados.slice(-1)[0]?.key || null;
 
-      console.log("Corte final calculado:", ultimoCorteFinal);
+      //console.log("Corte final calculado:", ultimoCorteFinal);
 
       setCorteFinal(ultimoCorteFinal);
     };
@@ -222,7 +222,7 @@ const Estadisticas = () => {
       setLoading(false);
 
       const data = await response.json();
-      console.log("Datos recibidos del backend:", data);
+      //console.log("Datos recibidos del backend:", data);
       setDatosBackend(data);
       setLoading(true);
     } catch (error) {
@@ -239,7 +239,7 @@ const Estadisticas = () => {
       datosBackend?.activos?.length > 0 ||
       datosBackend?.inactivos?.length > 0
     ) {
-      console.log("Datos recibidos:", datosBackend);
+      //console.log("Datos recibidos:", datosBackend);
       const timeout = setTimeout(() => {
         setLoading(false);
 

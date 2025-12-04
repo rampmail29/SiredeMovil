@@ -31,7 +31,7 @@ const OpcionesInforme = ({
       });
     }, 1000);
   };
-
+  //console.log("academicData en OpcionesInforme:", academicData);
   const generarInformeGraduados = () => {
     if (
       academicData &&
@@ -71,13 +71,7 @@ const OpcionesInforme = ({
   };
 
   const generarInformeRetenidos = () => {
-    if (
-      academicData &&
-      (academicData.graduados.length > 0 ||
-        academicData.retenidos.length > 0 ||
-        academicData.desertados.length > 0 ||
-        academicData.todos.length > 0)
-    ) {
+    if (academicData && academicData.retenidos.length > 0) {
       console.log("Generando informe de Retenidos");
       navigationInforme("retenidos", { retenidos: academicData.retenidos });
     } else {
@@ -98,14 +92,15 @@ const OpcionesInforme = ({
     }
   };
 
+  /* 
+  
+  REVISAR LAS CONDICIONES --> ME ESTÁ REVOLVIENDO INFORMACIÓN DE ESTUDIANTES CON DIFERENTES ESTADOS EN LOS DIFERENTES INFORMES DE PDF
+  
+  
+  */
+
   const generarInformeDesertados = () => {
-    if (
-      academicData &&
-      (academicData.graduados.length > 0 ||
-        academicData.retenidos.length > 0 ||
-        academicData.desertados.length > 0 ||
-        academicData.todos.length > 0)
-    ) {
+    if (academicData && academicData.desertados.length) {
       console.log("Generando informe de Desertados");
       navigationInforme("desertados", { desertados: academicData.desertados });
     } else {

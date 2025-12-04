@@ -14,9 +14,9 @@ import { API_BASE_URL } from "./Config";
 
 const ProgramasAcademicos = ({ onProgramSelect }) => {
   const [programas, setProgramas] = useState([]);
-  programas.forEach((a) =>
-    a.data.forEach((b) => console.log(b.tipos_programa))
-  );
+  /*  programas.forEach((a) =>
+    a.data.forEach((b) => console.log("->",b.tipos_programa))
+  ); */
   const [rotateAnimNaturales] = useState(new Animated.Value(0));
   const [rotateAnimSocioeconomicas] = useState(new Animated.Value(0));
   const [programaAnim] = useState(new Animated.Value(0));
@@ -185,7 +185,7 @@ const ProgramasAcademicos = ({ onProgramSelect }) => {
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={EmptyComponent}
+        ListEmptyComponent={EmptyComponent} 
       />
     </View>
   );

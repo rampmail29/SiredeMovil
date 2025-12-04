@@ -54,7 +54,7 @@ const generarHTML = (
   corteInicial,
   corteFinal
 ) => {
-  console.log(programa, tipoInforme, corteInicial, corteFinal);
+  //console.log(programa, tipoInforme, corteInicial, corteFinal);
   const informeTitulo =
     {
       graduados: "Informe de estudiantes Graduados",
@@ -143,7 +143,7 @@ export const generatePDF = async (
       to: finalPath,
     });
 
-    console.log("PDF generado en:", finalPath);
+    //console.log("PDF generado en:", finalPath);
 
     // 4. Compartir
     await Sharing.shareAsync(finalPath);

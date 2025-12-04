@@ -312,7 +312,7 @@ const StudentDetail = ({ route, navigation }) => {
                 <View>
                   <Text style={styles.label}>Documento:</Text>
                   <Text style={styles.text}>
-                    {safeText(String(student.tipo_documento_id || ""))}{" "}
+                    {/* {safeText(String(student.tipo_documento_id || ""))}{" "} */}
                     {safeText(student.numero_documento)}
                   </Text>
                 </View>
@@ -409,9 +409,10 @@ const StudentDetail = ({ route, navigation }) => {
                   <View>
                     <Text style={styles.labell}>Estado Académico:</Text>
                     <Text style={styles.text}>
+                      {console.log("Estado académico carrera - StudentDetail:", carrera)}
                       {safeText(
                         carrera.historico_estado[0]
-                          .estados_academicos_historico_estado_estado_anterior_idToestados_academicos
+                          .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
                           .nombre_estado || ""
                       )}
                     </Text>

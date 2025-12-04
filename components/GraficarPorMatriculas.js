@@ -6,11 +6,11 @@ import { useNavigation } from '@react-navigation/native';
 
 const GraficarMatriculas = ({ route }) => {
     const { fromScreen, selectedCorteInicial, selectedCorteFinal, programaSeleccionado, idSeleccionado, datosBackend } = route.params;
-    console.log("🚀 ~ selectedCorteInicial en GraficarPorMatricula:", selectedCorteInicial);
+    //console.log("🚀 ~ selectedCorteInicial en GraficarPorMatricula:", selectedCorteInicial);
     const [resultadosTransformados, setResultadosTransformados] = useState([]);
     const navigation = useNavigation();
 
-    console.log(datosBackend);
+    //console.log(datosBackend);
 
     // Función para transformar los datos del backend en un formato adecuado para los gráficos
     const transformarDatos = (datosBackend) => {
@@ -143,7 +143,7 @@ const GraficarMatriculas = ({ route }) => {
                 });
 
                 setResultadosTransformados(resultadosTransformados); 
-                console.log(resultadosTransformados);
+                //console.log(resultadosTransformados);
             } catch (error) {
                 showMessage({
                     message: "Error",

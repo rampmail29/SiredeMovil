@@ -25,9 +25,26 @@ import { generatePDF } from "./Generate";
 const GraficarPdf = ({ route, navigation }) => {
   const { tipoInforme, datos, programa, corteInicial, corteFinal } =
     route.params;
+
+ /*  datos.retenidos.forEach((a) =>
+    a.historico_estado.forEach((b) =>
+      console.log(
+        "Estado reciente: ",
+        b
+          .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
+          .nombre_estado
+      )
+    )
+  ); */
+  /* console.log(
+    datos.retenidos[0].historico_estado[0]
+      .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
+      .nombre_estado
+  ); */
+
   const dataArray = datos[tipoInforme] || []; // Evitar undefined si no hay datos
   //dataArray.foreach((a) => a.estudiantes.nombre_completo);
-  console.log("Datos recibidos en GraficarPdf:", dataArray.todosEstudiantes);
+  //console.log("Datos recibidos en GraficarPdf:", dataArray);
   /* [0].historico_estado[0]
       .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
       .nombre_estado */

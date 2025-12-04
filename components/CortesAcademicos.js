@@ -33,7 +33,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
         `${API_BASE_URL}/api/cortes-iniciales/${selectedProgram.id}`
       );
       const data = await response.json();
-      console.log("data", data);
+      //console.log("data", data);
       Array.isArray(data) && setCortesIniciales(data); // Si es un array, actualiza cortesIniciales
     } catch (error) {
       showMessage({
@@ -75,11 +75,11 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
 
   // Lógica para calcular el corte tope (corte final) basado en el corte inicial y el tipo de programa
   useEffect(() => {
-    console.log(
+   /*  console.log(
       "selectedCorteInicial en CortesAcademicos:",
       selectedCorteInicial
     );
-
+ */
     const cohorteTope = () => {
       if (
         !selectedCorteInicial ||
@@ -88,7 +88,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
       ) {
         return;
       }
-      console.log("programa seleccionado: ", selectedProgram);
+      //console.log("programa seleccionado: ", selectedProgram);
       // Convertir tipo a string de forma segura
       const tipoPrograma = String(selectedProgram.tipo || "")
         .normalize("NFD")
@@ -190,6 +190,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
           body: JSON.stringify({
             idCarrera: selectedProgram.id,
             periodoInicial: selectedCorteInicial,
+            
           }),
         }
       );
@@ -291,6 +292,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
         </View>
       </Modal>
       {/* Botón para evaluar */}
+      
       <TouchableOpacity style={styles.evaluarButton} onPress={evaluarClick}>
         <Text style={styles.buttonText}>Evaluar</Text>
       </TouchableOpacity>
