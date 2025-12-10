@@ -24,7 +24,7 @@ import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
 import { showMessage } from "react-native-flash-message";
 import { useNavigation } from "@react-navigation/native";
 
-// 👇 Usa SIEMPRE las instancias únicas
+// instancias únicas
 import { auth, db, storage } from "../firebaseConfig";
 
 const InfoPerfilScreen = ({ onNext }) => {
@@ -45,6 +45,7 @@ const InfoPerfilScreen = ({ onNext }) => {
   const [initialSetupCompleted, setInitialSetupCompleted] = useState(true);
 
   const isMounted = useRef(true);
+  
   const isSmallScreen = windowHeight < 750;
 
   useEffect(() => {

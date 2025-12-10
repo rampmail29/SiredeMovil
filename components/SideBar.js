@@ -30,7 +30,6 @@ const SideBar = (props) => {
   const [rol, setRol] = useState("");
   const [superRol, setSuperRol] = useState("");
   const [uid, setUid] = useState("");
-
   const isDrawerOpen = useDrawerStatus() === "open";
   const isMounted = useRef(true);
   const userUnsubRef = useRef(null);
@@ -84,7 +83,7 @@ const SideBar = (props) => {
               setRol(data.rol || "");
               setSuperRol(data.superRol || "");
 
-              // Si en el doc existe photoURL úsala; si no, intenta buscar en Storage
+              // Si en el doc existe photoURL se usa; si no, intenta buscar en Storage
               if (data.photoURL) {
                 setImageUri(data.photoURL);
               } else {

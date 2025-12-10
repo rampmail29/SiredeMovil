@@ -108,12 +108,12 @@ export default function DrawerNavi() {
         }}
       />
       <Drawer.Screen
-        name="Cargar CSV"
+        name="Cargar"
         component={Cargar}
         options={{
           drawerIcon: ({ focused, color, size }) => (
             <Ionicons
-              name={focused ? "cloud-upload" : "cloud-upload-outline"}
+              name={focused ? "cloud-upload-sharp" : "cloud-outline"}
               size={size}
               color={color}
             />

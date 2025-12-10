@@ -42,7 +42,8 @@ const Estadisticas = () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/programas`);
         const data = await response.json();
-        //console.log(" Programas fetched:", data);
+        //hasta acá todo ok
+        ///console.log(" Programas fetched:", data);
         const filteredData = data.map((element) => ({
           cod_snies: element.codigo_snies,
           programa: element.nombre,
@@ -68,13 +69,14 @@ const Estadisticas = () => {
   }, []);
 
   const obtenerPeriodos = async (id_carrera) => {
-    //console.log("Obteniendo periodos para id_carrera:", id_carrera);
+    console.log("Obteniendo periodos para id_carrera:", id_carrera);
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/periodos/${id_carrera}`
       );
       const data = await response.json();
-      //console.log("Data", data);
+      //hasta aquí todo bien
+      //console.log("Data->", data);
       if (Array.isArray(data)) {
         setCortesIniciales(data);
       }
@@ -98,6 +100,7 @@ const Estadisticas = () => {
   };
 
   const ProgramaSelect = (programa) => {
+    //console.log("programa->: ", programa);
     setProgramaSeleccionado(programa.programa);
     setIdSeleccionado(programa.id);
     obtenerPeriodos(programa.id);
@@ -106,12 +109,13 @@ const Estadisticas = () => {
 
   const cohorteInicialSelect = (corteInicial) => {
     setSelectedCorteInicial(corteInicial);
+    //console.log("corteInicial->",corteInicial)
 
     // Filtrar solo cortes posteriores estrictamente
     const cortesFiltrados = cortesIniciales.filter(
       (corte) => corte.codigo_periodo > corteInicial
     );
-
+    //console.log("cortesFiltrados-> ",cortesFiltrados)
     setCortesFinales(cortesFiltrados);
 
     // Si el corte final seleccionado es inválido, resetear
@@ -135,6 +139,12 @@ const Estadisticas = () => {
 
   const evaluarClick = async () => {
     try {
+      /* console.log(
+        "programa seleccionado ->",
+        programaSeleccionado,
+        " - selected corte inicial->",
+        selectedCorteInicial
+      ); */
       if (!programaSeleccionado || !selectedCorteInicial) {
         showMessage({
           message: "Error",
@@ -176,7 +186,7 @@ const Estadisticas = () => {
           }),
         }
       );
-      //console.log("Response status:", response.status);
+      console.log("Response status:", response.status);
 
       const data = await response.json();
       setDatosBackend(data);

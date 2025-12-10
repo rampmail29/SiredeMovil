@@ -16,7 +16,7 @@ const Graficar = ({ route, navigation }) => {
     programaSeleccionado,
     datosBackend,
   } = route?.params || {};
-  //console.log("selectedCorteInicial en GraficarEstadisticas recibidos:", selectedCorteInicial);
+  console.log("selectedCorteInicial en GraficarEstadisticas recibidos:", selectedCorteInicial); 
   if(!(route?.params)){return;}
 
   // Puedes usar valores por defecto

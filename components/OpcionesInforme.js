@@ -16,7 +16,7 @@ const OpcionesInforme = ({
   selectedCorteInicial,
   selectedCorteFinal,
 }) => {
-  console.log(
+  /* console.log(
     "RETENIDOS RAW DETALLADO:\n",
     JSON.stringify(
       academicData?.retenidos?.map((est) => ({
@@ -36,7 +36,7 @@ const OpcionesInforme = ({
       null,
       2
     )
-  );
+  ); */
 
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);

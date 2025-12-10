@@ -56,6 +56,7 @@ const Estadisticas = () => {
           tipo: element.tipo_programa_id,
           id: element.id_carrera,
         }));
+        //console.log(filteredData);
         setProgramas(filteredData);
       } catch (error) {
         showMessage({
@@ -75,6 +76,7 @@ const Estadisticas = () => {
   }, []);
 
   const obtenerCortesIniciales = async (id_carrera) => {
+    //console.log("Obteniendo cortes iniciales para carrera ID:", id_carrera);
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/cortes-iniciales/${id_carrera}`
@@ -165,7 +167,7 @@ const Estadisticas = () => {
   };
 
   const ProgramaSelect = (programa) => {
-    //hasta acá ok, pero setIdSeleccionado captura el mismo dato de obtenerCortesInciciales??? debo revisar -> 
+    //hasta acá ok, pero setIdSeleccionado captura el mismo dato de obtenerCortesInciciales??? debo revisar ->
     //console.log("Programa seleccionado:", programa);
     setProgramaSeleccionado(programa.programa);
     setTipoProgramaSeleccionado(programa.tipo);
@@ -222,7 +224,7 @@ const Estadisticas = () => {
       setLoading(false);
 
       const data = await response.json();
-      //console.log("Datos recibidos del backend:", data);
+      //console.log("Datos recibidos del backend en estadis_cohorte:", data);
       setDatosBackend(data);
       setLoading(true);
     } catch (error) {
@@ -250,15 +252,7 @@ const Estadisticas = () => {
           programaSeleccionado,
           tipoProgramaSeleccionado,
           idSeleccionado,
-          datosBackend: {
-            todosEstudiantes: datosBackend.todosEstudiantes,
-            graduados: datosBackend.graduados,
-            retenidos: datosBackend.retenidos,
-            desertados: datosBackend.desertados,
-            activos: datosBackend.activos,
-            inactivos: datosBackend.inactivos,
-            totalMatriculados: datosBackend.totalMatriculados,
-          },
+          datosBackend,
         });
       }, 2500);
 
