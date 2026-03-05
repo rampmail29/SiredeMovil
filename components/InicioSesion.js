@@ -83,13 +83,13 @@ const InicioSesion = ({ navigation }) => {
       if (needsPwd) {
         // puedes pasar la siguiente ruta como param
         navigation.replace("PasswordChangeScreen", {
-          next: needsProfile ? "InfoPerfilScreen" : "TabInicio",
+          next: needsProfile ? "DrawerNavi" : "TabInicio",
         });
         return;
       }
 
       if (needsProfile) {
-        navigation.replace("InfoPerfilScreen"); // directo, sin pantallas intermedias
+        navigation.replace("DrawerNavi"); // directo, sin pantallas intermedias
         return;
       }
       navigation.replace('DrawerNavi');
