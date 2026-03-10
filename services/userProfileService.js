@@ -8,7 +8,7 @@ export async function getInitialSetupCompleted(uid) {
     if (!snap.exists()) return false;
     return !!snap.data().initialSetupCompleted;
   } catch (e) {
-    console.log("[Firestore] getInitialSetupCompleted error:", e);
+    //console.log("[Firestore] getInitialSetupCompleted error:", e);
     // Si es permisos, lánzalo con un code reconocible
     e.code = e.code || "firestore/permission-denied";
     throw e;

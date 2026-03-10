@@ -75,11 +75,11 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
 
   // Lógica para calcular el corte tope (corte final) basado en el corte inicial y el tipo de programa
   useEffect(() => {
-   /*  console.log(
+    console.log(
       "selectedCorteInicial en CortesAcademicos:",
       selectedCorteInicial
     );
- */
+
     const cohorteTope = () => {
       if (
         !selectedCorteInicial ||
@@ -189,12 +189,12 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
           },
           body: JSON.stringify({
             idCarrera: selectedProgram.id,
-            periodoInicial: selectedCorteInicial,
+            codigo_periodo: selectedCorteInicial,
             
           }),
         }
       );
-
+      
       const data = await response.json();
       //console.log("Datos recibidos del backend:", data);
       setDatosBackend(data);

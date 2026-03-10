@@ -58,7 +58,7 @@ const StudentDetail = ({ route, navigation }) => {
     return str
       .toLowerCase()
       .split(" ")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .map((w) => w.charAt(0).toUpperCase())
       .join(" ");
   };
 
@@ -157,7 +157,7 @@ const StudentDetail = ({ route, navigation }) => {
           try {
             const imageRef = ref(
               storage,
-              `estudiantes/${numeroDocumento}.${ext}`
+              `estudiantes/${numeroDocumento}.${ext}`,
             );
             const url = await getDownloadURL(imageRef);
             imageUrl = url;
@@ -193,7 +193,7 @@ const StudentDetail = ({ route, navigation }) => {
         const manipulatedImage = await ImageManipulator.manipulateAsync(
           uri,
           [{ resize: { width: 800 } }],
-          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
         );
         await uploadImage(manipulatedImage.uri);
       }
@@ -217,7 +217,7 @@ const StudentDetail = ({ route, navigation }) => {
         try {
           const storageRef = ref(
             storage,
-            `estudiantes/${numeroDocumento}.${ext}`
+            `estudiantes/${numeroDocumento}.${ext}`,
           );
           await uploadBytes(storageRef, blob);
           const url = await getDownloadURL(storageRef);
@@ -253,10 +253,17 @@ const StudentDetail = ({ route, navigation }) => {
   // student es un objeto con:
   // { id_estudiante, nombre_completo, numero_documento, fecha_nacimiento, ... , estudiantes_carreras: [] }
   const carrerasOrdenadas = ordenarCarrerasPorFecha(
-    student.estudiantes_carreras || []
+    student.estudiantes_carreras || [],
   );
-  const ultimoEstado = carrerasOrdenadas[0].historico_estado.slice(-1)[0];
-  console.log(ultimoEstado)
+/*   console.log(
+    "🚀 ~ StudentDetail ~ carrerasOrdenadas:",
+    carrerasOrdenadas[0].historico_estado[0]
+      .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
+      .nombre_estado,
+  ); */
+  const ultimoEstado =
+    carrerasOrdenadas[0].historico_estado[0].estados_academicos_historico_estado_estado_nuevo_idToestados_academicos.nombre_estado;
+  console.log(ultimoEstado);
 
   return (
     <ImageBackground
@@ -376,7 +383,7 @@ const StudentDetail = ({ route, navigation }) => {
                     <Text style={styles.labell}>Carrera:</Text>
                     <Text style={styles.text}>
                       {capitalizeFirstLetter(
-                        safeText(carrera?.carreras?.nombre)
+                        safeText(carrera?.carreras?.nombre),
                       )}
                     </Text>
                   </View>
@@ -400,7 +407,7 @@ const StudentDetail = ({ route, navigation }) => {
                       {safeText(
                         carrera?.carreras?.sede_id
                           ? String(carrera.carreras.sede.nombre)
-                          : ""
+                          : "",
                       )}
                     </Text>
                   </View>
@@ -417,9 +424,7 @@ const StudentDetail = ({ route, navigation }) => {
                           
                       ) */}
                       {safeText(
-                        ultimoEstado
-                          .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
-                          .nombre_estado || ""
+                        ultimoEstado || "",
                       )}
                     </Text>
                   </View>
@@ -598,30 +603,3 @@ const styles = StyleSheet.create({
 });
 
 export default StudentDetail;
-/* {"celular": "3208815748", 
-  "codigo_estudiante": 1, 
-  "correo_electronico": "deiver1607.com@hotmail.com",
-   "edad": null, 
-   "estudiantes_carreras":
-    [
-      {"carrera_id": 1, 
-      "carreras": [Object], 
-      "codigo_estudiante": 1, 
-      "fecha_ingreso": "2017-07-04T00:00:00.000Z", 
-      "historico_estado": [Array], 
-      "historico_matriculas": [Array], 
-      "id_estudiante_carrera": 1,
-       "id_matricula": 99400, 
-       "periodo_ingreso_id": 1, 
-       "periodos": [Object]
-      }
-    ], 
-      "fecha_nacimiento": null, 
-      "id_estudiante": 1, 
-      "nombre_completo": "DEYVER JULIAN SEQUEDA DELGADO",
-      "numero_documento": "1095834336", 
-      "sexo_id": 1, 
-      "tipo_documento_id": 1
-    } */
-
-/* YA capturé el objeto de la tabla periodo con data.estudiantes_carrera[0].periodos --> falta agregar .codigo_periodo */

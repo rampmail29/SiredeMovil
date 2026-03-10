@@ -42,7 +42,7 @@ const GraficarCohorte = ({ route }) => {
   const [isRetenidosCollapsed, setRetenidosCollapsed] = useState(true);
   const [isActivosCollapsed, setActivosCollapsed] = useState(true);
   const [isInactivosCollapsed, setInactivosCollapsed] = useState(true);
-  const [isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed] =
+  const [isGraduadosOportunosCollapsed, setGraduadosOportunosCollapsed] = 
     useState(true);
   /* console.log(`SEPARADOR-----------------------------`)
      console.log(`Corte Inicial: ${selectedCorteInicial.codigo_periodo}`)
@@ -245,7 +245,6 @@ const GraficarCohorte = ({ route }) => {
     }
   };
 
-  // useEffect más limpio y reutilizable
   useEffect(() => {
     if (tipoProgramaSeleccionado === "Tecnologia") {
       procesarGraduadosTecnologia();
@@ -571,8 +570,8 @@ const GraficarCohorte = ({ route }) => {
         <View style={styles.headerContent}>
           <View style={styles.textContainer}>
             <Text style={styles.nombreText}>
-              {/*console.log(" - - - ", estudiante.estudiantes.nombre_completo)*/}
-              {capitalizeFirstLetter(estudiante.estudiantes.nombre_completo)}
+              {/* {capitalizeFirstLetter(estudiante.estudiantes.nombre_completo)} */}
+               { (estudiante.estudiantes.nombre_completo) }
             </Text>
           </View>
           <FontAwesome name="info-circle" size={24} color="#6D100A" />
@@ -710,7 +709,7 @@ const GraficarCohorte = ({ route }) => {
             carrera de
             <Text style={{ fontFamily: "Montserrat-Bold" }}>
               {" "}
-              {capitalizeFirstLetter(programaSeleccionado)}{" "}
+              {(programaSeleccionado)}{" "}
             </Text>
             durante el periodo
             <Text style={{ fontFamily: "Montserrat-Bold" }}>

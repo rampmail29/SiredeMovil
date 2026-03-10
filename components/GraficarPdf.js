@@ -36,9 +36,9 @@ const GraficarPdf = ({ route, navigation }) => {
       )
     ) 
   ); */
-  console.log(
+  /* console.log(
     "datos recibidos en generar pdf: ",datos
-  );
+  ); */
 
   const dataArray = datos[tipoInforme] || []; // Evitar undefined si no hay datos
   //dataArray.foreach((a) => a.estudiantes.nombre_completo);

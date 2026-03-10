@@ -29,7 +29,7 @@ const createUser = async (email, password, additionalData) => {
             ...additionalData,  // Otros datos adicionales que quieras guardar
         });
 
-        console.log(`Usuario creado con UID: ${userRecord.uid}`);
+        //console.log(`Usuario creado con UID: ${userRecord.uid}`);
     } catch (error) {
         console.error('Error creando usuario:', error);
     }

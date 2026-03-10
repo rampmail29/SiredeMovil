@@ -79,9 +79,10 @@ const Estadisticas = () => {
     //console.log("Obteniendo cortes iniciales para carrera ID:", id_carrera);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/cortes-iniciales/${id_carrera}`
+        `${API_BASE_URL}/api/cortes-iniciales/${id_carrera}`,
       );
       const data = await response.json();
+      //console.log("🚀 ~ obtenerCortesIniciales ~ data:", data);
       //hasta aquí ok, se pobla el sect con los cortes;
       //console.log("cohortes iniciales: ", data);
       if (Array.isArray(data)) {
@@ -104,16 +105,13 @@ const Estadisticas = () => {
 
   useEffect(() => {
     const cohorteTope = () => {
-      //console.log("Calculando corte final para:", { selectedCorteInicial,programaSeleccionado,    });
-      if (!selectedCorteInicial || typeof selectedCorteInicial !== "string")
-        return;
+      //console.log("Calculando corte final para:", { selectedCorteInicial });
+      if (!selectedCorteInicial?.valor) return;
       if (!programaSeleccionado?.semestres_totales) return;
-
-      // Obtener año y periodo del corte inicial
-      const [anioInicial, periodoInicial] = selectedCorteInicial
+      const [anioInicial, periodoInicial] = selectedCorteInicial.valor
         .split("-")
         .map(Number);
-
+      // Obtener año y periodo del corte inicial
       // Obtener cantidad de periodos reales del programa (1 periodo por semestre)
       const cantidadSemestres = programaSeleccionado.semestres_totales;
 
@@ -121,7 +119,7 @@ const Estadisticas = () => {
       const cortesFinalesCalculados = generarcohorte(
         anioInicial,
         periodoInicial,
-        cantidadSemestres
+        cantidadSemestres,
       );
 
       // Agregar cortes iniciales posteriores al corte inicial
@@ -166,15 +164,13 @@ const Estadisticas = () => {
     return cortes;
   };
 
-  const ProgramaSelect = (programa) => {
-    //hasta acá ok, pero setIdSeleccionado captura el mismo dato de obtenerCortesInciciales??? debo revisar ->
-    //console.log("Programa seleccionado:", programa);
-    setProgramaSeleccionado(programa.programa);
-    setTipoProgramaSeleccionado(programa.tipo);
-    setIdSeleccionado(programa.id);
-    obtenerCortesIniciales(programa.id);
-    setModalProgramaVisible(false);
-  };
+const ProgramaSelect = (programa) => {
+  setProgramaSeleccionado(programa); // guardar objeto completo
+  setTipoProgramaSeleccionado(programa.tipo);
+  setIdSeleccionado(programa.id);
+  obtenerCortesIniciales(programa.id);
+  setModalProgramaVisible(false);
+};
 
   const cohorteInicialSelect = (corte) => {
     setSelectedCorteInicial(corte);
@@ -207,7 +203,7 @@ const Estadisticas = () => {
       }
       setLoading(true);
       setDatosBackend({});
-
+      //console.log("programaSeleccionado.id: ", programaSeleccionado);
       const response = await fetch(
         `${API_BASE_URL}/api/estudiantes-por-corte`,
         {
@@ -216,10 +212,12 @@ const Estadisticas = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            idCarrera: idSeleccionado,
-            periodoInicial: selectedCorteInicial,
+            /* idCarrera: idSeleccionado,
+            periodoInicial: selectedCorteInicial, */
+            idCarrera: programaSeleccionado.id,
+            codigo_periodo: selectedCorteInicial.valor,
           }),
-        }
+        },
       );
       setLoading(false);
 
@@ -278,7 +276,7 @@ const Estadisticas = () => {
         >
           <Text style={styles.buttonText}>
             {programaSeleccionado
-              ? capitalizeFirstLetter(programaSeleccionado)
+              ? capitalizeFirstLetter(programaSeleccionado.programa)
               : "Seleccionar Programa"}
           </Text>
         </TouchableOpacity>

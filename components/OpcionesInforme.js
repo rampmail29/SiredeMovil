@@ -16,28 +16,6 @@ const OpcionesInforme = ({
   selectedCorteInicial,
   selectedCorteFinal,
 }) => {
-  /* console.log(
-    "RETENIDOS RAW DETALLADO:\n",
-    JSON.stringify(
-      academicData?.retenidos?.map((est) => ({
-        estudiante:
-          est.documento || est.id_estudiante || est.codigo || "sin-id",
-        historico: est.historico_estado?.map((h) => ({
-          nuevo:
-            h
-              ?.estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
-              ?.nombre_estado,
-          viejo:
-            h
-              ?.estados_academicos_historico_estado_estado_anterior_idToestados_academicos
-              ?.nombre_estado,
-        })),
-      })),
-      null,
-      2
-    )
-  ); */
-
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -113,22 +91,42 @@ const OpcionesInforme = ({
 
   const obtenerGraduadosFiltrados = () =>
     academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Graduado")
+      tieneEstado(est.historico_estado, "Graduado"),
     ) ?? [];
 
   const obtenerRetenidosFiltrados = () =>
     academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Retenido")
+      tieneEstado(est.historico_estado, "Retenido"),
     ) ?? [];
 
   const obtenerDesertadosFiltrados = () =>
     academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Desertor")
+      tieneEstado(est.historico_estado, "Desertor"),
     ) ?? [];
 
   const obtenerInactivosFiltrados = () =>
     academicData?.inactivos?.filter((est) =>
-      tieneEstado(est.historico_estado, "Inactivo")
+      tieneEstado(est.historico_estado, "Inactivo"),
+    ) ?? [];
+
+  const obtenerActivosFiltrados = () =>
+    academicData?.todosEstudiantes?.filter((est) =>
+      tieneEstado(est.historico_estado, "Activo"),
+    ) ?? [];
+
+  const obtenerSobresalienteFiltrados = () =>
+    academicData?.todosEstudiantes?.filter((est) =>
+      tieneEstado(est.historico_estado, "Sobresaliente"),
+    ) ?? [];
+
+  const obtenerPFIFiltrados = () =>
+    academicData?.todosEstudiantes?.filter((est) =>
+      tieneEstado(est.historico_estado, "PFI"),
+    ) ?? [];
+
+  const obtenerCondicionalFiltrados = () =>
+    academicData?.todosEstudiantes?.filter((est) =>
+      tieneEstado(est.historico_estado, "Condicional"),
     ) ?? [];
 
   /** ============================================
@@ -149,6 +147,22 @@ const OpcionesInforme = ({
 
   const generarInformeInactivos = () =>
     generarInforme("inactivos", obtenerInactivosFiltrados(), "inactivos");
+
+  const generarInformeActivos = () =>
+    generarInforme("activos", obtenerActivosFiltrados(), "activos");
+
+  const generarInformeSobresaliente = () =>
+    generarInforme(
+      "sobresaliente",
+      obtenerSobresalienteFiltrados(),
+      "sobresaliente",
+    );
+
+  const generarInformePFI = () =>
+    generarInforme("pfi", obtenerPFIFiltrados(), "PFI");
+
+  const generarInformeCondicional = () =>
+    generarInforme("condicional", obtenerCondicionalFiltrados(), "condicional");
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -228,6 +242,58 @@ const OpcionesInforme = ({
               />
               <Text style={styles.buttonText}>Inactivos</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={generarInformeActivos}
+            >
+              <FontAwesome5
+                name="user-check"
+                size={45}
+                color="white"
+                style={styles.icon}
+              />
+              <Text style={styles.buttonText}>Activos</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.row}>
+            <TouchableOpacity style={styles.button} onPress={generarInformePFI}>
+              <FontAwesome5
+                name="exclamation-circle"
+                size={45}
+                color="white"
+                style={styles.icon}
+              />
+              <Text style={styles.buttonText}>PFI</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={generarInformeCondicional}
+            >
+              <FontAwesome5
+                name="balance-scale"
+                size={45}
+                color="white"
+                style={styles.icon}
+              />
+              <Text style={styles.buttonText}>Condicional</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={generarInformeSobresaliente}
+            >
+              <FontAwesome5
+                name="star"
+                size={45}
+                color="white"
+                style={styles.icon}
+              />
+              <Text style={styles.buttonText}>Sobresaliente</Text>
+            </TouchableOpacity>
           </View>
         </>
       )}
@@ -242,7 +308,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    paddingVertical: 20, // para que el scroll no quede "pegado"
+    paddingVertical: 20,
     paddingHorizontal: 10,
     alignItems: "center",
   },
@@ -250,11 +316,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     marginVertical: 5,
-    width: "100%",
+    width: "120%",
   },
   button: {
-    width: 170,
-    height: 160,
+    width: 150,
+    height: 140,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#575756",
@@ -277,7 +343,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Montserrat-Bold",
     color: "white",
     textAlign: "center",
@@ -302,7 +368,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Montserrat-Medium",
   },
 });

@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
+  StyleSheet,
   View,
   Text,
-  StyleSheet,
-  ImageBackground,
   ScrollView,
+  ImageBackground,
   TouchableOpacity,
 } from "react-native";
+
 import {
   VictoryBar,
   VictoryChart,
@@ -14,8 +15,36 @@ import {
   VictoryTheme,
   VictoryLabel,
 } from "victory-native";
+
 import { API_BASE_URL } from "./Config";
 import { useNavigation } from "@react-navigation/native";
+
+const coloresEstados = {
+  ACTIVO: "#2ecc71",
+  DESERTADO: "#e74c3c",
+  GRADUADO: "#3498db",
+  CANCELADO: "#f39c12",
+  INACTIVO: "#7f8c8d",
+};
+
+const obtenerColorEstado = (estado) => {
+  if (coloresEstados[estado]) {
+    return coloresEstados[estado];
+  }
+
+  const paleta = [
+    "#9b59b6",
+    "#1abc9c",
+    "#34495e",
+    "#16a085",
+    "#c0392b",
+    "#2980b9",
+  ];
+
+  const index = estado.length % paleta.length;
+
+  return paleta[index];
+};
 
 const GraficarMatriculas = ({ route }) => {
   const {
@@ -26,50 +55,28 @@ const GraficarMatriculas = ({ route }) => {
     idSeleccionado,
     datosBackend,
   } = route.params;
-  //console.log("🚀 ~ selectedCorteInicial en GraficarPorMatricula:", selectedCorteInicial);
-  const [resultadosTransformados, setResultadosTransformados] = useState([]);
+
   const navigation = useNavigation();
 
-  console.log("datos BE graficar por matricula->", datosBackend);
+  const [datosEstados, setDatosEstados] = useState([]);
 
-  // Función para transformar los datos del backend en un formato adecuado para los gráficos
-  const transformarDatos = (resumenPorPeriodo) => {
-    const dataDesercion = [];
-    const dataGraduados = [];
-    const dataRetenidos = []; 
-    const dataInactivos = [];
+  const fetchEjecutado = useRef(false);
 
-    if (!resumenPorPeriodo)
-      return { dataDesercion, dataGraduados, dataRetenidos, dataInactivos };
+  /* ------------------------------ */
+  /* UTILIDADES */
+  /* ------------------------------ */
 
-    Object.keys(resumenPorPeriodo).forEach((periodo) => {
-      const { Desertores, Graduados, Retenidos, Inactivos } =
-        resumenPorPeriodo[periodo] || {};
-
-      if (Desertores !== undefined)
-        dataDesercion.push({ periodo, desertores: Desertores });
-      if (Graduados !== undefined)
-        dataGraduados.push({ periodo, graduados: Graduados });
-      if (Retenidos !== undefined)
-        dataRetenidos.push({ periodo, retenidos: Retenidos });
-      if (Inactivos !== undefined)
-        dataInactivos.push({ periodo, inactivos: Inactivos });
-    });
-
-    return { dataDesercion, dataGraduados, dataRetenidos, dataInactivos };
+  const capitalizeFirstLetter = (string) => {
+    return string
+      ?.toLowerCase()
+      ?.split(" ")
+      ?.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      ?.join(" ");
   };
 
-  // Llama a transformarDatos solo si datosBackend no es undefined
-  const {
-    dataDesercion = [],
-    dataGraduados = [],
-    dataRetenidos = [],
-    dataInactivos = [],
-  } = transformarDatos(datosBackend.resumenPorPeriodo);
-
-  // Función para obtener el segundo periodo anterior
   function obtenerSegundoPeriodoAnterior(periodo) {
     const [anio, semestre] = periodo.split("-");
+
     let anioAnterior = parseInt(anio);
     let semestreAnterior = parseInt(semestre);
 
@@ -83,143 +90,108 @@ const GraficarMatriculas = ({ route }) => {
     return `${anioAnterior}-${semestreAnterior}`;
   }
 
-  // Procesa periodos y verifica que dataDesercion esté definido
-  function procesarPeriodos(dataDesercion) {
-    if (!dataDesercion) return [];
+  /* ------------------------------ */
+  /* EXTRAER PERIODOS DESDE DESERCIÓN */
+  /* ------------------------------ */
 
-    const resultados = dataDesercion.map((item) => {
-      if (!item || !item.periodo) return {}; // Verificación adicional
-      const segundoPeriodoAnterior = obtenerSegundoPeriodoAnterior(
-        item.periodo
-      );
-      return {
-        periodo: item.periodo,
-        desertores: item.desertores,
-        segundoPeriodoAnterior,
-      };
+  const dataDesercion = useMemo(() => {
+    if (!datosBackend?.resumenPorPeriodo) return [];
+
+    const data = [];
+
+    Object.keys(datosBackend.resumenPorPeriodo).forEach((periodo) => {
+      const desertores = datosBackend.resumenPorPeriodo[periodo]?.Desertores;
+
+      data.push({
+        periodo,
+        desertores,
+      });
     });
 
-    return resultados;
-  }
+    return data;
+  }, [datosBackend]);
 
-  const periodosFinales = procesarPeriodos(dataDesercion);
+  const periodosFinales = useMemo(() => {
+    return dataDesercion.map((item) => ({
+      periodo: item.periodo,
+      desertores: item.desertores,
+      segundoPeriodoAnterior: obtenerSegundoPeriodoAnterior(item.periodo),
+    }));
+  }, [dataDesercion]);
 
-  // Resto del código, incluyendo analizarTendencias
-  const analizarTendencias = (data, nombreEstado) => {
-    if (!data || data.length === 0) return ""; // Verificación adicional para evitar errores
-
-    let tendencia = "";
-    let incremento = 0;
-
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][nombreEstado] > data[i - 1][nombreEstado]) {
-        incremento++;
-      } else if (data[i][nombreEstado] < data[i - 1][nombreEstado]) {
-        incremento--;
-      }
-    }
-
-    const maxEstado = Math.max(...data.map((d) => d[nombreEstado]));
-    const minEstado = Math.min(...data.map((d) => d[nombreEstado]));
-    const periodoMax =
-      data.find((d) => d[nombreEstado] === maxEstado)?.periodo || "Desconocido";
-    const periodoMin =
-      data.find((d) => d[nombreEstado] === minEstado)?.periodo || "Desconocido";
-
-    const rango = maxEstado - minEstado;
-    const umbralSimilitud = 1;
-
-    const minValue =
-      nombreEstado === "desertores" ? `${minEstado}%` : minEstado;
-    const maxValue =
-      nombreEstado === "desertores" ? `${maxEstado}%` : maxEstado;
-
-    if (rango <= umbralSimilitud) {
-      tendencia = `Los ${nombreEstado} han permanecido bastante constantes, con un mínimo de ${minValue} en el periodo ${periodoMin} y un máximo de ${maxValue} en el periodo ${periodoMax}.`;
-    } else if (incremento === data.length - 1) {
-      tendencia = `Los ${nombreEstado} han ido en aumento constante, alcanzando un máximo de ${maxValue} en el periodo ${periodoMax}.`;
-    } else if (incremento === -(data.length - 1)) {
-      tendencia = `Los ${nombreEstado} han ido en disminución constante, con un mínimo de ${minValue} en el periodo ${periodoMin}.`;
-    } else if (incremento > 0) {
-      tendencia = `Los ${nombreEstado} han tenido un aumento general, con un máximo de ${maxValue} en el periodo ${periodoMax} y un mínimo de ${minValue} en el periodo ${periodoMin}, aunque con algunas fluctuaciones adicionales.`;
-    } else if (incremento < 0) {
-      tendencia = `Los ${nombreEstado} han mostrado una tendencia a la baja, alcanzando un mínimo de ${minValue} en el periodo ${periodoMin}, con algunas subidas en ciertos periodos.`;
-    } else {
-      tendencia = `Los datos muestran una gran variabilidad en los ${nombreEstado}, con picos y caídas en diferentes periodos, alcanzando un máximo de ${maxValue} en el periodo ${periodoMax} y un mínimo de ${minValue} en el periodo ${periodoMin}.`;
-    }
-
-    return tendencia;
-  };
-
-  // Llama a analizarTendencias solo si resultadosTransformados no está vacío
-  const mensajeTendenciaDesercion =
-    resultadosTransformados.length > 0
-      ? analizarTendencias(resultadosTransformados, "desertores")
-      : "";
-  const mensajeTendenciaGraduados =
-    dataGraduados.length > 0
-      ? analizarTendencias(dataGraduados, "graduados")
-      : "";
-  const mensajeTendenciaRetenidos =
-    dataRetenidos.length > 0
-      ? analizarTendencias(dataRetenidos, "retenidos")
-      : "";
-  const mensajeTendenciaInactivos =
-    dataInactivos.length > 0
-      ? analizarTendencias(dataInactivos, "inactivos")
-      : "";
+  /* ------------------------------ */
+  /* CONSULTAR ESTADOS AL BACKEND */
+  /* ------------------------------ */
 
   useEffect(() => {
-    const obtenerMatriculadosPorPeriodos = async () => {
+    if (!periodosFinales.length) return;
+    if (fetchEjecutado.current) return;
+
+    fetchEjecutado.current = true;
+
+    const obtenerEstados = async () => {
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/matriculados-por-periodos`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idSeleccionado, periodosFinales }),
-          }
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              idSeleccionado,
+              periodosFinales,
+            }),
+          },
         );
 
         const data = await response.json();
-        const resultadosTransformados = data.map((item) => {
-          const porcentajeDesertores =
-            item.matriculados > 0
-              ? (item.desertores / item.matriculados) * 100
-              : 0;
 
-          return {
-            desertores: parseFloat(porcentajeDesertores.toFixed(1)),
-            periodo: item.periodo,
-          };
-        });
-
-        setResultadosTransformados(resultadosTransformados);
-        console.log(resultadosTransformados);
+        setDatosEstados(data);
       } catch (error) {
-        showMessage({
-          message: "Error",
-          description:
-            "No se pudo conectar con la base de datos. Por favor, revisa tu conexión e inténtalo de nuevo.",
-          type: "danger",
-          icon: "danger",
-          titleStyle: { fontSize: 18, fontFamily: "Montserrat-Bold" },
-          textStyle: { fontSize: 18, fontFamily: "Montserrat-Regular" },
-          duration: 3000,
-        });
+        console.error("Error obteniendo estados", error);
       }
     };
 
-    obtenerMatriculadosPorPeriodos();
-  }, []);
+    obtenerEstados();
+  }, [periodosFinales]);
 
-  const capitalizeFirstLetter = (string) => {
-    return string
-      .toLowerCase()
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
+  /* ------------------------------ */
+  /* DETECTAR ESTADOS EXISTENTES */
+  /* ------------------------------ */
+
+  const estadosDisponibles = useMemo(() => {
+    const setEstados = new Set();
+
+    datosEstados.forEach((item) => {
+      Object.keys(item.estados || {}).forEach((estado) => {
+        setEstados.add(estado);
+      });
+    });
+
+    return Array.from(setEstados);
+  }, [datosEstados]);
+
+  /* ------------------------------ */
+  /* GENERAR DATASETS */
+  /* ------------------------------ */
+
+  const datasets = useMemo(() => {
+    const data = {};
+
+    estadosDisponibles.forEach((estado) => {
+      data[estado] = datosEstados.map((item) => ({
+        periodo: item.periodo,
+        valor: item.estados?.[estado] || 0,
+      }));
+    });
+
+    return data;
+  }, [datosEstados, estadosDisponibles]);
+
+  /* ------------------------------ */
+  /* RENDER */
+  /* ------------------------------ */
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -246,330 +218,62 @@ const GraficarMatriculas = ({ route }) => {
             transiciones de los estudiantes a lo largo del tiempo, desde el
             <Text style={{ fontFamily: "Montserrat-Bold" }}>
               {" "}
-              {selectedCorteInicial}{" "}
+              {selectedCorteInicial}
             </Text>{" "}
             hasta el
             <Text style={{ fontFamily: "Montserrat-Bold" }}>
               {" "}
-              {selectedCorteFinal}{" "}
+              {selectedCorteFinal}
             </Text>
             .
           </Text>
 
-          {/* Gráfico de Deserción */}
-          <View style={styles.chartContainer}>
-            <Text style={styles.chartTitleD}>Tasa de Deserción Anual</Text>
-            <VictoryChart
-              theme={VictoryTheme.material}
-              domainPadding={{ x: dataDesercion.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
-            >
-              <VictoryAxis
-                tickFormat={dataDesercion.map((d) => d.periodo)} // Muestra los periodos en el eje X
-                style={{
-                  tickLabels: {
-                    fontSize:
-                      resultadosTransformados.length > 5
-                        ? 9
-                        : resultadosTransformados.length > 4
-                        ? 10
-                        : 15, // Ajusta el tamaño del texto
-                    fill: "#132F20",
-                    fontFamily: "Montserrat-Bold",
-                  },
-                }}
-              />
-              <VictoryAxis
-                dependentAxis
-                tickFormat={(x) => `${x}`} // Valores en el eje Y
-                style={{
-                  tickLabels: {
-                    fontSize: 14,
-                    fill: "#132F20",
-                    fontFamily: "Montserrat-Medium",
-                  },
-                }}
-              />
-              <VictoryBar
-                data={resultadosTransformados}
-                x="periodo"
-                y="desertores"
-                cornerRadius={{ topLeft: 15 }}
-                style={{
-                  data: {
-                    fill: ({ datum }) => {
-                      if (
-                        datum.desertores ===
-                        Math.max(...dataDesercion.map((d) => d.desertores))
-                      ) {
-                        return "#ff0000"; // Color para el mayor número de desertores
-                      } else if (
-                        datum.desertores ===
-                        Math.min(...dataDesercion.map((d) => d.desertores))
-                      ) {
-                        return "#6D100A"; // Color para el menor número de desertores
-                      } else {
-                        return "#a81b11"; // Color estándar
-                      }
-                    },
-                    width: dataDesercion.length > 4 ? 39 : 60, // Ajusta el ancho de las barras
-                  },
-                }}
-                labels={({ datum }) => `${datum.desertores}`} // Etiqueta que muestra el valor de desertores
-                labelComponent={
-                  <VictoryLabel
-                    dy={30} // Ajusta la posición vertical de la etiqueta
-                    style={{
-                      fill: "#F8E9D4",
-                      fontSize: 15,
-                      fontFamily: "Montserrat-Bold",
-                    }} // Estilo de la etiqueta
-                  />
-                }
-                animate={{ duration: 500 }}
-              />
-            </VictoryChart>
+          {estadosDisponibles.map((estado) => (
+            <View key={estado} style={styles.chartContainer}>
+              <Text style={styles.chartTitleR}>
+                Histograma de {capitalizeFirstLetter(estado)}
+              </Text>
 
-            <Text style={styles.statisticalText}>
-              Observamos que {mensajeTendenciaDesercion}
-            </Text>
-          </View>
+              <VictoryChart
+                theme={VictoryTheme.material}
+                domainPadding={60}
+                padding={{ top: 40, bottom: 120, left: 60, right: 40 }}
+              >
+                <VictoryAxis
+                  tickFormat={(t) => t}
+                  tickLabelComponent={
+                    <VictoryLabel
+                      angle={-90}
+                      textAnchor="end"
+                      verticalAnchor="middle"
+                      dy={10}
+                    />
+                  }
+                />
 
-          {/* Gráfico de Graduados */}
-          <View style={styles.chartContainer}>
-            <Text style={styles.chartTitleG}>Histograma de Graduados</Text>
-            <VictoryChart
-              theme={VictoryTheme.material}
-              domainPadding={{ x: dataGraduados.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
-            >
-              <VictoryAxis
-                tickFormat={dataGraduados.map((g) => g.periodo)} // Muestra los periodos en el eje X
-                style={{
-                  tickLabels: {
-                    fontSize:
-                      dataGraduados.length > 5
-                        ? 9
-                        : dataGraduados.length > 4
-                        ? 10
-                        : 15, // Ajusta el tamaño del texto
-                    fill: "#132F20",
-                    fontFamily: "Montserrat-Bold",
-                  },
-                }}
-              />
-              <VictoryAxis
-                dependentAxis
-                tickFormat={(x) => `${x}`} // Valores en el eje Y
-                style={{
-                  tickLabels: {
-                    fontSize: 14,
-                    fill: "#132F20",
-                    fontFamily: "Montserrat-Medium",
-                  },
-                }}
-              />
-              <VictoryBar
-                data={dataGraduados}
-                x="periodo"
-                y="graduados"
-                cornerRadius={{ topRight: 20 }}
-                style={{
-                  data: {
-                    fill: ({ datum }) => {
-                      if (
-                        datum.graduados ===
-                        Math.max(...dataGraduados.map((g) => g.graduados))
-                      ) {
-                        return "#C3D730"; // Color para el mayor número de desertores
-                      } else if (
-                        datum.graduados ===
-                        Math.min(...dataGraduados.map((d) => d.graduados))
-                      ) {
-                        return "#132F20"; // Color para el menor número de desertores
-                      } else {
-                        return "#34531F"; // Color estándar
-                      }
-                    },
-                    width: dataGraduados.length > 4 ? 39 : 60, // Ajusta el ancho de las barras
-                  },
-                }}
-                labels={({ datum }) => `${datum.graduados}`} // Etiqueta que muestra el valor de desertores
-                labelComponent={
-                  <VictoryLabel
-                    dy={30} // Ajusta la posición vertical de la etiqueta
-                    style={{
-                      fill: "#F8E9D4",
-                      fontSize: 15,
-                      fontFamily: "Montserrat-Bold",
-                    }} // Estilo de la etiqueta
-                  />
-                }
-                animate={{ duration: 500 }}
-              />
-            </VictoryChart>
-            <Text style={styles.statisticalText}>
-              En este rango de periodos {mensajeTendenciaGraduados}
-            </Text>
-          </View>
+                <VictoryAxis dependentAxis />
 
-          {/* Gráfico de Retenidos */}
-          <View style={styles.chartContainer}>
-            <Text style={styles.chartTitleR}>Histograma de Retenidos</Text>
-            <VictoryChart
-              theme={VictoryTheme.material}
-              domainPadding={{ x: dataRetenidos.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
-            >
-              <VictoryAxis
-                tickFormat={dataRetenidos.map((r) => r.periodo)} // Muestra los periodos en el eje X
-                style={{
-                  tickLabels: {
-                    fontSize:
-                      dataRetenidos.length > 5
-                        ? 9
-                        : dataRetenidos.length > 4
-                        ? 10
-                        : 15, // Ajusta el tamaño del texto
-                    fill: "#132F20",
-                    fontFamily: "Montserrat-Bold",
-                  },
-                }}
-              />
-              <VictoryAxis
-                dependentAxis
-                tickFormat={(x) => `${x}`} // Valores en el eje Y
-                style={{
-                  tickLabels: {
-                    fontSize: 14,
-                    fill: "#132F20",
-                    fontFamily: "Montserrat-Medium",
-                  },
-                }}
-              />
-              <VictoryBar
-                data={dataRetenidos}
-                x="periodo"
-                y="retenidos"
-                cornerRadius={{ topLeft: 20 }}
-                style={{
-                  data: {
-                    fill: ({ datum }) => {
-                      if (
-                        datum.retenidos ===
-                        Math.max(...dataRetenidos.map((r) => r.retenidos))
-                      ) {
-                        return "#FF5733"; // Color para el mayor número de retenidos
-                      } else if (
-                        datum.retenidos ===
-                        Math.min(...dataRetenidos.map((r) => r.retenidos))
-                      ) {
-                        return "#7d4301"; // Color para el menor número de retenidos
-                      } else {
-                        return "#da6f26"; // Color estándar
-                      }
+                <VictoryBar
+                  data={datasets[estado]}
+                  x="periodo"
+                  y="valor"
+                  cornerRadius={{ topLeft: 15 }}
+                  labels={({ datum }) => datum.valor}
+                  labelComponent={<VictoryLabel dy={30} />}
+                  animate={{ duration: 500 }}
+                  style={{
+                    data: {
+                      fill: obtenerColorEstado(estado),
                     },
-                    width: dataDesercion.length > 4 ? 39 : 60, // Ajusta el ancho de las barras
-                  },
-                }}
-                labels={({ datum }) => `${datum.retenidos}`} // Etiqueta que muestra el valor de retenidos
-                labelComponent={
-                  <VictoryLabel
-                    dy={30} // Ajusta la posición vertical de la etiqueta
-                    style={{
-                      fill: "#F8E9D4",
-                      fontSize: 15,
-                      fontFamily: "Montserrat-Bold",
-                    }} // Estilo de la etiqueta
-                  />
-                }
-                animate={{ duration: 500 }}
-              />
-            </VictoryChart>
-            <Text style={styles.statisticalText}>
-              En este estudio de caso {mensajeTendenciaRetenidos}
-            </Text>
-          </View>
-
-          {/* Gráfico de Inactivos */}
-          <View style={styles.chartContainer}>
-            <Text style={styles.chartTitleI}>Histograma de Inactivos</Text>
-            <VictoryChart
-              theme={VictoryTheme.material}
-              domainPadding={{ x: dataInactivos.length > 3 ? 50 : 100 }} // Ajusta el espaciado en el eje X
-            >
-              <VictoryAxis
-                tickFormat={dataInactivos.map((i) => i.periodo)} // Muestra los periodos en el eje X
-                style={{
-                  tickLabels: {
-                    fontSize:
-                      dataInactivos.length > 5
-                        ? 9
-                        : dataInactivos.length > 4
-                        ? 10
-                        : 15, // Ajusta el tamaño del texto
-                    fill: "#132F20",
-                    fontFamily: "Montserrat-Bold",
-                  },
-                }}
-              />
-              <VictoryAxis
-                dependentAxis
-                tickFormat={(x) => `${x}`} // Valores en el eje Y
-                style={{
-                  tickLabels: {
-                    fontSize: 14,
-                    fill: "#132F20",
-                    fontFamily: "Montserrat-Medium",
-                  },
-                }}
-              />
-              <VictoryBar
-                data={dataInactivos}
-                x="periodo"
-                y="inactivos"
-                cornerRadius={{ topRight: 20 }}
-                style={{
-                  data: {
-                    fill: ({ datum }) => {
-                      if (
-                        datum.inactivos ===
-                        Math.max(...dataInactivos.map((i) => i.inactivos))
-                      ) {
-                        return "#575756"; // Color para el mayor número de inactivos
-                      } else if (
-                        datum.inactivos ===
-                        Math.min(...dataInactivos.map((i) => i.inactivos))
-                      ) {
-                        return "#B3B3B3"; // Color para el menor número de inactivos
-                      } else {
-                        return "#878787"; // Color estándar
-                      }
-                    },
-                    width: dataDesercion.length > 4 ? 39 : 60, // Ajusta el ancho de las barras
-                  },
-                }}
-                labels={({ datum }) => `${datum.inactivos}`} // Etiqueta que muestra el valor de inactivos
-                labelComponent={
-                  <VictoryLabel
-                    dy={30} // Ajusta la posición vertical de la etiqueta
-                    style={{
-                      fill: "#F8E9D4",
-                      fontSize: 15,
-                      fontFamily: "Montserrat-Bold",
-                    }} // Estilo de la etiqueta
-                  />
-                }
-                animate={{ duration: 500 }}
-              />
-            </VictoryChart>
-            <Text style={styles.statisticalText}>
-              Podemos ver que {mensajeTendenciaInactivos}
-            </Text>
-          </View>
+                  }}
+                />
+              </VictoryChart>
+            </View>
+          ))}
 
           <TouchableOpacity
             style={styles.button}
-            onPress={() => {
-              navigation.navigate(fromScreen);
-            }}
+            onPress={() => navigation.navigate(fromScreen)}
           >
             <Text style={styles.buttonText}>Volver</Text>
           </TouchableOpacity>
@@ -578,6 +282,7 @@ const GraficarMatriculas = ({ route }) => {
     </ScrollView>
   );
 };
+
 const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
@@ -664,5 +369,4 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
-
 export default GraficarMatriculas;
