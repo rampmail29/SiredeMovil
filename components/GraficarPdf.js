@@ -26,26 +26,8 @@ const GraficarPdf = ({ route, navigation }) => {
   const { tipoInforme, datos, programa, corteInicial, corteFinal } =
     route.params;
 
-  /* datos.retenidos.forEach((a) =>
-    a.historico_estado.forEach((b) =>
-      console.log(
-        "Estado reciente: ",
-        b
-          .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
-          .nombre_estado
-      )
-    ) 
-  ); */
-  /* console.log(
-    "datos recibidos en generar pdf: ",datos
-  ); */
-
   const dataArray = datos[tipoInforme] || []; // Evitar undefined si no hay datos
-  //dataArray.foreach((a) => a.estudiantes.nombre_completo);
-  //console.log("Datos recibidos en GraficarPdf:", dataArray);
-  /* [0].historico_estado[0]
-      .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
-      .nombre_estado */
+
   const [imageUrls, setImageUrls] = useState({});
   const [showModal, setShowModal] = useState(false);
   const fetchImages = async () => {
@@ -70,7 +52,7 @@ const GraficarPdf = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchImages();
-    }, [dataArray])
+    }, [dataArray]),
   );
 
   const capitalizeFirstLetter = (string = "") => {
@@ -90,10 +72,10 @@ const GraficarPdf = ({ route, navigation }) => {
     scale.value = withRepeat(
       withSequence(
         withTiming(scaleFactor, { duration: animationDuration }),
-        withTiming(1, { duration: animationDuration })
+        withTiming(1, { duration: animationDuration }),
       ),
       -1,
-      true
+      true,
     );
   }, []);
 
@@ -109,6 +91,14 @@ const GraficarPdf = ({ route, navigation }) => {
     } else {
       generatePDF(dataArray, programa, tipoInforme, corteInicial, corteFinal);
     }
+  };
+  const capitalLetter = (str) => {
+    if (!str || typeof str !== "string") return "";
+    return str
+      .trim()
+      .split(/\s+/)
+      .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
   };
 
   return (
@@ -167,7 +157,8 @@ const GraficarPdf = ({ route, navigation }) => {
                         {capitalizeFirstLetter(dato.nombre_completo)}{" "}
                       </Text>
                       <Text style={styles.datoDocumento}>
-                        Documento: {dato.estudiantes.numero_documento}
+                        Nombre:{" "}
+                        {capitalLetter(dato.estudiantes.nombre_completo)}
                       </Text>
                     </View>
                     <TouchableOpacity

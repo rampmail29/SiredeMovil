@@ -53,12 +53,20 @@ const StudentDetail = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
 
   // === Helpers seguros ===
-  const capitalizeFirstLetter = (str) => {
+  const justCapitalLetter = (str) => {
     if (!str || typeof str !== "string") return "";
     return str
       .toLowerCase()
-      .split(" ")
+      .split(" ") 
       .map((w) => w.charAt(0).toUpperCase())
+      .join(" ");
+  };
+  const capitalLetter = (str) => {
+    if (!str || typeof str !== "string") return "";
+    return str
+      .trim()
+      .split(/\s+/)
+      .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
   };
 
@@ -251,18 +259,20 @@ const StudentDetail = ({ route, navigation }) => {
   }
 
   // student es un objeto con:
-  // { id_estudiante, nombre_completo, numero_documento, fecha_nacimiento, ... , estudiantes_carreras: [] }
+  //console.log("nombre: ", student.nombre_completo)
   const carrerasOrdenadas = ordenarCarrerasPorFecha(
     student.estudiantes_carreras || [],
   );
-/*   console.log(
+  /*   console.log(
     "🚀 ~ StudentDetail ~ carrerasOrdenadas:",
     carrerasOrdenadas[0].historico_estado[0]
       .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
       .nombre_estado,
   ); */
   const ultimoEstado =
-    carrerasOrdenadas[0].historico_estado[0].estados_academicos_historico_estado_estado_nuevo_idToestados_academicos.nombre_estado;
+    carrerasOrdenadas[0].historico_estado[0]
+      .estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
+      .nombre_estado;
   console.log(ultimoEstado);
 
   return (
@@ -311,7 +321,7 @@ const StudentDetail = ({ route, navigation }) => {
                 <View>
                   <Text style={styles.label}>Nombre:</Text>
                   <Text style={styles.text}>
-                    {capitalizeFirstLetter(safeText(student.nombre_completo))}
+                    {capitalLetter(safeText(student.nombre_completo))}
                   </Text>
                 </View>
               </View>
@@ -382,9 +392,7 @@ const StudentDetail = ({ route, navigation }) => {
                   <View>
                     <Text style={styles.labell}>Carrera:</Text>
                     <Text style={styles.text}>
-                      {capitalizeFirstLetter(
-                        safeText(carrera?.carreras?.nombre),
-                      )}
+                      {justCapitalLetter(safeText(carrera?.carreras?.nombre))}
                     </Text>
                   </View>
                 </View>
@@ -423,9 +431,7 @@ const StudentDetail = ({ route, navigation }) => {
                         carrera.historico_estado 
                           
                       ) */}
-                      {safeText(
-                        ultimoEstado || "",
-                      )}
+                      {safeText(ultimoEstado || "")}
                     </Text>
                   </View>
                 </View>

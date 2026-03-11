@@ -8,7 +8,7 @@ import { Platform } from "react-native";
 const getFormattedDate = () => {
   const date = new Date();
   return `${String(date.getDate()).padStart(2, "0")}_${String(
-    date.getMonth() + 1
+    date.getMonth() + 1,
   ).padStart(2, "0")}_${date.getFullYear()}`;
 };
 
@@ -44,7 +44,14 @@ const cleanProgramName = (nombre) => {
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
     .join("");
 };
-
+const capitalLetter = (str) => {
+  if (!str || typeof str !== "string") return "";
+  return str
+    .trim()
+    .split(/\s+/)
+    .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
 // ---------------- HTML GENERATOR ----------------
 
 const generarHTML = (
@@ -52,7 +59,7 @@ const generarHTML = (
   programa,
   tipoInforme,
   corteInicial,
-  corteFinal
+  corteFinal,
 ) => {
   //console.log(programa, tipoInforme, corteInicial, corteFinal);
   const informeTitulo =
@@ -96,10 +103,10 @@ const generarHTML = (
                 (d) => `
                 <tr>
                   <td>${d.estudiantes.numero_documento || "N/A"}</td>
-                  <td>${d.estudiantes.nombre_completo || "N/A"}</td>
+                  <td>${capitalLetter(d.estudiantes.nombre_completo) || "N/A"}</td>
                   <td>${d.estudiantes.celular || "N/A"}</td>
                   <td>${d.estudiantes.correo_electronico || "N/A"}</td>
-                </tr>`
+                </tr>`,
               )
               .join("")}
           </tbody>
@@ -118,7 +125,7 @@ export const generatePDF = async (
   programa,
   tipoInforme,
   corteInicial,
-  corteFinal
+  corteFinal,
 ) => {
   try {
     const html = generarHTML(
@@ -126,7 +133,7 @@ export const generatePDF = async (
       programa,
       tipoInforme,
       corteInicial,
-      corteFinal
+      corteFinal,
     );
 
     // 1. Generar PDF temporal

@@ -94,6 +94,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
+      //console.log("🚀 ~ cohorteTope ~ tipoPrograma:", tipoPrograma)
 
       // Obtener año y periodo del corte inicial
       const [anioInicial, periodoInicial] = selectedCorteInicial
@@ -104,7 +105,7 @@ const CortesAcademicos = ({ selectedProgram, onNext }) => {
       let cantidadSemestres = 0;
       if (tipoPrograma === "profesional") {
         cantidadSemestres = 4;
-      } else if (tipoPrograma === "tecnologico") {
+      } else if (tipoPrograma === "tecnologico" || tipoPrograma === "tecnologia") {
         cantidadSemestres = 6;
       } else {
         console.error("Tipo de programa no válido:", selectedProgram.tipo);

@@ -93,6 +93,16 @@ const OpcionesInforme = ({
     academicData?.todosEstudiantes?.filter((est) =>
       tieneEstado(est.historico_estado, "Graduado"),
     ) ?? [];
+  /* 
+  const estado_academico = () => {
+    academicData?.todosEstudiantes?.forEach((est) =>
+      console.log(
+        "estado ",
+        est.historico_estado  
+      ),
+    );
+  };
+  console.log("🚀 ~ estado_academico ~ estado_academico:", estado_academico()); */
 
   const obtenerRetenidosFiltrados = () =>
     academicData?.todosEstudiantes?.filter((est) =>
@@ -105,7 +115,7 @@ const OpcionesInforme = ({
     ) ?? [];
 
   const obtenerInactivosFiltrados = () =>
-    academicData?.inactivos?.filter((est) =>
+    academicData?.todosEstudiantes?.filter((est) =>
       tieneEstado(est.historico_estado, "Inactivo"),
     ) ?? [];
 
