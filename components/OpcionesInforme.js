@@ -5,11 +5,11 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { showMessage } from "react-native-flash-message";
 import { useNavigation } from "@react-navigation/native";
-import { ScrollView } from "react-native";
 
 const OpcionesInforme = ({
   academicData,
@@ -45,7 +45,7 @@ const OpcionesInforme = ({
     showMessage({
       message: "Error",
       description: `No se puede generar el informe de ${nombre} porque no hay datos suficientes. Seleccione programa y cortes y presione Evaluar.`,
-      duration: 5000,
+      duration: 4000,
       titleStyle: { fontSize: 19, fontFamily: "Montserrat-Bold" },
       textStyle: {
         fontSize: 18,
@@ -61,12 +61,10 @@ const OpcionesInforme = ({
    *       Función genérica para informes
    * ============================================ */
   const generarInforme = (tipo, arreglo, nombreError) => {
-    // Validar que existan cortes
     if (!selectedCorteInicial || !selectedCorteFinal) {
       return mostrarError("cortes académicos");
     }
 
-    // Validar que existan datos
     if (!academicData || !arreglo || arreglo.length === 0) {
       return mostrarError(nombreError);
     }
@@ -75,104 +73,147 @@ const OpcionesInforme = ({
   };
 
   /** ============================================
-   *        Helper para obtener estado final
+   *    Obtener último estado académico
    * ============================================ */
-  const tieneEstado = (historico, estadoBuscado) => {
-    return historico?.some((h) => {
-      const estado =
-        h.estados_academicos_historico_estado_estado_nuevo_idToestados_academicos;
-      return estado?.nombre_estado === estadoBuscado;
-    });
+  const obtenerUltimoEstado = (historico) => {
+    if (!historico || historico.length === 0) return null;
+
+    const ultimo = historico[historico.length - 1];
+
+    return (
+      ultimo
+        ?.estados_academicos_historico_estado_estado_nuevo_idToestados_academicos
+        ?.nombre_estado ?? null
+    );
   };
 
   /** ============================================
-   *               Filtrados
+   *    Filtrar estudiantes por estado
    * ============================================ */
-
-  const obtenerGraduadosFiltrados = () =>
-    academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Graduado"),
-    ) ?? [];
-  /* 
-  const estado_academico = () => {
-    academicData?.todosEstudiantes?.forEach((est) =>
-      console.log(
-        "estado ",
-        est.historico_estado  
-      ),
+  const filtrarPorEstado = (estadoBuscado) => {
+    return (
+      academicData?.todosEstudiantes?.filter((est) => {
+        const estado = obtenerUltimoEstado(est.historico_estado);
+        //console.log("🚀 ~ filtrarPorEstado ~ estado:", estado)
+        return estado === estadoBuscado;
+      }) ?? []
     );
   };
-  console.log("🚀 ~ estado_academico ~ estado_academico:", estado_academico()); */
+  /** ============================================
+   *   CONFIGURACIÓN DINÁMICA DE INFORMES
+   * ============================================ */
+  const informesConfig = [
+    {
+      tipo: "general",
+      label: "Todos los Estudiantes",
+      icon: "users",
+      obtenerDatos: () => academicData?.todosEstudiantes ?? [],
+      error: "estudiantes",
+    },
 
-  const obtenerRetenidosFiltrados = () =>
-    academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Retenido"),
-    ) ?? [];
+    {
+      tipo: "graduados",
+      label: "Graduados",
+      icon: "user-graduate",
+      estado: "GRADUADO",
+    },
 
-  const obtenerDesertadosFiltrados = () =>
-    academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Desertor"),
-    ) ?? [];
+    {
+      tipo: "retenidos",
+      label: "Retenidos",
+      icon: "user-clock",
+      estado: "RETENIDO",
+    },
 
-  const obtenerInactivosFiltrados = () =>
-    academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Inactivo"),
-    ) ?? [];
+    {
+      tipo: "desertados",
+      label: "Desertados",
+      icon: "user-times",
+      estado: "DESERTOR",
+    },
 
-  const obtenerActivosFiltrados = () =>
-    academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Activo"),
-    ) ?? [];
+    {
+      tipo: "inactivos",
+      label: "Inactivos",
+      icon: "user-slash",
+      estado: "INACTIVO",
+    },
 
-  const obtenerSobresalienteFiltrados = () =>
-    academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Sobresaliente"),
-    ) ?? [];
+    {
+      tipo: "activos",
+      label: "Activos",
+      icon: "user-check",
+      estado: "ACTIVO",
+    },
 
-  const obtenerPFIFiltrados = () =>
-    academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "PFI"),
-    ) ?? [];
+    {
+      tipo: "pfi",
+      label: "PFI",
+      icon: "exclamation-circle",
+      estado: "PFI",
+    },
 
-  const obtenerCondicionalFiltrados = () =>
-    academicData?.todosEstudiantes?.filter((est) =>
-      tieneEstado(est.historico_estado, "Condicional"),
-    ) ?? [];
+    {
+      tipo: "condicional",
+      label: "Condicional",
+      icon: "balance-scale",
+      estado: "CONDICIONAL",
+    },
+
+    {
+      tipo: "sobresaliente",
+      label: "Sobresaliente",
+      icon: "star",
+      estado: "SOBRESALIENTE",
+    },
+
+    {
+      tipo: "excluido_cancelacion_semestre",
+      label: "Cancelación Semestre",
+      icon: "ban",
+      estado: "EXCLUIDO CANCELACION SEMESTRE",
+    },
+
+    {
+      tipo: "excluido_no_renovacion_matricula",
+      label: "No Renovación",
+      icon: "calendar-times",
+      estado: "EXCLUIDO NO RENOVACION DE MATRICULA",
+    },
+
+    {
+      tipo: "excluido_permanente",
+      label: "Exclusión Permanente",
+      icon: "user-lock",
+      estado: "EXCLUIDO PERMANENTE",
+    },
+
+    {
+      tipo: "excluido_transferencia_interna",
+      label: "Transferencia Interna",
+      icon: "exchange-alt",
+      estado: "EXCLUIDO TRANSFERENCIA INTERNA",
+    },
+  ];
 
   /** ============================================
-   *        Handlers para cada informe
+   *        GENERAR INFORME DESDE CONFIG
    * ============================================ */
+  const ejecutarInforme = (config) => {
+    const datos = config.obtenerDatos
+      ? config.obtenerDatos()
+      : filtrarPorEstado(config.estado);
 
-  const generarInformeGraduados = () =>
-    generarInforme("graduados", obtenerGraduadosFiltrados(), "graduados");
+    generarInforme(config.tipo, datos, config.label);
+  };
 
-  const generarInformeRetenidos = () =>
-    generarInforme("retenidos", obtenerRetenidosFiltrados(), "retenidos");
-
-  const generarInformeDesertados = () =>
-    generarInforme("desertados", obtenerDesertadosFiltrados(), "desertados");
-
-  const generarInformeTodos = () =>
-    generarInforme("general", academicData?.todosEstudiantes, "estudiantes");
-
-  const generarInformeInactivos = () =>
-    generarInforme("inactivos", obtenerInactivosFiltrados(), "inactivos");
-
-  const generarInformeActivos = () =>
-    generarInforme("activos", obtenerActivosFiltrados(), "activos");
-
-  const generarInformeSobresaliente = () =>
-    generarInforme(
-      "sobresaliente",
-      obtenerSobresalienteFiltrados(),
-      "sobresaliente",
-    );
-
-  const generarInformePFI = () =>
-    generarInforme("pfi", obtenerPFIFiltrados(), "PFI");
-
-  const generarInformeCondicional = () =>
-    generarInforme("condicional", obtenerCondicionalFiltrados(), "condicional");
+  /** ============================================
+   *    Renderizar botones en filas de 2
+   * ============================================ */
+  const filas = [];
+  for (let i = 0; i < informesConfig.length; i += 2) {
+    filas.push(informesConfig.slice(i, i + 2));
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -182,130 +223,25 @@ const OpcionesInforme = ({
           <Text style={styles.loadingText}>Cargando...</Text>
         </View>
       ) : (
-        <>
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={generarInformeTodos}
-            >
-              <FontAwesome5
-                name="users"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Todos los Estudiantes</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={generarInformeGraduados}
-            >
-              <FontAwesome5
-                name="user-graduate"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Graduados</Text>
-            </TouchableOpacity>
+        filas.map((fila, index) => (
+          <View style={styles.row} key={index}>
+            {fila.map((config) => (
+              <TouchableOpacity
+                key={config.tipo}
+                style={styles.button}
+                onPress={() => ejecutarInforme(config)}
+              >
+                <FontAwesome5
+                  name={config.icon}
+                  size={40}
+                  color="white"
+                  style={styles.icon}
+                />
+                <Text style={styles.buttonText}>{config.label}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={generarInformeRetenidos}
-            >
-              <FontAwesome5
-                name="user-clock"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Retenidos</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={generarInformeDesertados}
-            >
-              <FontAwesome5
-                name="user-times"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Desertados</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={generarInformeInactivos}
-            >
-              <FontAwesome5
-                name="user-slash"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Inactivos</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={generarInformeActivos}
-            >
-              <FontAwesome5
-                name="user-check"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Activos</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.row}>
-            <TouchableOpacity style={styles.button} onPress={generarInformePFI}>
-              <FontAwesome5
-                name="exclamation-circle"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>PFI</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={generarInformeCondicional}
-            >
-              <FontAwesome5
-                name="balance-scale"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Condicional</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={generarInformeSobresaliente}
-            >
-              <FontAwesome5
-                name="star"
-                size={45}
-                color="white"
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Sobresaliente</Text>
-            </TouchableOpacity>
-          </View>
-        </>
+        ))
       )}
     </ScrollView>
   );
@@ -313,21 +249,18 @@ const OpcionesInforme = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    padding: 30,
-    flex: 1,
-  },
-  container: {
     paddingVertical: 20,
     paddingHorizontal: 10,
     alignItems: "center",
   },
+
   row: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginVertical: 5,
-    width: "120%",
+    marginVertical: 6,
+    width: "100%",
   },
+
   button: {
     width: 150,
     height: 140,
@@ -336,36 +269,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#575756",
     borderRadius: 8,
     marginHorizontal: 10,
-    flexDirection: "column",
     paddingVertical: 10,
     borderColor: "#878787",
     borderWidth: 5,
+
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
+    shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 10,
   },
+
   icon: {
     marginBottom: 10,
   },
+
   buttonText: {
     fontSize: 14,
     fontFamily: "Montserrat-Bold",
     color: "white",
     textAlign: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 10,
   },
+
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -376,6 +301,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
+
   loadingText: {
     marginTop: 10,
     fontSize: 14,

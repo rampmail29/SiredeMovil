@@ -27,6 +27,7 @@ const GraficarPdf = ({ route, navigation }) => {
     route.params;
 
   const dataArray = datos[tipoInforme] || []; // Evitar undefined si no hay datos
+  //console.log("🚀 ~ GraficarPdf ~ dataArray:", dataArray)
 
   const [imageUrls, setImageUrls] = useState({});
   const [showModal, setShowModal] = useState(false);
