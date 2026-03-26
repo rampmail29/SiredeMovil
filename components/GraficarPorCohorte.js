@@ -218,14 +218,14 @@ const GraficarCohorte = ({ route }) => {
     setGraduadosOportunosTec(estudiantesOportunos);
     setGraduacionOportunaTec(
       calcularTasaGraduacionOportuna(totalCohorte, estudiantesOportunos)
-    );
+    ); 
   };
 
   // Llamamos a la función después de calcular los detalles de los estudiantes
   const procesarGraduadosProfesionales = () => {
     if (graduadosOportunosTotal.length > 0) {
       const resultado = calcularDuracionEstudios(graduadosOportunosTotal);
-      //console.log("Detalles completos:", resultado.detallesEstudiantes);
+      console.log("Detalles completos:", resultado.detallesEstudiantes);
       //console.log("Total de semestres por estudiante:", resultado.totalSemestresEstudiantes);
 
       // Filtrar estudiantes con ≤12 semestres
@@ -419,7 +419,7 @@ const GraficarCohorte = ({ route }) => {
                 style={{ color: "#34531F", fontFamily: "Montserrat-Medium" }}
               >
                 Activos: {activos.length}
-              </Text>
+              </Text> 
             </View>
           </View>
           <View style={styles.legendRow}>
